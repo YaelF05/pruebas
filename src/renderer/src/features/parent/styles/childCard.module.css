@@ -1,0 +1,36 @@
+.card {
+    flex-shrink: 0;
+    width: 200px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: var(--secondary-normal);
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .card:hover {
+    background-color: var(--secondary-normal-hover);
+  }
+  
+  .card.selected {
+    background-color: #cff4e2;
+    border: 2px solid #cff4e2;
+  }
+  
+  .name {
+    font-size: var(--font-size-title1);
+    font-weight: 700;
+    color: var(--neutral-darker);
+    margin-bottom: 5px;
+  }
+  
+  .age {
+    font-size: var(--font-size-body);
+    color: var(--neutral-dark);
+    margin-bottom: 5px;
+  }
+  
+  .appointment {
+    font-size: var(--font-size-caption);
+    color: var(--neutral-dark);
+  }

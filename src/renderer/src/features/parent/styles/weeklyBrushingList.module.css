@@ -1,0 +1,52 @@
+.listContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .dayRow {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    background-color: var(--background-light);
+    border-radius: 10px;
+  }
+  
+  .dateInfo {
+    flex: 1;
+  }
+  
+  .dayName {
+    font-size: var(--font-size-title1); /* Aumentado de var(--font-size-body) */
+    color: var(--neutral-darker);
+    font-weight: 700;
+  }
+  
+  .dateText {
+    font-size: var(--font-size-body); /* Aumentado de var(--font-size-caption) */
+    color: var(--neutral-dark);
+  }
+  
+  .statusIndicators {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .indicator {
+    width: 60px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    text-align: center;
+    font-size: var(--font-size-caption);
+    font-weight: 500;
+    color: rgb(0, 0, 0);
+  }
+  
+  .indicator.completed {
+    background-color: #cff4e2;
+  }
+  
+  .indicator.pending {
+    background-color: #a0d6bc;
+    color: var(--neutral-normal);
+  }

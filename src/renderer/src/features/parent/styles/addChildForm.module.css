@@ -1,0 +1,70 @@
+.addChildForm {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+  }
+  
+  .formField {
+    position: relative;
+    width: 100%;
+  }
+  
+  .formInput, .formSelect {
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--primary-normal);
+    border-radius: 10px;
+    padding: 0 15px;
+    font-size: 16px;
+    color: var(--neutral-normal);
+    outline: none;
+    box-sizing: border-box;
+    background-color: white;
+  }
+  
+  .formInput::placeholder {
+    color: var(--primary-normal);
+  }
+  
+  .formInput:focus, .formSelect:focus {
+    border-color: var(--primary-dark);
+    box-shadow: 0 0 0 1px var(--primary-dark);
+  }
+  
+  .floatingLabel {
+    position: absolute;
+    top: 12px;
+    left: 15px;
+    font-size: 16px;
+    color: var(--primary-normal);
+    pointer-events: none;
+    transition: 0.2s;
+  }
+  
+  .formActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .cancelButton, .submitButton {
+    padding: 13px 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 16px;
+    width: 48%;
+    border: none;
+  }
+  
+  .cancelButton {
+    background-color: white;
+    border: 1px solid var(--neutral-light);
+    color: #D12B2F;
+  }
+  
+  .submitButton {
+    background-color: var(--primary-normal);
+    color: white;
+  }

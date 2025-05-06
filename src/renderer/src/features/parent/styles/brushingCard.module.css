@@ -1,0 +1,46 @@
+.card {
+    flex: 1;
+    min-width: 200px;
+    padding: 15px;
+    border-radius: 10px;
+    background-color: #e7f7f1; 
+    text-align: left; 
+    cursor: pointer;
+    transition: background-color 0.2s;
+    height: 90px; 
+    margin-right: 15px;
+  }
+  
+  .card:last-child {
+    margin-right: 0; 
+  }
+  
+  .card:hover {
+    background-color: #d0f0e8;
+  }
+  
+  .timeLabel {
+    font-size: var(--font-size-title1);
+    font-weight: 700;
+    color: var(--neutral-darker);
+    margin-bottom: 5px;
+  }
+  
+  .schedule {
+    font-size: var(--font-size-body);
+    color: var(--neutral-dark);
+    margin-bottom: 10px;
+  }
+  
+  .status {
+    font-size: var(--font-size-body);
+    font-weight: 600;
+  }
+  
+  .status.completed {
+    color: #000000; /* Color azul para completado */
+  }
+  
+  .status.pending {
+    color: #000000; 
+  }
