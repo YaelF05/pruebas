@@ -68,7 +68,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
           <option value="M">Masculino</option>
           <option value="F">Femenino</option>
         </select>
-        <label htmlFor="gender" className={styles.floatingLabel}>Género</label>
       </div>
       
       <div className={styles.formField}>
@@ -99,20 +98,20 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
       
       <div className={styles.formField}>
         <input
-          type="date"
-          id="birth_date"
-          name="birth_date"
-          value={formData.birth_date}
-          onChange={handleInputChange}
-          className={styles.formInput}
-          placeholder="Fecha de nacimiento"
-          required
+           type="text" 
+           id="birth_date"
+           name="birth_date"
+           value={formData.birth_date}
+           onChange={handleInputChange}
+           className={styles.formInput}
+           placeholder="Fecha de nacimiento"
+           required
         />
       </div>
       
       <div className={styles.formField}>
         <input
-          type="time"
+          type="text" 
           id="morning_brushing_time"
           name="morning_brushing_time"
           value={formData.morning_brushing_time}
@@ -125,9 +124,9 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
       
       <div className={styles.formField}>
         <input
-          type="time"
+          type="text" 
           id="afternoon_brushing_time"
-          name="afternoon_brushing_time"
+          name="afternoon"
           value={formData.afternoon_brushing_time}
           onChange={handleInputChange}
           className={styles.formInput}
@@ -138,7 +137,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
       
       <div className={styles.formField}>
         <input
-          type="time"
+          type="text" 
           id="night_brushing_time"
           name="night_brushing_time"
           value={formData.night_brushing_time}

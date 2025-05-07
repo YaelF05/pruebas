@@ -37,10 +37,3 @@
     font-weight: 600;
   }
   
-  .status.completed {
-    color: #000000; /* Color azul para completado */
-  }
-  
-  .status.pending {
-    color: #000000; 
-  }

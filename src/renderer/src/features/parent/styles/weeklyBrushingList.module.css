@@ -17,13 +17,13 @@
   }
   
   .dayName {
-    font-size: var(--font-size-title1); /* Aumentado de var(--font-size-body) */
+    font-size: var(--font-size-title1); 
     color: var(--neutral-darker);
     font-weight: 700;
   }
   
   .dateText {
-    font-size: var(--font-size-body); /* Aumentado de var(--font-size-caption) */
+    font-size: var(--font-size-body); 
     color: var(--neutral-dark);
   }
   

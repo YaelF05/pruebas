@@ -6,8 +6,11 @@ import styles from '../styles/home.module.css'
 import Modal from '../components/modal'
 import AddChildForm from '../components/addChildForm'
 import Clock from '@renderer/assets/icons/clock.png'
+import ClockActive from '@renderer/assets/icons/clock-active.png'
 import Children from '@renderer/assets/icons/children.png'
+import ChildrenActive from '@renderer/assets/icons/children-active.png'
 import Home from '@renderer/assets/icons/home.png'
+import HomeActive from '@renderer/assets/icons/home-active.png'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 interface Child {
@@ -37,17 +40,6 @@ interface ChildBrushingData {
   weeklyBrushing: DayBrushing[]
 }
 
-// Interfaz para los datos del formulario
-interface ChildFormData {
-  name: string
-  last_name: string
-  gender: 'M' | 'F'
-  birth_date: string
-  morning_brushing_time: string
-  afternoon_brushing_time: string
-  night_brushing_time: string
-  dentist_id: number | null
-}
 
 // Interfaz para dentistas
 interface Dentist {
@@ -355,24 +347,29 @@ const HomePage: FC = () => {
   }
 
   // Función para manejar la creación de un nuevo hijo
-  const handleAddChild = async (formData: ChildFormData) => {
+  const handleAddChild = async (data: {
+    name: string;
+    last_name: string;
+    birth_date: string;
+    morning_brushing_time: string;
+    afternoon_brushing_time: string;
+    night_brushing_time: string;
+  }) => {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       
-      // En una implementación real, esto sería una llamada a la API
-      console.log('Enviando datos del niño:', formData)
+      console.log('Enviando datos del niño:', data);
       
-      // Crear un nuevo niño con los datos del formulario
       const newChild: Child = {
         id: children.length + 1,
-        name: formData.name,
-        last_name: formData.last_name,
-        birth_date: formData.birth_date,
-        morning_brushing_time: formData.morning_brushing_time,
-        afternoon_brushing_time: formData.afternoon_brushing_time,
-        night_brushing_time: formData.night_brushing_time,
+        name: data.name,
+        last_name: data.last_name,
+        birth_date: data.birth_date,
+        morning_brushing_time: data.morning_brushing_time,
+        afternoon_brushing_time: data.afternoon_brushing_time,
+        night_brushing_time: data.night_brushing_time,
         nextAppointment: null
-      }
+      };
       
       // Actualizar el estado con el nuevo niño
       const updatedChildren = [...children, newChild]
@@ -486,34 +483,48 @@ const HomePage: FC = () => {
       </div>
 
       <nav className={styles.bottomNav}>
-        <div 
-          className={`${styles.navLink} ${activeTab === 'inicio' ? styles.active : ''}`}
-          onClick={() => handleNavClick('inicio')}
-        >
-          <div className={styles.navIcon}>
-              <img src={Home} alt="Home" className={styles.navImage} />
-          </div>
-          <span>Inicio</span>
+      <div 
+        className={`${styles.navLink} ${activeTab === 'inicio' ? styles.active : ''}`}
+        onClick={() => handleNavClick('inicio')}
+      >
+        <div className={styles.navIcon}>
+          <img 
+            src={activeTab === 'inicio' ? HomeActive : Home} 
+            alt="Home" 
+            className={styles.navImage} 
+          />
         </div>
-        <div 
-          className={`${styles.navLink} ${activeTab === 'citas' ? styles.active : ''}`}
-          onClick={() => handleNavClick('citas')}
-        >
-          <div className={styles.navIcon}>
-              <img src={Clock} alt="Clock" className={styles.navImage} />
-          </div>
-          <span>Citas</span>
+        <span>Inicio</span>
+      </div>
+      
+      <div 
+        className={`${styles.navLink} ${activeTab === 'citas' ? styles.active : ''}`}
+        onClick={() => handleNavClick('citas')}
+      >
+        <div className={styles.navIcon}>
+          <img 
+            src={activeTab === 'citas' ? ClockActive : Clock} 
+            alt="Clock" 
+            className={styles.navImage} 
+          />
         </div>
-        <div 
-          className={`${styles.navLink} ${activeTab === 'hijos' ? styles.active : ''}`}
-          onClick={() => handleNavClick('hijos')}
-        >
-          <div className={styles.navIcon}>
-              <img src={Children} alt="Children" className={styles.navImage} />
-          </div>
-          <span>Hijos</span>
+        <span>Citas</span>
+      </div>
+      
+      <div 
+        className={`${styles.navLink} ${activeTab === 'hijos' ? styles.active : ''}`}
+        onClick={() => handleNavClick('hijos')}
+      >
+        <div className={styles.navIcon}>
+          <img 
+            src={activeTab === 'hijos' ? ChildrenActive : Children} 
+            alt="Children" 
+            className={styles.navImage} 
+          />
         </div>
-      </nav>
+        <span>Hijos</span>
+      </div>
+    </nav>
 
       {/* Agregar a un nuevo hijo */}
       <Modal 
