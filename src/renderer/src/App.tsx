@@ -1,12 +1,12 @@
-import Login from '../src/features/auth/pages/login'
-import ProfileSelection from './features/parent/pages/profileSelection'
-import HomePage from './features/parent/pages/home'
+import React from 'react'
+import { HashRouter as Router } from 'react-router-dom'
+import AuthRoutes from '@renderer/routes/authRoutes'
 
 function App(): React.JSX.Element {
   return (
-    <>
-      <HomePage />
-    </>
+    <Router>
+      <AuthRoutes />
+    </Router>
   )
 }
 

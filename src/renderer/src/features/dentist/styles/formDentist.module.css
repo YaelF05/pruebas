@@ -1,0 +1,62 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 0 16px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding-bottom: 24px;
+}
+
+.title {
+  font-size: var(--font-size-h1);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 10px 0px 10px 0px;
+  text-align: left;
+}
+
+.profileImageContainer {
+  display: flex;
+  width: 100%;
+}
+
+.profileImageContainer > img {
+  width: 150px;
+  padding-right: 20px;
+}
+
+.fieldsetImage {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.timeFieldsContainer {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.timeField {
+  flex: 1;
+}
+
+.buttonContainer {
+  margin-top: 24px;
+  width: 100%;
+}

@@ -33,11 +33,11 @@ interface FatherProfile {
       {
         id: 2,
         type: 'CHILD',
-        name: 'Jhon Doe', 
+        name: 'Si', 
         fullData: {
           child_id: 2,
-          name: 'Jhon', 
-          last_name: 'Doe'
+          name: 'Si', 
+          last_name: 'No'
         }
       }
     ]

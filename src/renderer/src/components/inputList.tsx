@@ -1,26 +1,26 @@
 import React, { useState } from 'react'
-import styles from '../styles/inputForm.module.css'
+import styles from '../styles/inputList.module.css'
 
-interface InputProps {
+interface SelectListProps {
+  option1: string
+  option2: string
   label: string
   name: string
-  type?: string
   value: string
   placeholder: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
   required?: boolean
-  classname?: string
 }
 
-const InputForm: React.FC<InputProps> = ({
+const SelectList: React.FC<SelectListProps> = ({
+  option1,
+  option2,
   label,
   name,
-  type = 'text',
   value,
   placeholder,
   onChange,
-  required,
-  classname = ''
+  required
 }) => {
   const [isFocused, setIsFocused] = useState(false)
 
@@ -33,20 +33,24 @@ const InputForm: React.FC<InputProps> = ({
           {label}
         </label>
       )}
-      <input
-        type={type}
+      <select
         id={name}
         name={name}
         value={value}
-        placeholder={placeholder}
         onChange={onChange}
         required={required}
-        className={`${styles.input} ${classname}`}
+        className={styles.input}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
-      />
+      >
+        <option value="" disabled hidden>
+          {placeholder}
+        </option>
+        <option value={option1}>{option1}</option>
+        <option value={option2}>{option2}</option>
+      </select>
     </div>
   )
 }
 
-export default InputForm
+export default SelectList

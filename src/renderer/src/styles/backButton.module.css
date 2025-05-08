@@ -1,0 +1,9 @@
+.container {
+  padding: 20px 0px 10px 0px;
+}
+
+.backButton {
+  width: 35px;
+  color: var(--neutral-darker);
+  cursor: pointer;
+}

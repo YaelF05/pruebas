@@ -1,0 +1,140 @@
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 768px;
+  margin: 0 auto;
+  background-color: #f5f7fa;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.appointments-section {
+  flex: 2;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.header {
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.header p {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.date {
+  font-weight: 500;
+  margin-top: 5px;
+}
+
+.appointment-card {
+  display: flex;
+  background-color: #e8f7f2;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+
+.time-block {
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-right: 15px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.time {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.time-info {
+  font-size: 0.7rem;
+  margin-top: 4px;
+}
+
+.patient-info h3 {
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.patient-info p {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.side-panel {
+  flex: 1;
+  border-left: 1px solid #ddd;
+  padding: 20px;
+  background-color: white;
+}
+
+.side-panel h3 {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.recent-patient {
+  display: flex;
+  align-items: center;
+  background-color: #e6f3ff;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.recent-patient svg {
+  margin-right: 10px;
+}
+
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  background-color: white;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7rem;
+  color: #777;
+  cursor: pointer;
+}
+
+.nav-item.active {
+  color: #3498db;
+}
+
+.nav-item span {
+  margin-top: 4px;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .side-panel {
+    border-left: none;
+    border-top: 1px solid #ddd;
+  }
+}

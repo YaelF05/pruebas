@@ -41,7 +41,7 @@ interface ChildBrushingData {
 }
 
 
-// Interfaz para dentistas
+
 interface Dentist {
   id: number
   name: string
@@ -57,14 +57,14 @@ const HomePage: FC = () => {
   const [activeTab, setActiveTab] = useState<string>('inicio')
   const [isLoading, setIsLoading] = useState(true)
   
-  // Estado para datos de cepillado
+  
   const [childrenBrushingData, setChildrenBrushingData] = useState<{[key: number]: ChildBrushingData}>({})
   
-  // Estados para el modal
+  
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [dentists, setDentists] = useState<Dentist[]>([])
 
-  // Cargar datos del usuario actual y sus hijos
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -81,7 +81,7 @@ const HomePage: FC = () => {
         const brushingData = await fetchChildrenBrushingData(childrenData)
         setChildrenBrushingData(brushingData)
 
-        // Mock fetch dentists
+        
         const dentistsData = await fetchDentists()
         setDentists(dentistsData)
       } catch (error) {
@@ -94,9 +94,9 @@ const HomePage: FC = () => {
     fetchData()
   }, [])
 
-  // Mock function to fetch dentists
+  
   const fetchDentists = async () => {
-    // In a real implementation, this would be an API call
+    
     return [
       { id: 1, name: 'Dr. María Pérez' },
       { id: 2, name: 'Dr. Juan García' },
@@ -121,7 +121,7 @@ const HomePage: FC = () => {
     ]
   }
 
-  // prueba obtener datos de cepillado
+  
   const fetchChildrenBrushingData = async (children: Child[]): Promise<{[key: number]: ChildBrushingData}> => {
   
     const brushRecords = await fetchBrushRecords();
@@ -192,13 +192,12 @@ const HomePage: FC = () => {
       date.setDate(firstDayOfWeek.getDate() + i);
       const dayStr = date.toISOString().substring(0, 10);
       
-      // Filtrar registros para este día y niño
       const dayRecords = brushRecords.filter(record => 
         record.child_id === childId && 
         record.brush_datetime.startsWith(dayStr)
       );
       
-      // Determinar estado de cepillado para cada periodo
+      // estado de cepillado para cada periodo
       const morningCompleted = dayRecords.some(record => {
         const hour = new Date(record.brush_datetime).getHours();
         return hour >= 6 && hour < 12;
@@ -236,7 +235,7 @@ const HomePage: FC = () => {
     const currentStatus = currentData.todayBrushing[time]
     const newStatus = currentStatus === 'pending' ? 'completed' : 'pending'
     
-    // Actualizar estado local
+    
     const newTodayBrushing = {
       ...currentData.todayBrushing,
       [time]: newStatus
@@ -244,7 +243,6 @@ const HomePage: FC = () => {
     
     try {
       if (newStatus === 'completed') {
-        // Determinar la hora según el periodo
         let brushDatetime = new Date();
         if (time === 'morning') {
           brushDatetime.setHours(8, 0, 0);
@@ -261,7 +259,7 @@ const HomePage: FC = () => {
         await deleteBrushRecord(selectedChild.id, time);
       }
       
-      // Actualizar estado local
+      
       const updatedChildData = {
         ...currentData,
         todayBrushing: newTodayBrushing
@@ -289,7 +287,7 @@ const HomePage: FC = () => {
     }
   }
 
-  // Simular operaciones de API para registros de cepillado
+  
   const createBrushRecord = async (childId: number, brushDatetime: string) => {
     console.log(`Creando registro de cepillado para niño ${childId} en ${brushDatetime}`);
     
@@ -346,7 +344,7 @@ const HomePage: FC = () => {
     return childrenBrushingData[selectedChild.id]
   }
 
-  // Función para manejar la creación de un nuevo hijo
+  
   const handleAddChild = async (data: {
     name: string;
     last_name: string;
@@ -371,12 +369,10 @@ const HomePage: FC = () => {
         nextAppointment: null
       };
       
-      // Actualizar el estado con el nuevo niño
       const updatedChildren = [...children, newChild]
       setChildren(updatedChildren)
       setSelectedChild(newChild)
       
-      // Configurar datos de cepillado para el nuevo niño
       const newBrushingData = {
         todayBrushing: {
           morning: 'pending' as const,

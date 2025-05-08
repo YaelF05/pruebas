@@ -2,53 +2,97 @@
   display: flex;
   width: 100%;
   height: 100vh;
+  overflow: hidden;
+}
+
+/* Sección hero/imagen */
+.heroSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50%;
 }
 
 .heroImage {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  height: 100vh;
+  width: 90%;
+  max-height: 90vh;
+  object-fit: contain;
 }
 
-.heroImage img {
-  width: 100%;
-}
-
-.formContainer {
+/* Sección formulario */
+.formSection {
   display: flex;
   flex-direction: column;
-  width: 100%;
-  padding: 0px 20px 0px 20px;
+  justify-content: center;
+  width: 50%;
+  padding: 0px 20px;
 }
 
-.formContainer p {
-  margin-bottom: 20px;
-  text-align: center;
+.formWrapper {
+  max-width: 480px;
+  width: 100%;
 }
 
 .formTitle {
-  font-family: var(--Quicksand);
-  font-size: 35px;
+  font-family: var(--Quicksand, 'Quicksand', sans-serif);
+  font-size: var(--font-size-h1);
   font-weight: 700;
   color: var(--neutral-darker);
-  margin-top: 30px;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .form {
   display: flex;
-  justify-content: space-between;
   flex-direction: column;
-  height: 100%;
 }
 
-.fieldset {
-  border: none;
-  padding: 0;
-}
-
-.containerButton {
+.inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+}
+
+.forgotPassword {
+  text-align: right;
+  margin-top: 1rem;
+}
+
+.forgotPassword a {
+  color: var(--primary-dark);
+  text-decoration: none;
+  font-size: var(--font-size-title2);
+  font-weight: 700;
+}
+
+.forgotPassword a:hover {
+  text-decoration: underline;
+}
+
+.actionGroup {
+  display: flex;
+  flex-direction: column;
+  margin-top: 1.5rem;
+}
+
+.registerPrompt {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: var(--font-size-title1);
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+.registerPrompt a {
+  color: var(--tertiary-dark);
+  text-decoration: none;
+}
+
+.registerPrompt a:hover {
+  text-decoration: underline;
+}
+
+.registerLink u {
+  color: var(--tertiary-dark);
+  font-size: var(--font-size-title1);
+  font-weight: 700;
 }

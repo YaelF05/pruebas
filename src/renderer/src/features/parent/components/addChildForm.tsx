@@ -28,7 +28,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
   onSubmit,
   onCancel
 }) => {
-  // Estado del formulario manejado internamente
+
   const [formData, setFormData] = useState<ChildFormData>({
     name: '',
     last_name: '',
@@ -40,7 +40,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
     dentist_id: null
   })
 
-  // Manejador de cambios en inputs
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData({
@@ -49,7 +49,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
     })
   }
 
-  // Manejador de envío del formulario
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit(formData)

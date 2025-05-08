@@ -1,26 +1,23 @@
 import React, { useState } from 'react'
-import styles from '../styles/inputForm.module.css'
+import styles from '../styles/textareaInput.module.css'
 
 interface InputProps {
   label: string
   name: string
-  type?: string
   value: string
   placeholder: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   required?: boolean
   classname?: string
 }
 
-const InputForm: React.FC<InputProps> = ({
+const TextareaInput: React.FC<InputProps> = ({
   label,
   name,
-  type = 'text',
   value,
   placeholder,
   onChange,
-  required,
-  classname = ''
+  required
 }) => {
   const [isFocused, setIsFocused] = useState(false)
 
@@ -33,15 +30,14 @@ const InputForm: React.FC<InputProps> = ({
           {label}
         </label>
       )}
-      <input
-        type={type}
+      <textarea
         id={name}
         name={name}
         value={value}
         placeholder={placeholder}
         onChange={onChange}
         required={required}
-        className={`${styles.input} ${classname}`}
+        className={styles.input}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
@@ -49,4 +45,4 @@ const InputForm: React.FC<InputProps> = ({
   )
 }
 
-export default InputForm
+export default TextareaInput

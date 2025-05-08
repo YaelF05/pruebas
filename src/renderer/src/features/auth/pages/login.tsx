@@ -1,57 +1,74 @@
-import { useState } from 'react'
+import { useState, FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import heroImage from '@renderer/assets/images/dentalDesign.svg'
 import InputForm from '@renderer/components/inputForm'
 import Button from '@renderer/components/button'
 import styles from '../styles/login.module.css'
 
-const Login: React.FC = () => {
+const Login = (): React.JSX.Element => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
-    //Manejo se sesión*
-    console.log('Login submitted:', { email, password })
+
+    try {
+      // Inicio de sesión (simulado)
+      console.log('Iniciando sesión con:', { email, password })
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error)
+    }
   }
 
   return (
     <div className={styles.container}>
-      {/* Hero section */}
-      <section className={styles.heroImage}>
-        <img src={heroImage} alt="Hero image odonto" />
+      {/* Sección hero/imagen */}
+      <section className={styles.heroSection}>
+        <img src={heroImage} alt="Ilustración dental" className={styles.heroImage} />
       </section>
 
-      {/* Forms section */}
-      <section className={styles.formContainer}>
-        <h1 className={styles.formTitle}>¡Bienvenido de nuevo!</h1>
+      {/* Sección de formulario */}
+      <section className={styles.formSection}>
+        <div className={styles.formWrapper}>
+          <h1 className={styles.formTitle}>¡Bienvenido de nuevo!</h1>
 
-        <form onSubmit={handleSubmit} method="POST" className={styles.form}>
-          <fieldset className={styles.fieldset}>
-            <InputForm
-              label="Correo electrónico"
-              name="email"
-              type="email"
-              value={email}
-              placeholder="correo electrónico"
-              onChange={(e) => setEmail(e.target.value)}
-              required={true}
-            />
-            <InputForm
-              label="Contraseña"
-              name="password"
-              type="password"
-              value={password}
-              placeholder="Contraseña"
-              onChange={(e) => setPassword(e.target.value)}
-              required={true}
-            />
-          </fieldset>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.inputGroup}>
+              <InputForm
+                label={'Correo electrónico'}
+                name={'email'}
+                type={'email'}
+                value={email}
+                placeholder={'Ingrese su correo electrónico'}
+                onChange={(e) => setEmail(e.target.value)}
+                required={true}
+              />
+              <InputForm
+                label={'Contraseña'}
+                name={'password'}
+                type={'password'}
+                value={password}
+                placeholder={'Ingrese su contraseña'}
+                onChange={(e) => setPassword(e.target.value)}
+                required={true}
+              />
 
-          <div className={styles.containerButton}>
-            <Button name={'Iniciar sesión'} type={'submit'} />
-            <p>¿Aún no tiene cuenta?</p>
-          </div>
-        </form>
+              <div className={styles.forgotPassword}>
+                <Link to="/recover-password">¿Olvidaste tu contraseña?</Link>
+              </div>
+            </div>
+
+            <div className={styles.actionGroup}>
+              <Button name={'Iniciar sesión'} type={'submit'} />
+              <p className={styles.registerPrompt}>
+                ¿Aún no tienes cuenta?{' '}
+                <Link to="/singup" className={styles.registerLink}>
+                  <u>Crea una</u>
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </section>
     </div>
   )
