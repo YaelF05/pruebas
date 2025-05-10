@@ -1,4 +1,5 @@
 import { FC, useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BrushingCard from '../components/brushingCard'
 import WeeklyBrushingList from '../components/weeklyBrushingList'
 import ChildCard from '../components/childCard'
@@ -48,9 +49,8 @@ interface Dentist {
 }
 
 const HomePage: FC = () => {
-  const navigate = (path: string) => {
-    console.log(`Navegando a: ${path}`)
-  }
+  const navigate = useNavigate()
+
 
   const [children, setChildren] = useState<Child[]>([])
   const [selectedChild, setSelectedChild] = useState<Child | null>(null)
@@ -300,9 +300,11 @@ const HomePage: FC = () => {
 
   const handleNavClick = (tab: string) => {
     if (tab === 'citas') {
-      navigate('/appointment')
+      navigate('')
     } else if (tab === 'hijos') {
-      navigate('/children')
+      navigate('')
+    } else if (tab === 'inicio') {
+      navigate('/home')
     }
     setActiveTab(tab)
   }

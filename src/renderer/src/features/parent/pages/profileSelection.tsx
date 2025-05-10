@@ -1,4 +1,5 @@
 import { FC } from 'react'
+import { useNavigate } from 'react-router-dom'
 import styles from '../styles/profileSelection.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
@@ -19,6 +20,8 @@ interface FatherProfile {
     | { id: number; type: 'CHILD'; name: string; fullData: ChildProfile };
   
   const ProfileSelection: FC = () => {
+    const navigate = useNavigate()
+
     const profiles: Profile[] = [
       {
         id: 1,
@@ -44,9 +47,11 @@ interface FatherProfile {
   
     const handleProfileSelect = (profile: Profile) => {
       if (profile.type === 'FATHER') {
-        console.log(`Perfil seleccionado: ${profile.name}`)
+        console.log(`Perfil seleccionado: ${profile.name} (Padre)`)
+        navigate('/home')
       } else {
-        console.log(`Perfil seleccionado: ${profile.name}`)
+        console.log(`Perfil seleccionado: ${profile.name} (Niño)`)
+        alert('Funcionalidad de perfil de niño en desarrollo')
       }
     }
   
