@@ -23,12 +23,7 @@ interface AddChildFormProps {
   onCancel: () => void
 }
 
-const AddChildForm: React.FC<AddChildFormProps> = ({
-  dentists,
-  onSubmit,
-  onCancel
-}) => {
-
+const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState<ChildFormData>({
     name: '',
     last_name: '',
@@ -40,7 +35,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
     dentist_id: null
   })
 
-  
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData({
@@ -49,7 +44,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
     })
   }
 
-  
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     onSubmit(formData)
@@ -58,10 +53,10 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
       <div className={styles.formField}>
-        <select 
-          id="gender" 
-          name="gender" 
-          value={formData.gender} 
+        <select
+          id="gender"
+          name="gender"
+          value={formData.gender}
           onChange={handleInputChange}
           className={styles.formSelect}
         >
@@ -69,7 +64,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
           <option value="F">Femenino</option>
         </select>
       </div>
-      
+
       <div className={styles.formField}>
         <input
           type="text"
@@ -82,7 +77,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
           required
         />
       </div>
-      
+
       <div className={styles.formField}>
         <input
           type="text"
@@ -95,23 +90,23 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
           required
         />
       </div>
-      
+
       <div className={styles.formField}>
         <input
-           type="text" 
-           id="birth_date"
-           name="birth_date"
-           value={formData.birth_date}
-           onChange={handleInputChange}
-           className={styles.formInput}
-           placeholder="Fecha de nacimiento"
-           required
+          type="date"
+          id="birth_date"
+          name="birth_date"
+          value={formData.birth_date}
+          onChange={handleInputChange}
+          className={styles.formInput}
+          placeholder="Fecha de nacimiento"
+          required
         />
       </div>
-      
+
       <div className={styles.formField}>
         <input
-          type="text" 
+          type="time"
           id="morning_brushing_time"
           name="morning_brushing_time"
           value={formData.morning_brushing_time}
@@ -121,10 +116,10 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
           required
         />
       </div>
-      
+
       <div className={styles.formField}>
         <input
-          type="text" 
+          type="time"
           id="afternoon_brushing_time"
           name="afternoon"
           value={formData.afternoon_brushing_time}
@@ -134,10 +129,10 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
           required
         />
       </div>
-      
+
       <div className={styles.formField}>
         <input
-          type="text" 
+          type="time"
           id="night_brushing_time"
           name="night_brushing_time"
           value={formData.night_brushing_time}
@@ -147,36 +142,29 @@ const AddChildForm: React.FC<AddChildFormProps> = ({
           required
         />
       </div>
-      
+
       <div className={styles.formField}>
-        <select 
-          id="dentist_id" 
-          name="dentist_id" 
+        <select
+          id="dentist_id"
+          name="dentist_id"
           value={formData.dentist_id || ''}
           onChange={handleInputChange}
           className={styles.formSelect}
         >
           <option value="">Seleccionar odontólogo</option>
-          {dentists.map(dentist => (
+          {dentists.map((dentist) => (
             <option key={dentist.id} value={dentist.id}>
               {dentist.name}
             </option>
           ))}
         </select>
       </div>
-      
+
       <div className={styles.formActions}>
-        <button 
-          type="button" 
-          className={styles.cancelButton}
-          onClick={onCancel}
-        >
+        <button type="button" className={styles.cancelButton} onClick={onCancel}>
           Cancelar
         </button>
-        <button 
-          type="submit" 
-          className={styles.submitButton}
-        >
+        <button type="submit" className={styles.submitButton}>
           Agregar
         </button>
       </div>

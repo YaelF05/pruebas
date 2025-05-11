@@ -1,0 +1,56 @@
+  /* barra nav */
+  .bottomNav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content:center;
+    background-color: white;
+    padding: 15px 0;
+  }
+  
+  /*icons barra nav*/
+  .navLink {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 0;
+    color: var(--neutral-normal);
+    min-width: 60px;
+    margin: 0 20px;
+  }
+  
+  /*texto debajo de los icons*/
+  .navLink span {
+    font-size: 14px; 
+    font-weight: 300;
+    transition: color 0.3s, font-weight 0.3s;
+  
+  }
+  
+  .active span {
+    color: var(--primary-normal);
+    font-weight: 600;
+  }
+  
+  .active {
+    color: var(--primary-normal);
+  }
+  
+  .navIcon {
+    margin-bottom: 5px; 
+    width: 24px; 
+    height: 24px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  
+  .navImage {
+    width: 35px; 
+    height: 35px; 
+    object-fit: contain;
+  }

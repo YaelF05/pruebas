@@ -17,10 +17,11 @@ interface WeeklyBrushingListProps {
 }
 
 const WeeklyBrushingList: React.FC<WeeklyBrushingListProps> = ({ days }) => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const formatDate = (date: Date) => {
     const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'long' }).format(date)
     const dayDate = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long' }).format(date)
-    
+
     return {
       name: dayName.charAt(0).toUpperCase() + dayName.slice(1),
       date: dayDate
@@ -31,24 +32,18 @@ const WeeklyBrushingList: React.FC<WeeklyBrushingListProps> = ({ days }) => {
     <div className={styles.listContainer}>
       {days.map((day, index) => {
         const formattedDate = formatDate(day.date)
-        
+
         return (
           <div key={index} className={styles.dayRow}>
             <div className={styles.dateInfo}>
               <div className={styles.dayName}>{formattedDate.name}</div>
               <div className={styles.dateText}>{formattedDate.date}</div>
             </div>
-            
+
             <div className={styles.statusIndicators}>
-              <div className={`${styles.indicator} ${styles[day.status.morning]}`}>
-                Mañana
-              </div>
-              <div className={`${styles.indicator} ${styles[day.status.afternoon]}`}>
-                Tarde
-              </div>
-              <div className={`${styles.indicator} ${styles[day.status.night]}`}>
-                Noche
-              </div>
+              <div className={`${styles.indicator} ${styles[day.status.morning]}`}>Mañana</div>
+              <div className={`${styles.indicator} ${styles[day.status.afternoon]}`}>Tarde</div>
+              <div className={`${styles.indicator} ${styles[day.status.night]}`}>Noche</div>
             </div>
           </div>
         )

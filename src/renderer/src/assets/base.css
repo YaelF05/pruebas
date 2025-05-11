@@ -115,6 +115,9 @@
 
   /* Background - Darker */
   --background-darker: #575758;
+
+  /* Error */
+  --error-primary: #f02849;
 }
 
 :root {

@@ -45,3 +45,11 @@
   -webkit-box-shadow: 0 0 0px 1000px #ffffff inset;
   -webkit-text-fill-color: var(--primary-normal);
 }
+
+.input[type='date']::-webkit-calendar-picker-indicator,
+.input[type='time']::-webkit-calendar-picker-indicator,
+.input[type='datetime-local']::-webkit-calendar-picker-indicator,
+.input[type='month']::-webkit-calendar-picker-indicator,
+.input[type='week']::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+}

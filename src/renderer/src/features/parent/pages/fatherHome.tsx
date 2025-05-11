@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import BrushingCard from '../components/brushingCard'
 import WeeklyBrushingList from '../components/weeklyBrushingList'
 import ChildCard from '../components/childCard'
-import styles from '../styles/home.module.css'
+import styles from '../styles/fatherHome.module.css'
 import Modal from '../components/modal'
 import AddChildForm from '../components/addChildForm'
 import Clock from '@renderer/assets/icons/clock.png'
@@ -17,12 +17,12 @@ import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 interface Child {
   id: number
   name: string
-  last_name?: string 
-  birth_date: string 
-  morning_brushing_time: string 
+  last_name?: string
+  birth_date: string
+  morning_brushing_time: string
   afternoon_brushing_time: string
   night_brushing_time: string
-  nextAppointment: string | null 
+  nextAppointment: string | null
 }
 
 interface BrushingStatus {
@@ -41,8 +41,6 @@ interface ChildBrushingData {
   weeklyBrushing: DayBrushing[]
 }
 
-
-
 interface Dentist {
   id: number
   name: string
@@ -51,37 +49,35 @@ interface Dentist {
 const HomePage: FC = () => {
   const navigate = useNavigate()
 
-
   const [children, setChildren] = useState<Child[]>([])
   const [selectedChild, setSelectedChild] = useState<Child | null>(null)
   const [activeTab, setActiveTab] = useState<string>('inicio')
   const [isLoading, setIsLoading] = useState(true)
-  
-  
-  const [childrenBrushingData, setChildrenBrushingData] = useState<{[key: number]: ChildBrushingData}>({})
-  
-  
+
+  const [childrenBrushingData, setChildrenBrushingData] = useState<{
+    [key: number]: ChildBrushingData
+  }>({})
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [dentists, setDentists] = useState<Dentist[]>([])
 
-  
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const fetchData = async () => {
       try {
         setIsLoading(true)
- 
-        const childrenData = await fetchChildren();
-        
+
+        const childrenData = await fetchChildren()
+
         setChildren(childrenData)
         if (childrenData.length > 0) {
           setSelectedChild(childrenData[0])
         }
-        
+
         // Cargar datos de cepillado de cada hijo
         const brushingData = await fetchChildrenBrushingData(childrenData)
         setChildrenBrushingData(brushingData)
 
-        
         const dentistsData = await fetchDentists()
         setDentists(dentistsData)
       } catch (error) {
@@ -92,11 +88,11 @@ const HomePage: FC = () => {
     }
 
     fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const fetchDentists = async () => {
-    
     return [
       { id: 1, name: 'Dr. María Pérez' },
       { id: 2, name: 'Dr. Juan García' },
@@ -104,7 +100,7 @@ const HomePage: FC = () => {
     ]
   }
 
-  // 
+  //
   const fetchChildren = async (): Promise<Child[]> => {
     // Datos prueba
     return [
@@ -121,13 +117,13 @@ const HomePage: FC = () => {
     ]
   }
 
-  
-  const fetchChildrenBrushingData = async (children: Child[]): Promise<{[key: number]: ChildBrushingData}> => {
-  
-    const brushRecords = await fetchBrushRecords();
-    
-    const initialData: {[key: number]: ChildBrushingData} = {}
-    
+  const fetchChildrenBrushingData = async (
+    children: Child[]
+  ): Promise<{ [key: number]: ChildBrushingData }> => {
+    const brushRecords = await fetchBrushRecords()
+
+    const initialData: { [key: number]: ChildBrushingData } = {}
+
     for (const child of children) {
       // registro de cepillado del chamaco
       initialData[child.id] = {
@@ -135,138 +131,139 @@ const HomePage: FC = () => {
         weeklyBrushing: generateWeeklyBrushing(brushRecords, child.id)
       }
     }
-    
+
     return initialData
   }
 
-  // modificar para que se guarde la info 
+  // modificar para que se guarde la info
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const fetchBrushRecords = async () => {
     return [
-      { brush_id: 1, child_id: 1, brush_datetime: new Date().toISOString().substring(0, 10) + 'T08:30:00' },
+      {
+        brush_id: 1,
+        child_id: 1,
+        brush_datetime: new Date().toISOString().substring(0, 10) + 'T08:30:00'
+      }
     ]
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getBrushingStatusForToday = (brushRecords: any[], childId: number): BrushingStatus => {
-    const today = new Date().toISOString().substring(0, 10);
-    
-    const todayRecords = brushRecords.filter(record => 
-      record.child_id === childId && 
-      record.brush_datetime.startsWith(today)
-    );
-    
- 
-    const morningCompleted = todayRecords.some(record => {
-      const hour = new Date(record.brush_datetime).getHours();
-      return hour >= 6 && hour < 12;
-    });
-    
-    const afternoonCompleted = todayRecords.some(record => {
-      const hour = new Date(record.brush_datetime).getHours();
-      return hour >= 12 && hour < 18;
-    });
-    
-    const nightCompleted = todayRecords.some(record => {
-      const hour = new Date(record.brush_datetime).getHours();
-      return hour >= 18 || hour < 24;
-    });
-    
+    const today = new Date().toISOString().substring(0, 10)
+
+    const todayRecords = brushRecords.filter(
+      (record) => record.child_id === childId && record.brush_datetime.startsWith(today)
+    )
+
+    const morningCompleted = todayRecords.some((record) => {
+      const hour = new Date(record.brush_datetime).getHours()
+      return hour >= 6 && hour < 12
+    })
+
+    const afternoonCompleted = todayRecords.some((record) => {
+      const hour = new Date(record.brush_datetime).getHours()
+      return hour >= 12 && hour < 18
+    })
+
+    const nightCompleted = todayRecords.some((record) => {
+      const hour = new Date(record.brush_datetime).getHours()
+      return hour >= 18 || hour < 24
+    })
+
     return {
       morning: morningCompleted ? 'completed' : 'pending',
       afternoon: afternoonCompleted ? 'completed' : 'pending',
-      night: nightCompleted ? 'completed' : 'pending',
-    };
+      night: nightCompleted ? 'completed' : 'pending'
+    }
   }
 
   // Genera datos semanales basados en registros de cepillado
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generateWeeklyBrushing = (brushRecords: any[], childId: number): DayBrushing[] => {
-    const days: DayBrushing[] = [];
-    const today = new Date();
-    
-    const firstDayOfWeek = new Date(today);
-    const dayOfWeek = today.getDay();
-    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    firstDayOfWeek.setDate(diff);
-    
+    const days: DayBrushing[] = []
+    const today = new Date()
+
+    const firstDayOfWeek = new Date(today)
+    const dayOfWeek = today.getDay()
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+    firstDayOfWeek.setDate(diff)
+
     for (let i = 0; i < 7; i++) {
-      const date = new Date(firstDayOfWeek);
-      date.setDate(firstDayOfWeek.getDate() + i);
-      const dayStr = date.toISOString().substring(0, 10);
-      
-      const dayRecords = brushRecords.filter(record => 
-        record.child_id === childId && 
-        record.brush_datetime.startsWith(dayStr)
-      );
-      
+      const date = new Date(firstDayOfWeek)
+      date.setDate(firstDayOfWeek.getDate() + i)
+      const dayStr = date.toISOString().substring(0, 10)
+
+      const dayRecords = brushRecords.filter(
+        (record) => record.child_id === childId && record.brush_datetime.startsWith(dayStr)
+      )
+
       // estado de cepillado para cada periodo
-      const morningCompleted = dayRecords.some(record => {
-        const hour = new Date(record.brush_datetime).getHours();
-        return hour >= 6 && hour < 12;
-      });
-      
-      const afternoonCompleted = dayRecords.some(record => {
-        const hour = new Date(record.brush_datetime).getHours();
-        return hour >= 12 && hour < 18;
-      });
-      
-      const nightCompleted = dayRecords.some(record => {
-        const hour = new Date(record.brush_datetime).getHours();
-        return hour >= 18 || hour < 6;
-      });
-      
+      const morningCompleted = dayRecords.some((record) => {
+        const hour = new Date(record.brush_datetime).getHours()
+        return hour >= 6 && hour < 12
+      })
+
+      const afternoonCompleted = dayRecords.some((record) => {
+        const hour = new Date(record.brush_datetime).getHours()
+        return hour >= 12 && hour < 18
+      })
+
+      const nightCompleted = dayRecords.some((record) => {
+        const hour = new Date(record.brush_datetime).getHours()
+        return hour >= 18 || hour < 6
+      })
+
       days.push({
         date,
         status: {
           morning: morningCompleted ? 'completed' : 'pending',
           afternoon: afternoonCompleted ? 'completed' : 'pending',
-          night: nightCompleted ? 'completed' : 'pending',
+          night: nightCompleted ? 'completed' : 'pending'
         }
-      });
+      })
     }
-    
-    return days;
+
+    return days
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night') => {
     if (!selectedChild) return
-    
+
     const currentData = childrenBrushingData[selectedChild.id]
     if (!currentData) return
-    
+
     const currentStatus = currentData.todayBrushing[time]
     const newStatus = currentStatus === 'pending' ? 'completed' : 'pending'
-    
-    
+
     const newTodayBrushing = {
       ...currentData.todayBrushing,
       [time]: newStatus
     }
-    
+
     try {
       if (newStatus === 'completed') {
-        let brushDatetime = new Date();
+        const brushDatetime = new Date()
         if (time === 'morning') {
-          brushDatetime.setHours(8, 0, 0);
+          brushDatetime.setHours(8, 0, 0)
         } else if (time === 'afternoon') {
-          brushDatetime.setHours(14, 0, 0);
+          brushDatetime.setHours(14, 0, 0)
         } else {
-          brushDatetime.setHours(20, 0, 0);
+          brushDatetime.setHours(20, 0, 0)
         }
-        
-        
-        await createBrushRecord(selectedChild.id, brushDatetime.toISOString());
+
+        await createBrushRecord(selectedChild.id, brushDatetime.toISOString())
       } else {
-       
-        await deleteBrushRecord(selectedChild.id, time);
+        await deleteBrushRecord(selectedChild.id, time)
       }
-      
-      
+
       const updatedChildData = {
         ...currentData,
         todayBrushing: newTodayBrushing
       }
-      
+
       const today = new Date()
-      const updatedWeeklyBrushing = currentData.weeklyBrushing.map(day => {
+      const updatedWeeklyBrushing = currentData.weeklyBrushing.map((day) => {
         if (day.date.toDateString() === today.toDateString()) {
           return {
             ...day,
@@ -275,9 +272,9 @@ const HomePage: FC = () => {
         }
         return day
       })
-      
+
       updatedChildData.weeklyBrushing = updatedWeeklyBrushing
-      
+
       setChildrenBrushingData({
         ...childrenBrushingData,
         [selectedChild.id]: updatedChildData
@@ -287,49 +284,47 @@ const HomePage: FC = () => {
     }
   }
 
-  
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const createBrushRecord = async (childId: number, brushDatetime: string) => {
-    console.log(`Creando registro de cepillado para niño ${childId} en ${brushDatetime}`);
-    
-  }
-  
-  const deleteBrushRecord = async (childId: number, time: string) => {
-    console.log(`Eliminando registro de cepillado para niño ${childId} en periodo ${time}`);
-    
+    console.log(`Creando registro de cepillado para niño ${childId} en ${brushDatetime}`)
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const deleteBrushRecord = async (childId: number, time: string) => {
+    console.log(`Eliminando registro de cepillado para niño ${childId} en periodo ${time}`)
+  }
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleNavClick = (tab: string) => {
     if (tab === 'citas') {
-      navigate('')
+      navigate('/appointmentsFather')
     } else if (tab === 'hijos') {
       navigate('')
     } else if (tab === 'inicio') {
-      navigate('/home')
+      navigate('/homeFather')
     }
     setActiveTab(tab)
   }
 
-   
   const calculateAge = (birthDateStr: string): number => {
-    const birthDate = new Date(birthDateStr);
-    const today = new Date();
-    
-    let age = today.getFullYear() - birthDate.getFullYear();
-    
+    const birthDate = new Date(birthDateStr)
+    const today = new Date()
+
+    let age = today.getFullYear() - birthDate.getFullYear()
+
     if (
-      today.getMonth() < birthDate.getMonth() || 
+      today.getMonth() < birthDate.getMonth() ||
       (today.getMonth() === birthDate.getMonth() && today.getDate() < birthDate.getDate())
     ) {
-      age--;
+      age--
     }
-    
-    return age;
+
+    return age
   }
-  
-  
+
   const formatAge = (birthDateStr: string): string => {
-    const age = calculateAge(birthDateStr);
-    return `${age} ${age === 1 ? 'año' : 'años'}`;
+    const age = calculateAge(birthDateStr)
+    return `${age} ${age === 1 ? 'año' : 'años'}`
   }
 
   const getCurrentChildBrushingData = (): ChildBrushingData => {
@@ -338,7 +333,7 @@ const HomePage: FC = () => {
         todayBrushing: {
           morning: 'pending',
           afternoon: 'pending',
-          night: 'pending',
+          night: 'pending'
         },
         weeklyBrushing: []
       }
@@ -346,20 +341,20 @@ const HomePage: FC = () => {
     return childrenBrushingData[selectedChild.id]
   }
 
-  
   const handleAddChild = async (data: {
-    name: string;
-    last_name: string;
-    birth_date: string;
-    morning_brushing_time: string;
-    afternoon_brushing_time: string;
-    night_brushing_time: string;
+    name: string
+    last_name: string
+    birth_date: string
+    morning_brushing_time: string
+    afternoon_brushing_time: string
+    night_brushing_time: string
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }) => {
     try {
-      setIsLoading(true);
-      
-      console.log('Enviando datos del niño:', data);
-      
+      setIsLoading(true)
+
+      console.log('Enviando datos del niño:', data)
+
       const newChild: Child = {
         id: children.length + 1,
         name: data.name,
@@ -369,12 +364,12 @@ const HomePage: FC = () => {
         afternoon_brushing_time: data.afternoon_brushing_time,
         night_brushing_time: data.night_brushing_time,
         nextAppointment: null
-      };
-      
+      }
+
       const updatedChildren = [...children, newChild]
       setChildren(updatedChildren)
       setSelectedChild(newChild)
-      
+
       const newBrushingData = {
         todayBrushing: {
           morning: 'pending' as const,
@@ -383,15 +378,14 @@ const HomePage: FC = () => {
         },
         weeklyBrushing: generateWeeklyBrushing([], newChild.id)
       }
-      
+
       setChildrenBrushingData({
         ...childrenBrushingData,
         [newChild.id]: newBrushingData
       })
-      
+
       // Cerrar el modal
       setIsModalOpen(false)
-      
     } catch (error) {
       console.error('Error al agregar niño:', error)
     } finally {
@@ -418,7 +412,7 @@ const HomePage: FC = () => {
         {/* Sección de hijos */}
         <div className={styles.childrenSection}>
           <div className={styles.childrenCards}>
-            {children.map(child => (
+            {children.map((child) => (
               <ChildCard
                 key={child.id}
                 child={child}
@@ -427,11 +421,8 @@ const HomePage: FC = () => {
                 formatAge={formatAge}
               />
             ))}
-            
-            <button 
-              className={styles.addChildButton}
-              onClick={() => setIsModalOpen(true)}
-            >
+
+            <button className={styles.addChildButton} onClick={() => setIsModalOpen(true)}>
               <span className={styles.plusIcon}>+</span>
               <span>Agregar</span>
             </button>
@@ -441,13 +432,10 @@ const HomePage: FC = () => {
         {selectedChild && (
           <>
             <div className={styles.brushingSection}>
-              <h2 className={styles.sectionTitle}>
-                Cepillado de {selectedChild.name}
-              </h2>
+              <h2 className={styles.sectionTitle}>Cepillado de {selectedChild.name}</h2>
               <p className={styles.sectionSubtitle}>
                 Hoy {new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}
               </p>
-              
               <div className={styles.brushingCards}>
                 <BrushingCard
                   time="morning"
@@ -481,53 +469,51 @@ const HomePage: FC = () => {
       </div>
 
       <nav className={styles.bottomNav}>
-      <div 
-        className={`${styles.navLink} ${activeTab === 'inicio' ? styles.active : ''}`}
-        onClick={() => handleNavClick('inicio')}
-      >
-        <div className={styles.navIcon}>
-          <img 
-            src={activeTab === 'inicio' ? HomeActive : Home} 
-            alt="Home" 
-            className={styles.navImage} 
-          />
+        <div
+          className={`${styles.navLink} ${activeTab === 'inicio' ? styles.active : ''}`}
+          onClick={() => handleNavClick('inicio')}
+        >
+          <div className={styles.navIcon}>
+            <img
+              src={activeTab === 'inicio' ? HomeActive : Home}
+              alt="Home"
+              className={styles.navImage}
+            />
+          </div>
+          <span>Inicio</span>
         </div>
-        <span>Inicio</span>
-      </div>
-      
-      <div 
-        className={`${styles.navLink} ${activeTab === 'citas' ? styles.active : ''}`}
-        onClick={() => handleNavClick('citas')}
-      >
-        <div className={styles.navIcon}>
-          <img 
-            src={activeTab === 'citas' ? ClockActive : Clock} 
-            alt="Clock" 
-            className={styles.navImage} 
-          />
+        <div
+          className={`${styles.navLink} ${activeTab === 'citas' ? styles.active : ''}`}
+          onClick={() => handleNavClick('citas')}
+        >
+          <div className={styles.navIcon}>
+            <img
+              src={activeTab === 'citas' ? ClockActive : Clock}
+              alt="Clock"
+              className={styles.navImage}
+            />
+          </div>
+          <span>Citas</span>
         </div>
-        <span>Citas</span>
-      </div>
-      
-      <div 
-        className={`${styles.navLink} ${activeTab === 'hijos' ? styles.active : ''}`}
-        onClick={() => handleNavClick('hijos')}
-      >
-        <div className={styles.navIcon}>
-          <img 
-            src={activeTab === 'hijos' ? ChildrenActive : Children} 
-            alt="Children" 
-            className={styles.navImage} 
-          />
+        <div
+          className={`${styles.navLink} ${activeTab === 'hijos' ? styles.active : ''}`}
+          onClick={() => handleNavClick('hijos')}
+        >
+          <div className={styles.navIcon}>
+            <img
+              src={activeTab === 'hijos' ? ChildrenActive : Children}
+              alt="Children"
+              className={styles.navImage}
+            />
+          </div>
+          <span>Hijos</span>
         </div>
-        <span>Hijos</span>
-      </div>
-    </nav>
+      </nav>
 
       {/* Agregar a un nuevo hijo */}
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         title="Danos a conocer un poco más sobre tu hijo"
       >
         <AddChildForm
