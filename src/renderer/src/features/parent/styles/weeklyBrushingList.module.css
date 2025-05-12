@@ -24,7 +24,7 @@
   
   .dateText {
     font-size: var(--font-size-body); 
-    color: var(--neutral-dark);
+    color: var(--neutral-darker);
   }
   
   .statusIndicators {
@@ -39,14 +39,14 @@
     text-align: center;
     font-size: var(--font-size-caption);
     font-weight: 500;
-    color: rgb(0, 0, 0);
+    color: var(--neutral-darker);
   }
   
   .indicator.completed {
-    background-color: #cff4e2;
+    background-color: var(--secondary-normal-hover);
   }
   
   .indicator.pending {
-    background-color: #a0d6bc;
+    background-color: var(--secondary-normal);
     color: var(--neutral-normal);
   }

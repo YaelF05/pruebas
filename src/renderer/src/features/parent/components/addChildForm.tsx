@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import InputForm from '@renderer/components/inputForm'
+import InputList from '@renderer/components/inputList'
 import styles from '../styles/addChildForm.module.css'
 
 interface Dentist {
@@ -35,13 +37,24 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     dentist_id: null
   })
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  ) => {
     const { name, value } = e.target
-    setFormData({
-      ...formData,
-      [name]: value
-    })
+
+    // Para el campo dentist_id, convertir a número o null
+    if (name === 'dentist_id') {
+      setFormData({
+        ...formData,
+        [name]: value ? parseInt(value) : null
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      })
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -50,114 +63,120 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     onSubmit(formData)
   }
 
+  // Opciones para el género
+  const genderOptions = [
+    { label: 'Masculino', value: 'M' },
+    { label: 'Femenino', value: 'F' }
+  ]
+
+  // Opciones para los dentistas
+  const dentistOptions = dentists.map((dentist) => ({
+    label: dentist.name,
+    value: dentist.id.toString()
+  }))
+
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
       <div className={styles.formField}>
-        <select
-          id="gender"
+        <InputList
+          options={genderOptions}
+          label="Género"
           name="gender"
           value={formData.gender}
+          placeholder="Seleccione el género"
           onChange={handleInputChange}
-          className={styles.formSelect}
-        >
-          <option value="M">Masculino</option>
-          <option value="F">Femenino</option>
-        </select>
+          required
+        />
       </div>
 
       <div className={styles.formField}>
-        <input
-          type="text"
-          id="name"
+        <InputForm
+          label="Nombre(s)"
           name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          className={styles.formInput}
-          placeholder="Nombre(s)"
-          required
-        />
-      </div>
-
-      <div className={styles.formField}>
-        <input
           type="text"
-          id="last_name"
+          value={formData.name}
+          placeholder="Nombre(s)"
+          onChange={handleInputChange}
+          required
+          classname={styles.formInput}
+        />
+      </div>
+
+      <div className={styles.formField}>
+        <InputForm
+          label="Apellidos"
           name="last_name"
+          type="text"
           value={formData.last_name}
-          onChange={handleInputChange}
-          className={styles.formInput}
           placeholder="Apellidos"
+          onChange={handleInputChange}
           required
+          classname={styles.formInput}
         />
       </div>
 
       <div className={styles.formField}>
-        <input
-          type="date"
-          id="birth_date"
+        <InputForm
+          label="Fecha de nacimiento"
           name="birth_date"
+          type="date"
           value={formData.birth_date}
-          onChange={handleInputChange}
-          className={styles.formInput}
           placeholder="Fecha de nacimiento"
+          onChange={handleInputChange}
           required
+          classname={styles.formInput}
         />
       </div>
 
       <div className={styles.formField}>
-        <input
-          type="time"
-          id="morning_brushing_time"
+        <InputForm
+          label="Hora de cepillado matutino"
           name="morning_brushing_time"
+          type="time"
           value={formData.morning_brushing_time}
-          onChange={handleInputChange}
-          className={styles.formInput}
           placeholder="Hora de cepillado matutino"
+          onChange={handleInputChange}
           required
+          classname={styles.formInput}
         />
       </div>
 
       <div className={styles.formField}>
-        <input
+        <InputForm
+          label="Hora de cepillado al medio día"
+          name="afternoon_brushing_time"
           type="time"
-          id="afternoon_brushing_time"
-          name="afternoon"
           value={formData.afternoon_brushing_time}
-          onChange={handleInputChange}
-          className={styles.formInput}
           placeholder="Hora de cepillado al medio día"
+          onChange={handleInputChange}
           required
+          classname={styles.formInput}
         />
       </div>
 
       <div className={styles.formField}>
-        <input
-          type="time"
-          id="night_brushing_time"
+        <InputForm
+          label="Hora de cepillado nocturno"
           name="night_brushing_time"
+          type="time"
           value={formData.night_brushing_time}
-          onChange={handleInputChange}
-          className={styles.formInput}
           placeholder="Hora de cepillado nocturno"
+          onChange={handleInputChange}
           required
+          classname={styles.formInput}
         />
       </div>
 
       <div className={styles.formField}>
-        <select
-          id="dentist_id"
+        <InputList
+          options={dentistOptions}
+          label="Odontólogo"
           name="dentist_id"
-          value={formData.dentist_id || ''}
+          value={formData.dentist_id?.toString() || ''}
+          placeholder="Seleccionar odontólogo"
           onChange={handleInputChange}
-          className={styles.formSelect}
-        >
-          <option value="">Seleccionar odontólogo</option>
-          {dentists.map((dentist) => (
-            <option key={dentist.id} value={dentist.id}>
-              {dentist.name}
-            </option>
-          ))}
-        </select>
+          required={false}
+        />
       </div>
 
       <div className={styles.formActions}>

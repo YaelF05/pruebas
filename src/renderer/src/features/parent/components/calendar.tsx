@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import styles from '../styles/calendar.module.css'
-import Calendario from '@renderer/assets/images/profile-icon-9.png'
+import Calendario from '@renderer/assets/icons/calendar.png'
 
 interface CalendarProps {
   selectedDate: Date

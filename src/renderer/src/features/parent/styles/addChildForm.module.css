@@ -1,50 +1,23 @@
 .addChildForm {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 5px;
   width: 100%;
   padding: 0 5px;
 }
 
 .formField {
-  position: relative;
   width: 100%;
-}
-
-.formInput, .formSelect {
-  width: 100%;
-  height: 46px;
-  border: 1px solid var(--primary-normal);
-  border-radius: 10px;
-  padding: 0 15px;
-  font-size: var(--font-size-title1);
-  color: var(--primary-normal-hover);
-  outline: none;
-  box-sizing: border-box;
-  background-color: var(--background-light);
-  font-family: var(--Quicksand);
-}
-
-.formInput::placeholder {
-  color: var(--primary-normal-hover);
-  font-family: var(--Quicksand);
-}
-
-.formSelect {
-  appearance: none;
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 20px;
-  padding-right: 30px;
 }
 
 .formActions {
   display: flex;
   justify-content: space-between;
   margin-top: 15px;
+  gap: 10px;
 }
 
-.cancelButton, .submitButton {
+.cancelButton {
   padding: 12px 0;
   border-radius: 10px;
   font-weight: 700;
@@ -53,17 +26,24 @@
   width: 48%;
   height: 46px;
   font-family: var(--Quicksand);
-}
-
-.cancelButton {
   background-color: var(--background-light);
-  border: 1px solid red;
-  color: red;
+  border: 1px solid var(--error-primary);
+  color: var(--error-primary);
   transition: background-color 0.2s;
 }
 
 .cancelButton:hover {
   background-color: var(--neutral-light);
+}
+.submitButton {
+  padding: 12px 0;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: var(--font-size-title1);
+  width: 48%;
+  height: 46px;
+  font-family: var(--Quicksand);
 }
 
 .submitButton {

@@ -11,7 +11,7 @@ import AppointmentsFather from '@renderer/features/parent/pages/appointmentsFath
 function AuthRoutes(): React.JSX.Element {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<AppointmentsFather />} />
       <Route path="/signup" element={<Singup />} />
 
       {/* Routes for Dentist */}

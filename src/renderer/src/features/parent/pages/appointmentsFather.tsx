@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import Calendar from '../components/calendar'
 import AppointmentCard from '../components/appointmentCard'
 import styles from '../styles/appointmentsFather.module.css'
-import Dentist from '@renderer/assets/images/profile-icon-9.png'
+import Dentist from '@renderer/assets/images/dentist.png'
 import Clock from '@renderer/assets/icons/clock.png'
 import ClockActive from '@renderer/assets/icons/clock-active.png'
 import Children from '@renderer/assets/icons/children.png'
 import ChildrenActive from '@renderer/assets/icons/children-active.png'
 import Home from '@renderer/assets/icons/home.png'
 import HomeActive from '@renderer/assets/icons/home-active.png'
+import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 interface AppointmentData {
   appointmentId: number
@@ -239,7 +240,7 @@ const AppointmentsPage: FC = () => {
       <div className={styles.appointmentsPage}>
         <div className={styles.profileContainer}>
           <div className={styles.profileImage}>
-            <div className={styles.profilePlaceholder}>👤</div>
+            <img src={ProfileAvatar} alt="Profile" className={styles.profileAvatar} />
           </div>
         </div>
 

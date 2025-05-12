@@ -297,7 +297,7 @@ const HomePage: FC = () => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleNavClick = (tab: string) => {
     if (tab === 'citas') {
-      navigate('/appointmentsFather')
+      navigate('/appointmentFather')
     } else if (tab === 'hijos') {
       navigate('')
     } else if (tab === 'inicio') {

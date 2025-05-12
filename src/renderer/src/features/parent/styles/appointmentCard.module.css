@@ -1,0 +1,110 @@
+.appointmentCard {
+  display: flex;
+  background-color: var(--secondary-normal);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  margin-left: 40px;
+  max-width: 100%;
+  height: 90px;
+}
+
+.timeBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  width: 120px;
+  padding: 15px;
+  background-color: var(--primary-normal);
+  color: var(--background-light);
+}
+
+.appointmentTime {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-h2);
+  font-weight: 700;
+  color: var(--background-light);
+  margin-bottom: 5px;
+}
+
+.timeRemaining {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-caption);
+  color: var(--background-light);
+}
+
+.appointmentDetails {
+  flex: 1;
+  padding: 12px 15px;
+  position: relative;
+}
+
+.patientName {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-title1);
+  font-weight: 700;
+  color: var(--primary-darker);
+  margin-bottom: 2px;
+}
+
+.appointmentDescription {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-body);
+  color: var(--neutral-normal);
+  margin-bottom: 8px;
+}
+
+.doctorName {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-body);
+  font-weight: 700;
+  color: var(--secondary-dark);
+  margin-bottom: 8px;
+}
+
+.appointmentActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  height: calc(100% - 24px);
+  justify-content: center;
+}
+
+.rescheduleButton, .cancelButton {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  font-size: var(--font-size-caption);
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+  width: 140px;
+  text-align: center;
+  font-family: var(--Quicksand);
+}
+
+.rescheduleButton {
+  background-color: var(--primary-normal);
+  color: var(--background-light);
+  transition: background-color 0.2s;
+}
+
+.cancelButton {
+  background-color: var(--background-light);
+  color: var(--error-primary);
+  border: 1px solid var(--error-primary);
+  transition: background-color 0.2s;
+}
+
+.rescheduleButton:hover {
+  background-color: var(--primary-normal-hover);
+}
+
+.cancelButton:hover {
+  background-color: var(--background-normal-hover);
+}
