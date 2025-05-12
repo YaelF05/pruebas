@@ -64,15 +64,54 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Calendario desplegable con mejor adaptación */
 .calendarDropdown {
-  position: absolute;
-  top: 135px;
-  width: 110%;
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 280px;
+  height: auto;
   background-color: var(--background-light);
   border-radius: 10px;
-  z-index: 10;
+  z-index: 1000;
   padding: 15px;
   border: 1px solid var(--neutral-light);
+  top: auto;
+  bottom: auto;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+}
+
+/* Si hay espacio suficiente, posiciona normalmente */
+@media (min-height: 650px) {
+  .calendarDropdown {
+    position: absolute;
+    top: 100%;
+    margin-top: 5px;
+  }
+}
+
+/* Si no hay espacio suficiente, ajusta la posición */
+@media (max-height: 650px) {
+  .calendarDropdown {
+    position: fixed;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-height: 90vh;
+  }
+}
+
+/* Para pantallas muy pequeñas - SOLO AQUÍ AJUSTAMOS LA POSICIÓN HORIZONTAL */
+@media (max-height: 576px) {
+  .calendarDropdown {
+    position: fixed;
+    top: 50%;
+    left: 40%; /* Ajustado para estar ligeramente a la izquierda */
+    transform: translate(-50%, -50%);
+    max-height: calc(100vh - 100px);
+    width: 260px;
+    padding: 12px;
+  }
 }
 
 .calendarHeader {
@@ -82,27 +121,28 @@
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--neutral-light);
+  flex-shrink: 0;
 }
 
 .calendarTitle {
   font-weight: 700;
-  color: var(--primary-dark);
-  font-size: var(--font-size-title1);
+  color: var(--primary-normal);
+  font-size: 16px;
 }
 
 .calendarNavigation {
   display: flex;
-  gap: 10px;
+  gap: 5px;
 }
 
 .calendarNavigation button {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 22px;
+  font-size: 20px;
   color: var(--primary-normal);
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -117,22 +157,24 @@
 .weekDays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 0;
+  margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .weekDay {
   text-align: center;
-  font-size: var(--font-size-caption);
+  font-size: 12px;
   font-weight: 700;
-  color: var(--primary-dark);
+  color: var(--neutral-dark);
   padding: 5px 0;
 }
 
 .calendarDays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  gap: 2px;
+  padding-bottom: 5px;
 }
 
 .calendarDay {
@@ -143,9 +185,9 @@
   align-items: center;
   border-radius: 50%;
   cursor: pointer;
-  font-size: var(--font-size-body);
+  font-size: 14px;
   color: var(--neutral-normal);
-  margin: 2px auto;
+  margin: 0 auto;
   transition: background-color 0.2s;
 }
 
@@ -160,4 +202,52 @@
 .selectedDay {
   background-color: var(--primary-normal);
   color: var(--background-light);
+  font-weight: 700;
+}
+
+.today {
+  background-color: var(--primary-light);
+  color: var(--primary-normal);
+  font-weight: 700;
+}
+
+/* Ajustes adicionales para pantallas pequeñas */
+@media (max-height: 576px) {
+  .dayNumber {
+    font-size: 50px;
+  }
+  
+  .month {
+    font-size: 16px;
+  }
+  
+  .navigationControls {
+    height: 36px;
+  }
+  
+  .navButton, .calendarButton {
+    height: 36px;
+    font-size: 28px;
+  }
+  
+  .calendarTitle {
+    font-size: 14px;
+  }
+  
+  .calendarNavigation button {
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
+  }
+  
+  .weekDay {
+    font-size: 11px;
+    padding: 3px 0;
+  }
+  
+  .calendarDay {
+    width: 26px;
+    height: 26px;
+    font-size: 12px;
+  }
 }

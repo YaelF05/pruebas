@@ -3,7 +3,7 @@
   flex-direction: column;
   height: 100vh;
   padding: 20px;
-  background-color: white;
+  background-color: var(--background-light);
   position: relative;
   overflow: hidden;
 }
@@ -18,7 +18,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background-color: white;
+  background-color: var(--background-light);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -133,7 +133,7 @@
 
 .dentistsText {
   font-weight: 700;
-  color: white;
+  color: var(--background-light);
   font-size: clamp(12px, 1.8vw, 16px);
   text-align: center;
   line-height: 1.2;
