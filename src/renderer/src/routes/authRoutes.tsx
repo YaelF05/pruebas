@@ -7,11 +7,12 @@ import DentistDashboard from '@renderer/features/dentist/pages/dentistDashboard'
 import ProfileSelection from '@renderer/features/parent/pages/profileSelection'
 import HomePageFather from '@renderer/features/parent/pages/fatherHome'
 import AppointmentsFather from '@renderer/features/parent/pages/appointmentsFather'
+import DentisDirectory from '@renderer/features/parent/pages/dentistsDirectory'
 
 function AuthRoutes(): React.JSX.Element {
   return (
     <Routes>
-      <Route path="/" element={<AppointmentsFather />} />
+      <Route path="/" element={<HomePageFather />} />
       <Route path="/signup" element={<Singup />} />
 
       {/* Routes for Dentist */}
@@ -25,6 +26,7 @@ function AuthRoutes(): React.JSX.Element {
       <Route path="/profile-selection" element={<ProfileSelection />} />
       <Route path="/homeFather" element={<HomePageFather />} />
       <Route path="/appointmentFather" element={<AppointmentsFather />} />
+      <Route path="/dentistDirectory" element={<DentisDirectory />} />
     </Routes>
   )
 }

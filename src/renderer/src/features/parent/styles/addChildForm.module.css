@@ -60,3 +60,26 @@
 .submitButton:active {
   background-color: var(--primary-normal-active);
 }
+
+.errorMessage {
+  color: var(--error-primary);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  margin-top: 4px;
+  padding-left: 10px;
+  font-family: var(--Quicksand);
+}
+
+/* Estilo para campos con error */
+.formField input:invalid,
+.formField select:invalid {
+  border-color: var(--error-primary);
+}
+
+/* Indicador visual de campo requerido */
+.formField label:after {
+  content: '';
+  color: var(--error-primary);
+  font-weight: 700;
+  margin-left: 2px;
+}

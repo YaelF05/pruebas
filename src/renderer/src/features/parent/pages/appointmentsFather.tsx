@@ -203,7 +203,7 @@ const AppointmentsPage: FC = () => {
   // Función para navegar a la página de dentistas
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const navigateToDentists = () => {
-    navigate('/dentists')
+    navigate('/dentistDirectory')
   }
 
   // Función para manejar la navegación de la barra inferior

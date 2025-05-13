@@ -19,6 +19,11 @@ interface ChildFormData {
   dentist_id: number | null
 }
 
+interface FormErrors {
+  birth_date?: string
+  dentist_id?: string
+}
+
 interface AddChildFormProps {
   dentists: Dentist[]
   onSubmit: (childData: ChildFormData) => void
@@ -36,6 +41,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     night_brushing_time: '20:00',
     dentist_id: null
   })
+
+  const [errors, setErrors] = useState<FormErrors>({})
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -55,11 +62,83 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
         [name]: value
       })
     }
+
+    // Limpiar errores cuando el usuario modifica el campo
+    if (errors[name as keyof FormErrors]) {
+      setErrors({
+        ...errors,
+        [name]: undefined
+      })
+    }
+  }
+
+  // Función para validar la edad
+  const validateAge = (birthDate: string): string | undefined => {
+    if (!birthDate) {
+      return 'La fecha de nacimiento es requerida'
+    }
+
+    const birth = new Date(birthDate)
+    const today = new Date()
+
+    // Calcular la edad
+    let age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--
+    }
+
+    // Validar que la fecha no sea futura
+    if (birth > today) {
+      return 'La fecha de nacimiento no puede ser futura'
+    }
+
+    // Validar rango de edad
+    if (age < 4) {
+      return 'El niño debe tener al menos 4 años'
+    }
+
+    if (age > 13) {
+      return 'El niño no puede tener más de 13 años'
+    }
+
+    return undefined
+  }
+
+  // Función para validar el odontólogo
+  const validateDentist = (dentistId: number | null): string | undefined => {
+    if (!dentistId) {
+      return 'Debe seleccionar un odontólogo'
+    }
+    return undefined
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validar campos
+    const birthDateError = validateAge(formData.birth_date)
+    const dentistError = validateDentist(formData.dentist_id)
+
+    const newErrors: FormErrors = {}
+
+    if (birthDateError) {
+      newErrors.birth_date = birthDateError
+    }
+
+    if (dentistError) {
+      newErrors.dentist_id = dentistError
+    }
+
+    // Si hay errores, actualizar el estado y no enviar
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+
+    // Si no hay errores, enviar el formulario
     onSubmit(formData)
   }
 
@@ -117,7 +196,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
 
       <div className={styles.formField}>
         <InputForm
-          label="Fecha de nacimiento"
+          label="Fecha de nacimiento (4-13 años)"
           name="birth_date"
           type="date"
           value={formData.birth_date}
@@ -126,6 +205,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
           required
           classname={styles.formInput}
         />
+        {errors.birth_date && <div className={styles.errorMessage}>{errors.birth_date}</div>}
       </div>
 
       <div className={styles.formField}>
@@ -170,13 +250,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
       <div className={styles.formField}>
         <InputList
           options={dentistOptions}
-          label="Odontólogo"
+          label="Odontólogo *"
           name="dentist_id"
           value={formData.dentist_id?.toString() || ''}
           placeholder="Seleccionar odontólogo"
           onChange={handleInputChange}
-          required={false}
+          required={true}
         />
+        {errors.dentist_id && <div className={styles.errorMessage}>{errors.dentist_id}</div>}
       </div>
 
       <div className={styles.formActions}>

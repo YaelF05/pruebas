@@ -64,53 +64,22 @@
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Calendario desplegable con mejor adaptación */
 .calendarDropdown {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 310px;
+  left: 20px;
   width: 280px;
-  height: auto;
   background-color: var(--background-light);
   border-radius: 10px;
   z-index: 1000;
   padding: 15px;
   border: 1px solid var(--neutral-light);
-  top: auto;
-  bottom: auto;
-  max-height: calc(100vh - 150px);
-  overflow-y: auto;
 }
 
-/* Si hay espacio suficiente, posiciona normalmente */
-@media (min-height: 650px) {
-  .calendarDropdown {
-    position: absolute;
-    top: 100%;
-    margin-top: 5px;
-  }
-}
-
-/* Si no hay espacio suficiente, ajusta la posición */
+/* Ajuste para pantallas pequeñas */
 @media (max-height: 650px) {
   .calendarDropdown {
-    position: fixed;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    max-height: 90vh;
-  }
-}
-
-/* Para pantallas muy pequeñas - SOLO AQUÍ AJUSTAMOS LA POSICIÓN HORIZONTAL */
-@media (max-height: 576px) {
-  .calendarDropdown {
-    position: fixed;
-    top: 50%;
-    left: 40%; /* Ajustado para estar ligeramente a la izquierda */
-    transform: translate(-50%, -50%);
-    max-height: calc(100vh - 100px);
-    width: 260px;
-    padding: 12px;
+    top: 220px;
   }
 }
 
@@ -209,45 +178,4 @@
   background-color: var(--primary-light);
   color: var(--primary-normal);
   font-weight: 700;
-}
-
-/* Ajustes adicionales para pantallas pequeñas */
-@media (max-height: 576px) {
-  .dayNumber {
-    font-size: 50px;
-  }
-  
-  .month {
-    font-size: 16px;
-  }
-  
-  .navigationControls {
-    height: 36px;
-  }
-  
-  .navButton, .calendarButton {
-    height: 36px;
-    font-size: 28px;
-  }
-  
-  .calendarTitle {
-    font-size: 14px;
-  }
-  
-  .calendarNavigation button {
-    font-size: 18px;
-    width: 24px;
-    height: 24px;
-  }
-  
-  .weekDay {
-    font-size: 11px;
-    padding: 3px 0;
-  }
-  
-  .calendarDay {
-    width: 26px;
-    height: 26px;
-    font-size: 12px;
-  }
 }
