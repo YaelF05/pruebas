@@ -3,7 +3,7 @@
     min-width: 200px;
     padding: 15px;
     border-radius: 10px;
-    background-color: var(--secondary-normal); 
+    background-color: #e7f7f1; 
     text-align: left; 
     cursor: pointer;
     transition: background-color 0.2s;
@@ -16,7 +16,7 @@
   }
   
   .card:hover {
-    background-color: var(--secondary-normal-hover);
+    background-color: #d0f0e8;
   }
   
   .timeLabel {

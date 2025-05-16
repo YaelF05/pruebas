@@ -1,4 +1,5 @@
 import { FC, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import BackButton from '@renderer/components/backButton'
 import styles from '../styles/dentistsDirectory.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
@@ -18,6 +19,8 @@ interface DentistData {
 }
 
 const DentistsPage: FC = () => {
+  const navigate = useNavigate()
+
   // Estado para almacenar los dentistas (mock data)
   const [dentists] = useState<DentistData[]>([
     {
@@ -96,8 +99,7 @@ const DentistsPage: FC = () => {
 
   // Función para navegar al detalle del dentista
   const handleDentistClick = (dentistId: number): void => {
-    // Futura navegación al detalle del dentista
-    console.log('Ver detalles del dentista:', dentistId)
+    navigate(`/dentist/${dentistId}`)
   }
 
   return (

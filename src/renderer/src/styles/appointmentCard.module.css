@@ -37,13 +37,13 @@
 
 .appointmentDetails {
   flex: 1;
-  padding: 12px 15px;
+  padding: 4px 15px;
   position: relative;
 }
 
 .patientName {
   font-family: var(--Quicksand);
-  font-size: var(--font-size-title1);
+  font-size: var(--font-size-h3);
   font-weight: 700;
   color: var(--primary-darker);
   margin-bottom: 2px;
@@ -51,16 +51,16 @@
 
 .appointmentDescription {
   font-family: var(--Quicksand);
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-title1);
   color: var(--neutral-normal);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .doctorName {
   font-family: var(--Quicksand);
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-h3);
   font-weight: 700;
-  color: var(--secondary-dark);
+  color: var(--secondary-dark-active);
   margin-bottom: 8px;
 }
 
@@ -79,7 +79,7 @@
   padding: 8px 12px;
   border-radius: 5px;
   border: none;
-  font-size: var(--font-size-caption);
+  font-size: var(--font-size-body);
   cursor: pointer;
   font-weight: 600;
   white-space: nowrap;
@@ -97,7 +97,7 @@
 .cancelButton {
   background-color: var(--background-light);
   color: var(--error-primary);
-  border: 1px solid var(--error-primary);
+  border: 2px solid var(--error-primary);
   transition: background-color 0.2s;
 }
 

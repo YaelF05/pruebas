@@ -1,85 +1,70 @@
 .addChildForm {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: 100%;
-  padding: 0 5px;
-}
-
-.formField {
-  width: 100%;
-}
-
-.formActions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-  gap: 10px;
-}
-
-.cancelButton {
-  padding: 12px 0;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: var(--font-size-title1);
-  width: 48%;
-  height: 46px;
-  font-family: var(--Quicksand);
-  background-color: var(--background-light);
-  border: 1px solid var(--error-primary);
-  color: var(--error-primary);
-  transition: background-color 0.2s;
-}
-
-.cancelButton:hover {
-  background-color: var(--neutral-light);
-}
-.submitButton {
-  padding: 12px 0;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  font-size: var(--font-size-title1);
-  width: 48%;
-  height: 46px;
-  font-family: var(--Quicksand);
-}
-
-.submitButton {
-  background-color: var(--primary-normal);
-  border: none;
-  color: var(--primary-light);
-  transition: background-color 0.2s;
-}
-
-.submitButton:hover {
-  background-color: var(--primary-normal-hover);
-}
-
-.submitButton:active {
-  background-color: var(--primary-normal-active);
-}
-
-.errorMessage {
-  color: var(--error-primary);
-  font-size: var(--font-size-body);
-  font-weight: 600;
-  margin-top: 4px;
-  padding-left: 10px;
-  font-family: var(--Quicksand);
-}
-
-/* Estilo para campos con error */
-.formField input:invalid,
-.formField select:invalid {
-  border-color: var(--error-primary);
-}
-
-/* Indicador visual de campo requerido */
-.formField label:after {
-  content: '';
-  color: var(--error-primary);
-  font-weight: 700;
-  margin-left: 2px;
-}
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    padding: 0 5px;
+  }
+  
+  .formField {
+    position: relative;
+    width: 100%;
+  }
+  
+  .formInput, .formSelect {
+    width: 100%;
+    height: 46px;
+    border: 1px solid #389bda;
+    border-radius: 10px;
+    padding: 0 15px;
+    font-size: 16px;
+    color: #1a2e46;
+    outline: none;
+    box-sizing: border-box;
+    background-color: white;
+    font-family: var(--Quicksand);
+  }
+  
+  .formInput::placeholder {
+    color: #389bda;
+    font-family: var(--Quicksand);
+    opacity: 0.8;
+  }
+  
+  .formSelect {
+    appearance: none;
+    
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    padding-right: 30px;
+  }
+  
+  .formActions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+  }
+  
+  .cancelButton, .submitButton {
+    padding: 12px 0;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 16px;
+    width: 48%;
+    height: 46px;
+    font-family: var(--Quicksand);
+  }
+  
+  .cancelButton {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    color: #D12B2F;
+  }
+  
+  .submitButton {
+    background-color: #389bda;
+    border: none;
+    color: white;
+  }

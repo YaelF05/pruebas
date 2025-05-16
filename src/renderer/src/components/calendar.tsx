@@ -65,22 +65,18 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange }) => {
     const year = selectedDate.getFullYear()
     const month = selectedDate.getMonth()
 
-    // Obtener el primer día del mes
     const firstDayOfMonth = new Date(year, month, 1)
-    // Obtener el día de la semana del primer día (0 = domingo, 1 = lunes, etc.)
+
     const firstDayOfWeek = firstDayOfMonth.getDay()
-    // Obtener el último día del mes
+
     const lastDayOfMonth = new Date(year, month + 1, 0).getDate()
 
-    // Arreglo para almacenar los días
     const daysArray: (Date | null)[] = []
 
-    // Agregar días vacíos para completar la semana al inicio
     for (let i = 0; i < firstDayOfWeek; i++) {
       daysArray.push(null)
     }
 
-    // Agregar todos los días del mes
     for (let i = 1; i <= lastDayOfMonth; i++) {
       daysArray.push(new Date(year, month, i))
     }
@@ -88,7 +84,6 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onDateChange }) => {
     return daysArray
   }
 
-  // Días de la semana
   const weekDays = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
 
   return (

@@ -1,6 +1,4 @@
 import React, { useState } from 'react'
-import InputForm from '@renderer/components/inputForm'
-import InputList from '@renderer/components/inputList'
 import styles from '../styles/addChildForm.module.css'
 
 interface Dentist {
@@ -19,18 +17,18 @@ interface ChildFormData {
   dentist_id: number | null
 }
 
-interface FormErrors {
-  birth_date?: string
-  dentist_id?: string
-}
-
 interface AddChildFormProps {
   dentists: Dentist[]
   onSubmit: (childData: ChildFormData) => void
   onCancel: () => void
 }
 
-const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCancel }) => {
+const AddChildForm: React.FC<AddChildFormProps> = ({
+  dentists,
+  onSubmit,
+  onCancel
+}) => {
+
   const [formData, setFormData] = useState<ChildFormData>({
     name: '',
     last_name: '',
@@ -42,229 +40,143 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     dentist_id: null
   })
 
-  const [errors, setErrors] = useState<FormErrors>({})
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  ) => {
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-
-    // Para el campo dentist_id, convertir a número o null
-    if (name === 'dentist_id') {
-      setFormData({
-        ...formData,
-        [name]: value ? parseInt(value) : null
-      })
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      })
-    }
-
-    // Limpiar errores cuando el usuario modifica el campo
-    if (errors[name as keyof FormErrors]) {
-      setErrors({
-        ...errors,
-        [name]: undefined
-      })
-    }
+    setFormData({
+      ...formData,
+      [name]: value
+    })
   }
 
-  // Función para validar la edad
-  const validateAge = (birthDate: string): string | undefined => {
-    if (!birthDate) {
-      return 'La fecha de nacimiento es requerida'
-    }
-
-    const birth = new Date(birthDate)
-    const today = new Date()
-
-    // Calcular la edad
-    let age = today.getFullYear() - birth.getFullYear()
-    const monthDiff = today.getMonth() - birth.getMonth()
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--
-    }
-
-    // Validar que la fecha no sea futura
-    if (birth > today) {
-      return 'La fecha de nacimiento no puede ser futura'
-    }
-
-    // Validar rango de edad
-    if (age < 4) {
-      return 'El niño debe tener al menos 4 años'
-    }
-
-    if (age > 13) {
-      return 'El niño no puede tener más de 13 años'
-    }
-
-    return undefined
-  }
-
-  // Función para validar el odontólogo
-  const validateDentist = (dentistId: number | null): string | undefined => {
-    if (!dentistId) {
-      return 'Debe seleccionar un odontólogo'
-    }
-    return undefined
-  }
-
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Validar campos
-    const birthDateError = validateAge(formData.birth_date)
-    const dentistError = validateDentist(formData.dentist_id)
-
-    const newErrors: FormErrors = {}
-
-    if (birthDateError) {
-      newErrors.birth_date = birthDateError
-    }
-
-    if (dentistError) {
-      newErrors.dentist_id = dentistError
-    }
-
-    // Si hay errores, actualizar el estado y no enviar
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
-      return
-    }
-
-    // Si no hay errores, enviar el formulario
     onSubmit(formData)
   }
-
-  // Opciones para el género
-  const genderOptions = [
-    { label: 'Masculino', value: 'M' },
-    { label: 'Femenino', value: 'F' }
-  ]
-
-  // Opciones para los dentistas
-  const dentistOptions = dentists.map((dentist) => ({
-    label: dentist.name,
-    value: dentist.id.toString()
-  }))
 
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
       <div className={styles.formField}>
-        <InputList
-          options={genderOptions}
-          label="Género"
-          name="gender"
-          value={formData.gender}
-          placeholder="Seleccione el género"
+        <select 
+          id="gender" 
+          name="gender" 
+          value={formData.gender} 
           onChange={handleInputChange}
-          required
-        />
+          className={styles.formSelect}
+        >
+          <option value="M">Masculino</option>
+          <option value="F">Femenino</option>
+        </select>
       </div>
-
+      
       <div className={styles.formField}>
-        <InputForm
-          label="Nombre(s)"
+        <input
+          type="text"
+          id="name"
           name="name"
-          type="text"
           value={formData.name}
+          onChange={handleInputChange}
+          className={styles.formInput}
           placeholder="Nombre(s)"
-          onChange={handleInputChange}
           required
-          classname={styles.formInput}
         />
       </div>
-
+      
       <div className={styles.formField}>
-        <InputForm
-          label="Apellidos"
-          name="last_name"
+        <input
           type="text"
+          id="last_name"
+          name="last_name"
           value={formData.last_name}
+          onChange={handleInputChange}
+          className={styles.formInput}
           placeholder="Apellidos"
-          onChange={handleInputChange}
           required
-          classname={styles.formInput}
         />
       </div>
-
+      
       <div className={styles.formField}>
-        <InputForm
-          label="Fecha de nacimiento (4-13 años)"
-          name="birth_date"
-          type="date"
-          value={formData.birth_date}
-          placeholder="Fecha de nacimiento"
-          onChange={handleInputChange}
-          required
-          classname={styles.formInput}
+        <input
+           type="text" 
+           id="birth_date"
+           name="birth_date"
+           value={formData.birth_date}
+           onChange={handleInputChange}
+           className={styles.formInput}
+           placeholder="Fecha de nacimiento"
+           required
         />
-        {errors.birth_date && <div className={styles.errorMessage}>{errors.birth_date}</div>}
       </div>
-
+      
       <div className={styles.formField}>
-        <InputForm
-          label="Hora de cepillado matutino"
+        <input
+          type="text" 
+          id="morning_brushing_time"
           name="morning_brushing_time"
-          type="time"
           value={formData.morning_brushing_time}
+          onChange={handleInputChange}
+          className={styles.formInput}
           placeholder="Hora de cepillado matutino"
-          onChange={handleInputChange}
           required
-          classname={styles.formInput}
         />
       </div>
-
+      
       <div className={styles.formField}>
-        <InputForm
-          label="Hora de cepillado al medio día"
-          name="afternoon_brushing_time"
-          type="time"
+        <input
+          type="text" 
+          id="afternoon_brushing_time"
+          name="afternoon"
           value={formData.afternoon_brushing_time}
+          onChange={handleInputChange}
+          className={styles.formInput}
           placeholder="Hora de cepillado al medio día"
-          onChange={handleInputChange}
           required
-          classname={styles.formInput}
         />
       </div>
-
+      
       <div className={styles.formField}>
-        <InputForm
-          label="Hora de cepillado nocturno"
+        <input
+          type="text" 
+          id="night_brushing_time"
           name="night_brushing_time"
-          type="time"
           value={formData.night_brushing_time}
+          onChange={handleInputChange}
+          className={styles.formInput}
           placeholder="Hora de cepillado nocturno"
-          onChange={handleInputChange}
           required
-          classname={styles.formInput}
         />
       </div>
-
+      
       <div className={styles.formField}>
-        <InputList
-          options={dentistOptions}
-          label="Odontólogo *"
-          name="dentist_id"
-          value={formData.dentist_id?.toString() || ''}
-          placeholder="Seleccionar odontólogo"
+        <select 
+          id="dentist_id" 
+          name="dentist_id" 
+          value={formData.dentist_id || ''}
           onChange={handleInputChange}
-          required={true}
-        />
-        {errors.dentist_id && <div className={styles.errorMessage}>{errors.dentist_id}</div>}
+          className={styles.formSelect}
+        >
+          <option value="">Seleccionar odontólogo</option>
+          {dentists.map(dentist => (
+            <option key={dentist.id} value={dentist.id}>
+              {dentist.name}
+            </option>
+          ))}
+        </select>
       </div>
-
+      
       <div className={styles.formActions}>
-        <button type="button" className={styles.cancelButton} onClick={onCancel}>
+        <button 
+          type="button" 
+          className={styles.cancelButton}
+          onClick={onCancel}
+        >
           Cancelar
         </button>
-        <button type="submit" className={styles.submitButton}>
+        <button 
+          type="submit" 
+          className={styles.submitButton}
+        >
           Agregar
         </button>
       </div>

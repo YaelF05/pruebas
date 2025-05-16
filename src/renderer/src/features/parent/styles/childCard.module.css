@@ -9,12 +9,12 @@
   }
   
   .card:hover {
-    background-color: var(--secondary-normal);
+    background-color: var(--secondary-normal-hover);
   }
   
   .card.selected {
-    background-color: var(--secondary-normal-hover);
-    border: 2px solid var(--secondary-normal-hover);
+    background-color: #cff4e2;
+    border: 2px solid #cff4e2;
   }
   
   .name {

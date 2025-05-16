@@ -7,7 +7,7 @@ interface AppointmentCardProps {
   time: string
   minutesUntil: number
   description: string
-  doctorName: string
+  doctorName?: string
   onReschedule: (id: string) => void
   onCancel: (id: string) => void
 }

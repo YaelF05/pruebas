@@ -1,0 +1,213 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background-light);
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background-color: var(--background-light);
+}
+
+.profileSection {
+  display: flex;
+  gap: 40px;
+  padding: 20px;
+  align-items: flex-start;
+  margin: 0 auto;
+  max-width: 1600px;
+  width: 100%;
+}
+
+.profileImage {
+  flex-shrink: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: #a8d8e8;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profileImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.name {
+  font-size: var(--font-size-h1);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 0 0 10px 0;
+  font-family: var(--Quicksand);
+}
+
+.university {
+  font-size: var(--font-size-h3);
+  color: var(--neutral-normal);
+  margin: 0;
+  font-family: var(--Quicksand);
+}
+
+.speciality {
+  font-size: var(--font-size-h3);
+  color: var(--neutral-normal);
+  margin: 0;
+  font-family: var(--Quicksand);
+}
+
+.license {
+  font-size: var(--font-size-h3);
+  color: var(--neutral-normal);
+  margin: 5px 0;
+  font-family: var(--Quicksand);
+}
+
+.schedule {
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  color: var(--neutral-darker);
+  margin: 5px 0 0 0;
+  font-family: var(--Quicksand);
+}
+
+.actionSection {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  min-width: 350px;
+}
+
+.contactSection {
+  background-color: #d7e8d7;
+  border-radius: 20px;
+  padding: 25px 30px;
+  width: 100%;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.contactTitle {
+  font-size: var(--font-size-h3);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 0 0 15px 0;
+  font-family: var(--Quicksand);
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 15px;
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+}
+
+.contactItem:last-child {
+  margin-bottom: 0;
+}
+
+.phoneIcon,
+.emailIcon {
+  font-size: 22px;
+  display: flex;
+  justify-content: center;
+}
+
+.aboutSection {
+  padding: 0 20px 30px;
+  margin: 0 auto;
+  max-width: 1600px;
+  width: 100%;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-h2);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 0 0 15px 0;
+  font-family: var(--Quicksand);
+}
+
+.aboutText {
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  line-height: 1.6;
+  margin: 0;
+  font-family: var(--Quicksand);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.locationSection {
+  max-width: calc(105% - 500px); /* Ancho dinámico con márgenes laterales */
+  margin: 20px auto; /* Centrado automático */
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box; /* Asegura que el padding no se sume al ancho */
+}
+
+.locationTitle {
+  font-size: var(--font-size-h3);
+  font-weight: 700;
+  color: var(--background-light);
+  background-color: var(--primary-normal);
+  padding: 12px;
+  margin: 0;
+  text-align: center;
+  font-family: var(--Quicksand);
+  width: 100%;
+}
+
+.mapContainer {
+  width: 95%;
+  height: 400px;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+}
+
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: var(--font-size-title1);
+  color: var(--error-primary);
+  font-family: var(--Quicksand);
+}
+
