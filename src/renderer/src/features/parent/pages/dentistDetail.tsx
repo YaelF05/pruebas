@@ -46,7 +46,7 @@ const DentistDetail: React.FC = () => {
         }
 
         // URL de la API para obtener los detalles del dentista
-        const apiUrl = `https://smiltheet-api.rafabeltrans17.workers.dev/api/dentist/${dentistId}`
+        const apiUrl = ``
 
         const response = await fetch(apiUrl, {
           method: 'GET',
