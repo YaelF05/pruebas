@@ -9,12 +9,15 @@ interface BrushingCardProps {
   onStatusToggle: () => void
 }
 
-const BrushingCard: React.FC<BrushingCardProps> = ({ time, schedule, status, label, onStatusToggle }) => {
+const BrushingCard: React.FC<BrushingCardProps> = ({
+  time,
+  schedule,
+  status,
+  label,
+  onStatusToggle
+}) => {
   return (
-    <div 
-      className={`${styles.card} ${styles[time]}`}
-      onClick={onStatusToggle}
-    >
+    <div className={`${styles.card} ${styles[time]}`} onClick={onStatusToggle}>
       <div className={styles.timeLabel}>{label}</div>
       <div className={styles.schedule}>Programado a las {schedule}</div>
       <div className={`${styles.status} ${styles[status]}`}>
