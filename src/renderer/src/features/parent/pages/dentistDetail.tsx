@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import BackButton from '@renderer/components/backButton'
-import Button from '@renderer/components/button'
 import styles from '../styles/dentistDetail.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
+import Phone from '@renderer/assets/icons/phone.png'
+import Mail from '@renderer/assets/icons/mail.png'
+import ScheduleAppointmentModal from '../components/ScheduleAppointmentModal'
 
 interface DentistData {
   dentist_id: number
@@ -30,15 +32,14 @@ const DentistDetail: React.FC = () => {
   const [dentist, setDentist] = useState<DentistData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Efecto para cargar los datos del dentista desde la API
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const fetchDentistData = async () => {
       try {
         setLoading(true)
 
-        // Si tienes un token de autenticación almacenado, obtenlo
         const authToken = localStorage.getItem('authToken')
 
         if (!authToken) {
@@ -66,7 +67,7 @@ const DentistDetail: React.FC = () => {
         console.error('Error al obtener los datos del dentista:', error)
         setError('No se pudieron cargar los datos del dentista. Usando datos de demostración.')
 
-        // En caso de error, usar datos de demostración
+        // Pruebas
         const mockDentist: DentistData = {
           dentist_id: parseInt(dentistId || '1'),
           user: {
@@ -82,7 +83,7 @@ const DentistDetail: React.FC = () => {
           service_start_time: '09:00',
           service_end_time: '17:00',
           phone_number: '9211111111',
-          latitude: 18.1511, // Coordenadas para Coatzacoalcos, Veracruz
+          latitude: 18.1511,
           longitude: -94.4746
         }
 
@@ -97,8 +98,24 @@ const DentistDetail: React.FC = () => {
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleScheduleAppointment = () => {
-    // Navegar a la página de agendar cita, pasando el ID del dentista
-    navigate(`/schedule-appointment/${dentistId}`)
+    // Abrir el modal en lugar de navegar
+    setIsModalOpen(true)
+  }
+
+  // Función para manejar el envío del formulario de cita
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const handleAppointmentSubmit = (appointmentData: unknown) => {
+    // Aquí iría la lógica para enviar los datos a la API
+    console.log('Datos de la cita:', appointmentData)
+
+    // Simulamos una respuesta exitosa
+    alert('¡Cita agendada con éxito!')
+
+    // Cerramos el modal
+    setIsModalOpen(false)
+
+    // Opcionalmente, podríamos redirigir al usuario a la página de citas
+    navigate('/appointmentFather')
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -155,16 +172,18 @@ const DentistDetail: React.FC = () => {
         </div>
 
         <div className={styles.actionSection}>
-          <Button name="Agendar cita" onClick={handleScheduleAppointment} />
+          <button className={styles.scheduleButton} onClick={handleScheduleAppointment}>
+            Agendar cita
+          </button>
 
           <div className={styles.contactSection}>
             <h3 className={styles.contactTitle}>Contacto</h3>
             <div className={styles.contactItem}>
-              <span className={styles.phoneIcon}>☎️</span>
+              <img src={Phone} alt="Teléfono" className={styles.contactIcon} />
               <span>{formatPhoneNumber(dentist.phone_number)}</span>
             </div>
             <div className={styles.contactItem}>
-              <span className={styles.emailIcon}>📧</span>
+              <img src={Mail} alt="Correo" className={styles.contactIcon} />
               <span>{dentist.user.email}</span>
             </div>
           </div>
@@ -215,6 +234,14 @@ const DentistDetail: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal para agendar cita */}
+      <ScheduleAppointmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAppointmentSubmit}
+        dentistId={dentistId}
+      />
     </div>
   )
 }

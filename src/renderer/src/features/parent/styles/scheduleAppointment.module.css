@@ -73,3 +73,25 @@
 .scheduleButton:hover {
   background-color: var(--primary-normal-hover);
 }
+
+.errorMessage {
+  padding: 10px;
+  border-radius: 5px;
+  background-color: rgba(255, 0, 0, 0.1);
+  color: var(--error-primary);
+  font-size: var(--font-size-body);
+  font-family: var(--Quicksand);
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-title1);
+}
