@@ -4,13 +4,13 @@ import styles from '../styles/profileSelection.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 interface FatherProfile {
-  user_id: number
+  userId: number
   name: string
   type: 'FATHER'
 }
 
 interface ChildProfile {
-  child_id: number
+  childId: number
   name: string
   last_name: string
 }
@@ -28,7 +28,7 @@ const ProfileSelection: FC = () => {
       type: 'FATHER',
       name: 'Mi perfil',
       fullData: {
-        user_id: 1,
+        userId: 1,
         name: 'Mi perfil',
         type: 'FATHER'
       }
@@ -38,7 +38,7 @@ const ProfileSelection: FC = () => {
       type: 'CHILD',
       name: 'Si',
       fullData: {
-        child_id: 2,
+        childId: 2,
         name: 'Si',
         last_name: 'No'
       }
