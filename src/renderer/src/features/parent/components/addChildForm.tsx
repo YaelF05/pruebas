@@ -16,12 +16,12 @@ interface ChildFormData {
   morningBrushingTime: string
   afternoonBrushingTime: string
   nightBrushingTime: string
-  dentistId: number | null
+  id: number | null
 }
 
 interface FormErrors {
   birthDate?: string
-  dentistId?: string
+  id?: string
 }
 
 interface AddChildFormProps {
@@ -39,7 +39,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     morningBrushingTime: '08:00',
     afternoonBrushingTime: '14:00',
     nightBrushingTime: '20:00',
-    dentistId: null
+    id: null
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -50,8 +50,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   ) => {
     const { name, value } = e.target
 
-    // Para el campo dentistId, convertir a número o null
-    if (name === 'dentistId') {
+    // Para el campo id, convertir a número o null
+    if (name === 'id') {
       setFormData({
         ...formData,
         [name]: value ? parseInt(value) : null
@@ -107,8 +107,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   }
 
   // Función para validar el odontólogo
-  const validateDentist = (dentistId: number | null): string | undefined => {
-    if (!dentistId) {
+  const validateDentist = (id: number | null): string | undefined => {
+    if (!id) {
       return 'Debe seleccionar un odontólogo'
     }
     return undefined
@@ -120,7 +120,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
 
     // Validar campos
     const birthDateError = validateAge(formData.birthDate)
-    const dentistError = validateDentist(formData.dentistId)
+    const dentistError = validateDentist(formData.id)
 
     const newErrors: FormErrors = {}
 
@@ -129,7 +129,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     }
 
     if (dentistError) {
-      newErrors.dentistId = dentistError
+      newErrors.id = dentistError
     }
 
     // Si hay errores, actualizar el estado y no enviar
@@ -184,7 +184,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
       <div className={styles.formField}>
         <InputForm
           label="Apellidos"
-          name="last_name"
+          name="lastName"
           type="text"
           value={formData.lastName}
           placeholder="Apellidos"
@@ -251,13 +251,13 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
         <InputList
           options={dentistOptions}
           label="Odontólogo *"
-          name="dentistId"
-          value={formData.dentistId?.toString() || ''}
+          name="id"
+          value={formData.id?.toString() || ''}
           placeholder="Seleccionar odontólogo"
           onChange={handleInputChange}
           required={true}
         />
-        {errors.dentistId && <div className={styles.errorMessage}>{errors.dentistId}</div>}
+        {errors.id && <div className={styles.errorMessage}>{errors.id}</div>}
       </div>
 
       <div className={styles.formActions}>

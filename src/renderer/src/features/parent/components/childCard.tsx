@@ -2,7 +2,7 @@ import * as React from 'react'
 import styles from '../styles/childCard.module.css'
 
 interface Child {
-  id: number
+  childId: number
   name: string
   lastName?: string
   birthDate: string

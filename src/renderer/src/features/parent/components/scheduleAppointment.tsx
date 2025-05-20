@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import Modal from '../components/modal'
+import Modal from './modal'
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
 import TextareaInput from '@renderer/components/textareaInput'
@@ -13,9 +13,9 @@ interface ScheduleAppointmentModalProps {
 }
 
 interface Child {
-  id: number
+  childId: number
   name: string
-  last_name: string
+  lastName: string
 }
 
 interface AppointmentData {
@@ -47,8 +47,8 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
         // Aquí iría la llamada a la API para obtener los hijos
         // Por ahora, usamos datos de ejemplo
         const mockChildren: Child[] = [
-          { id: 1, name: 'Jhon', last_name: 'Doe' },
-          { id: 2, name: 'María', last_name: 'García' }
+          { childId: 1, name: 'Jhon', lastName: 'Doe' },
+          { childId: 2, name: 'María', lastName: 'García' }
         ]
         setChildren(mockChildren)
         setIsLoading(false)
@@ -102,8 +102,8 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
 
   // Opciones para el selector de hijos
   const childOptions = children.map((child) => ({
-    label: `${child.name} ${child.last_name}`,
-    value: child.id.toString()
+    label: `${child.name} ${child.lastName}`,
+    value: child.childId.toString()
   }))
 
   // Reset del formulario

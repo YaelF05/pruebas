@@ -14,7 +14,7 @@ import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 interface AppointmentData {
   appointmentId: number
-  dentistId: number
+  userId: number
   childId: number
   reason: string
   appointmentDatetime: string
@@ -34,7 +34,7 @@ interface AppointmentData {
 const mockAppointments: AppointmentData[] = [
   {
     appointmentId: 1,
-    dentistId: 1,
+    userId: 1,
     childId: 1,
     reason: 'Sensibilidad en molares',
     appointmentDatetime: '2025-05-06T10:00:00',
@@ -51,7 +51,7 @@ const mockAppointments: AppointmentData[] = [
   },
   {
     appointmentId: 2,
-    dentistId: 1,
+    userId: 1,
     childId: 2,
     reason: 'Limpieza dental',
     appointmentDatetime: '2025-05-07T14:30:00',
@@ -68,7 +68,7 @@ const mockAppointments: AppointmentData[] = [
   },
   {
     appointmentId: 3,
-    dentistId: 2,
+    userId: 2,
     childId: 3,
     reason: 'Revisión ortodóncia',
     appointmentDatetime: '2025-05-06T16:00:00',
@@ -85,7 +85,7 @@ const mockAppointments: AppointmentData[] = [
   },
   {
     appointmentId: 4,
-    dentistId: 1,
+    userId: 1,
     childId: 4,
     reason: 'Blanqueamiento dental',
     appointmentDatetime: '2025-05-08T11:00:00',
@@ -102,7 +102,7 @@ const mockAppointments: AppointmentData[] = [
   },
   {
     appointmentId: 5,
-    dentistId: 2,
+    userId: 2,
     childId: 1,
     reason: 'Control de brackets',
     appointmentDatetime: '2025-05-23T09:30:00',

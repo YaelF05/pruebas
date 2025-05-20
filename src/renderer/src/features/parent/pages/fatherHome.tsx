@@ -15,7 +15,7 @@ import HomeActive from '@renderer/assets/icons/home-active.png'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 interface Child {
-  id: number
+  childId: number
   name: string
   lastName?: string
   birthDate: string
@@ -105,7 +105,7 @@ const HomePage: FC = () => {
     // Datos prueba
     return [
       {
-        id: 1,
+        childId: 1,
         name: 'Jhon',
         lastName: 'Doe',
         birthDate: '2020-05-05T00:00:00',
@@ -126,9 +126,9 @@ const HomePage: FC = () => {
 
     for (const child of children) {
       // registro de cepillado del chamaco
-      initialData[child.id] = {
-        todayBrushing: getBrushingStatusForToday(brushRecords, child.id),
-        weeklyBrushing: generateWeeklyBrushing(brushRecords, child.id)
+      initialData[child.childId] = {
+        todayBrushing: getBrushingStatusForToday(brushRecords, child.childId),
+        weeklyBrushing: generateWeeklyBrushing(brushRecords, child.childId)
       }
     }
 
@@ -140,9 +140,9 @@ const HomePage: FC = () => {
   const fetchBrushRecords = async () => {
     return [
       {
-        brush_id: 1,
-        child_id: 1,
-        brush_datetime: new Date().toISOString().substring(0, 10) + 'T08:30:00'
+        brushId: 1,
+        childId: 1,
+        brushDateTime: new Date().toISOString().substring(0, 10) + 'T08:30:00'
       }
     ]
   }
@@ -152,21 +152,21 @@ const HomePage: FC = () => {
     const today = new Date().toISOString().substring(0, 10)
 
     const todayRecords = brushRecords.filter(
-      (record) => record.child_id === childId && record.brush_datetime.startsWith(today)
+      (record) => record.childId === childId && record.brushDateTime.startsWith(today)
     )
 
     const morningCompleted = todayRecords.some((record) => {
-      const hour = new Date(record.brush_datetime).getHours()
+      const hour = new Date(record.brushDateTime).getHours()
       return hour >= 6 && hour < 12
     })
 
     const afternoonCompleted = todayRecords.some((record) => {
-      const hour = new Date(record.brush_datetime).getHours()
+      const hour = new Date(record.brushDateTime).getHours()
       return hour >= 12 && hour < 18
     })
 
     const nightCompleted = todayRecords.some((record) => {
-      const hour = new Date(record.brush_datetime).getHours()
+      const hour = new Date(record.brushDateTime).getHours()
       return hour >= 18 || hour < 24
     })
 
@@ -194,22 +194,22 @@ const HomePage: FC = () => {
       const dayStr = date.toISOString().substring(0, 10)
 
       const dayRecords = brushRecords.filter(
-        (record) => record.child_id === childId && record.brush_datetime.startsWith(dayStr)
+        (record) => record.childId === childId && record.brushDateTime.startsWith(dayStr)
       )
 
       // estado de cepillado para cada periodo
       const morningCompleted = dayRecords.some((record) => {
-        const hour = new Date(record.brush_datetime).getHours()
+        const hour = new Date(record.brushDateTime).getHours()
         return hour >= 6 && hour < 12
       })
 
       const afternoonCompleted = dayRecords.some((record) => {
-        const hour = new Date(record.brush_datetime).getHours()
+        const hour = new Date(record.brushDateTime).getHours()
         return hour >= 12 && hour < 18
       })
 
       const nightCompleted = dayRecords.some((record) => {
-        const hour = new Date(record.brush_datetime).getHours()
+        const hour = new Date(record.brushDateTime).getHours()
         return hour >= 18 || hour < 6
       })
 
@@ -230,7 +230,7 @@ const HomePage: FC = () => {
   const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night') => {
     if (!selectedChild) return
 
-    const currentData = childrenBrushingData[selectedChild.id]
+    const currentData = childrenBrushingData[selectedChild.childId]
     if (!currentData) return
 
     const currentStatus = currentData.todayBrushing[time]
@@ -252,9 +252,9 @@ const HomePage: FC = () => {
           brushDatetime.setHours(20, 0, 0)
         }
 
-        await createBrushRecord(selectedChild.id, brushDatetime.toISOString())
+        await createBrushRecord(selectedChild.childId, brushDatetime.toISOString())
       } else {
-        await deleteBrushRecord(selectedChild.id, time)
+        await deleteBrushRecord(selectedChild.childId, time)
       }
 
       const updatedChildData = {
@@ -277,7 +277,7 @@ const HomePage: FC = () => {
 
       setChildrenBrushingData({
         ...childrenBrushingData,
-        [selectedChild.id]: updatedChildData
+        [selectedChild.childId]: updatedChildData
       })
     } catch (error) {
       console.error('Error al actualizar estado de cepillado:', error)
@@ -328,7 +328,7 @@ const HomePage: FC = () => {
   }
 
   const getCurrentChildBrushingData = (): ChildBrushingData => {
-    if (!selectedChild || !childrenBrushingData[selectedChild.id]) {
+    if (!selectedChild || !childrenBrushingData[selectedChild.childId]) {
       return {
         todayBrushing: {
           morning: 'pending',
@@ -338,7 +338,7 @@ const HomePage: FC = () => {
         weeklyBrushing: []
       }
     }
-    return childrenBrushingData[selectedChild.id]
+    return childrenBrushingData[selectedChild.childId]
   }
 
   const handleAddChild = async (data: {
@@ -356,7 +356,7 @@ const HomePage: FC = () => {
       console.log('Enviando datos del niño:', data)
 
       const newChild: Child = {
-        id: children.length + 1,
+        childId: children.length + 1,
         name: data.name,
         lastName: data.lastName,
         birthDate: data.birthDate,
@@ -376,12 +376,12 @@ const HomePage: FC = () => {
           afternoon: 'pending' as const,
           night: 'pending' as const
         },
-        weeklyBrushing: generateWeeklyBrushing([], newChild.id)
+        weeklyBrushing: generateWeeklyBrushing([], newChild.childId)
       }
 
       setChildrenBrushingData({
         ...childrenBrushingData,
-        [newChild.id]: newBrushingData
+        [newChild.childId]: newBrushingData
       })
 
       // Cerrar el modal
@@ -414,9 +414,9 @@ const HomePage: FC = () => {
           <div className={styles.childrenCards}>
             {children.map((child) => (
               <ChildCard
-                key={child.id}
+                key={child.childId}
                 child={child}
-                isSelected={selectedChild?.id === child.id}
+                isSelected={selectedChild?.childId === child.childId}
                 onClick={() => setSelectedChild(child)}
                 formatAge={formatAge}
               />

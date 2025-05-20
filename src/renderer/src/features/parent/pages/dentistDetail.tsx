@@ -5,14 +5,14 @@ import styles from '../styles/dentistDetail.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import Phone from '@renderer/assets/icons/phone.png'
 import Mail from '@renderer/assets/icons/mail.png'
-import ScheduleAppointmentModal from '../components/scheduleAppointmentModal'
+import ScheduleAppointmentModal from '../components/scheduleAppointment'
 
 interface DentistData {
-  dentist_id: number
+  dentistId: number
   user: {
-    user_id: number
+    userId: number
     name: string
-    last_name: string
+    lastName: string
     email: string
   }
   professionalLicense: string
@@ -69,11 +69,11 @@ const DentistDetail: React.FC = () => {
 
         // Pruebas
         const mockDentist: DentistData = {
-          dentist_id: parseInt(dentistId || '1'),
+          dentistId: parseInt(dentistId || '1'),
           user: {
-            user_id: 1,
+            userId: 1,
             name: 'Jhon',
-            last_name: 'Doe',
+            lastName: 'Doe',
             email: 'loremimpsum@email.com'
           },
           professionalLicense: '12345678',
@@ -154,12 +154,12 @@ const DentistDetail: React.FC = () => {
 
       <div className={styles.profileSection}>
         <div className={styles.profileImage}>
-          <img src={ProfileAvatar} alt={`${dentist.user.name} ${dentist.user.last_name}`} />
+          <img src={ProfileAvatar} alt={`${dentist.user.name} ${dentist.user.lastName}`} />
         </div>
 
         <div className={styles.profileInfo}>
           <h1 className={styles.name}>
-            {dentist.user.name} {dentist.user.last_name}
+            {dentist.user.name} {dentist.user.lastName}
           </h1>
           {dentist.university && <p className={styles.university}>{dentist.university}</p>}
           {dentist.speciality && <p className={styles.speciality}>{dentist.speciality}</p>}
