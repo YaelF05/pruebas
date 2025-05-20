@@ -9,7 +9,7 @@ interface ScheduleAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (appointmentData: AppointmentData) => void
-  dentistId: string | undefined
+  userId: string | undefined
 }
 
 interface Child {

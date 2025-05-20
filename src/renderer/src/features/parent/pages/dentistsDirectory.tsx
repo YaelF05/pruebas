@@ -6,7 +6,7 @@ import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import FilterIcon from '@renderer/assets/icons/filterIcon.png'
 
 interface DentistData {
-  dentistId: number
+  userId: number
   user: {
     userId: number
     name: string
@@ -24,7 +24,7 @@ const DentistsPage: FC = () => {
   // Estado para almacenar los dentistas (mock data)
   const [dentists] = useState<DentistData[]>([
     {
-      dentistId: 1,
+      userId: 1,
       user: {
         userId: 1,
         name: 'Jhon',
@@ -36,7 +36,7 @@ const DentistsPage: FC = () => {
       distance: 1.4
     },
     {
-      dentistId: 2,
+      userId: 2,
       user: {
         userId: 2,
         name: 'María',
@@ -48,7 +48,7 @@ const DentistsPage: FC = () => {
       distance: 2.3
     },
     {
-      dentistId: 3,
+      userId: 3,
       user: {
         userId: 3,
         name: 'Roberto',
@@ -60,7 +60,7 @@ const DentistsPage: FC = () => {
       distance: 0.8
     },
     {
-      dentistId: 4,
+      userId: 4,
       user: {
         userId: 4,
         name: 'Ana',
@@ -72,7 +72,7 @@ const DentistsPage: FC = () => {
       distance: 3.1
     },
     {
-      dentistId: 5,
+      userId: 5,
       user: {
         userId: 5,
         name: 'Carlos',
@@ -84,7 +84,7 @@ const DentistsPage: FC = () => {
       distance: 1.9
     },
     {
-      dentistId: 6,
+      userId: 6,
       user: {
         userId: 6,
         name: 'Laura',
@@ -98,8 +98,8 @@ const DentistsPage: FC = () => {
   ])
 
   // Función para navegar al detalle del dentista
-  const handleDentistClick = (dentistId: number): void => {
-    navigate(`/dentist/${dentistId}`)
+  const handleDentistClick = (userId: number): void => {
+    navigate(`/dentist/${userId}`)
   }
 
   return (
@@ -119,9 +119,9 @@ const DentistsPage: FC = () => {
       <div className={styles.dentistsContainer}>
         {dentists.map((dentist) => (
           <div
-            key={dentist.dentistId}
+            key={dentist.userId}
             className={styles.dentistCard}
-            onClick={() => handleDentistClick(dentist.dentistId)}
+            onClick={() => handleDentistClick(dentist.userId)}
           >
             <div className={styles.dentistImage}>
               <img
@@ -138,7 +138,7 @@ const DentistsPage: FC = () => {
               {dentist.university && (
                 <p className={styles.dentistUniversity}>{dentist.university}</p>
               )}
-              <p className={styles.dentistId}>Cédula profesional: {dentist.professionalLicense}</p>
+              <p className={styles.userId}>Cédula profesional: {dentist.professionalLicense}</p>
               {dentist.speciality && (
                 <p className={styles.dentistSpecialty}>Especialidad: {dentist.speciality}</p>
               )}

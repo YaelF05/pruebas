@@ -4,7 +4,7 @@ import InputList from '@renderer/components/inputList'
 import styles from '../styles/addChildForm.module.css'
 
 interface Dentist {
-  id: number
+  userId: number
   name: string
 }
 
@@ -16,7 +16,7 @@ interface ChildFormData {
   morningBrushingTime: string
   afternoonBrushingTime: string
   nightBrushingTime: string
-  id: number | null
+  userId: number
 }
 
 interface FormErrors {
@@ -39,7 +39,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     morningBrushingTime: '08:00',
     afternoonBrushingTime: '14:00',
     nightBrushingTime: '20:00',
-    id: null
+    userId: 0
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -107,7 +107,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   }
 
   // Función para validar el odontólogo
-  const validateDentist = (id: number | null): string | undefined => {
+  const validateDentist = (id: number): string | undefined => {
     if (!id) {
       return 'Debe seleccionar un odontólogo'
     }
@@ -120,7 +120,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
 
     // Validar campos
     const birthDateError = validateAge(formData.birthDate)
-    const dentistError = validateDentist(formData.id)
+    const dentistError = validateDentist(formData.userId)
 
     const newErrors: FormErrors = {}
 
@@ -151,7 +151,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   // Opciones para los dentistas
   const dentistOptions = dentists.map((dentist) => ({
     label: dentist.name,
-    value: dentist.id.toString()
+    value: dentist.userId.toString()
   }))
 
   return (
@@ -251,8 +251,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
         <InputList
           options={dentistOptions}
           label="Odontólogo *"
-          name="id"
-          value={formData.id?.toString() || ''}
+          name="userId"
+          value={formData.userId ? formData.userId.toString() : ''}
           placeholder="Seleccionar odontólogo"
           onChange={handleInputChange}
           required={true}

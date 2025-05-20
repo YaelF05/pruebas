@@ -8,7 +8,7 @@ import Mail from '@renderer/assets/icons/mail.png'
 import ScheduleAppointmentModal from '../components/scheduleAppointment'
 
 interface DentistData {
-  dentistId: number
+  userId: number
   user: {
     userId: number
     name: string
@@ -27,7 +27,7 @@ interface DentistData {
 }
 
 const DentistDetail: React.FC = () => {
-  const { dentistId } = useParams<{ dentistId: string }>()
+  const { userId } = useParams<{ userId: string }>()
   const navigate = useNavigate()
   const [dentist, setDentist] = useState<DentistData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -69,7 +69,7 @@ const DentistDetail: React.FC = () => {
 
         // Pruebas
         const mockDentist: DentistData = {
-          dentistId: parseInt(dentistId || '1'),
+          userId: parseInt(userId || '1'),
           user: {
             userId: 1,
             name: 'Jhon',
@@ -94,7 +94,7 @@ const DentistDetail: React.FC = () => {
     }
 
     fetchDentistData()
-  }, [dentistId])
+  }, [userId])
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleScheduleAppointment = () => {
@@ -240,7 +240,7 @@ const DentistDetail: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAppointmentSubmit}
-        dentistId={dentistId}
+        userId={userId}
       />
     </div>
   )

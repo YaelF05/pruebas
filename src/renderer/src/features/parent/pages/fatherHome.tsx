@@ -42,7 +42,7 @@ interface ChildBrushingData {
 }
 
 interface Dentist {
-  id: number
+  userId: number
   name: string
 }
 
@@ -94,9 +94,9 @@ const HomePage: FC = () => {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const fetchDentists = async () => {
     return [
-      { id: 1, name: 'Dr. María Pérez' },
-      { id: 2, name: 'Dr. Juan García' },
-      { id: 3, name: 'Dra. Ana López' }
+      { userId: 1, name: 'Dr. María Pérez' },
+      { userId: 2, name: 'Dr. Juan García' },
+      { userId: 3, name: 'Dra. Ana López' }
     ]
   }
 
@@ -348,6 +348,7 @@ const HomePage: FC = () => {
     morningBrushingTime: string
     afternoonBrushingTime: string
     nightBrushingTime: string
+    userId: number
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }) => {
     try {
