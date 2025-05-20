@@ -12,7 +12,7 @@ interface FatherProfile {
 interface ChildProfile {
   childId: number
   name: string
-  last_name: string
+  lastName: string
 }
 
 type Profile =
@@ -40,7 +40,7 @@ const ProfileSelection: FC = () => {
       fullData: {
         childId: 2,
         name: 'Si',
-        last_name: 'No'
+        lastName: 'No'
       }
     }
   ]

@@ -4,8 +4,8 @@ import styles from '../styles/childCard.module.css'
 interface Child {
   id: number
   name: string
-  last_name?: string
-  birth_date: string
+  lastName?: string
+  birthDate: string
   nextAppointment: string | null
 }
 
@@ -31,9 +31,9 @@ const ChildCard: React.FC<ChildCardProps> = ({ child, isSelected, onClick, forma
   return (
     <div className={`${styles.card} ${isSelected ? styles.selected : ''}`} onClick={onClick}>
       <h3 className={styles.name}>
-        {child.name} {child.last_name && child.last_name}
+        {child.name} {child.lastName && child.lastName}
       </h3>
-      <p className={styles.age}>{formatAge(child.birth_date)}</p>
+      <p className={styles.age}>{formatAge(child.birthDate)}</p>
       <p className={styles.appointment}>
         Próxima cita: {formatNextAppointment(child.nextAppointment)}
       </p>

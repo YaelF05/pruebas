@@ -5,7 +5,7 @@ import styles from '../styles/dentistDetail.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import Phone from '@renderer/assets/icons/phone.png'
 import Mail from '@renderer/assets/icons/mail.png'
-import ScheduleAppointmentModal from '../components/ScheduleAppointmentModal'
+import ScheduleAppointmentModal from '../components/scheduleAppointmentModal'
 
 interface DentistData {
   dentist_id: number
@@ -15,13 +15,13 @@ interface DentistData {
     last_name: string
     email: string
   }
-  professional_license: string
+  professionalLicense: string
   university?: string
   speciality?: string
   about?: string
-  service_start_time: string
-  service_end_time: string
-  phone_number: string
+  serviceStartTime: string
+  serviceEndTime: string
+  phoneNumber: string
   latitude: number
   longitude: number
 }
@@ -76,13 +76,13 @@ const DentistDetail: React.FC = () => {
             last_name: 'Doe',
             email: 'loremimpsum@email.com'
           },
-          professional_license: '12345678',
+          professionalLicense: '12345678',
           university: 'Universidad Veracruzana',
           speciality: 'Ortodoncista',
           about: 'Acerca de mí (texto descriptivo del dentista)...',
-          service_start_time: '09:00',
-          service_end_time: '17:00',
-          phone_number: '9211111111',
+          serviceStartTime: '09:00',
+          serviceEndTime: '17:00',
+          phoneNumber: '9211111111',
           latitude: 18.1511,
           longitude: -94.4746
         }
@@ -164,10 +164,10 @@ const DentistDetail: React.FC = () => {
           {dentist.university && <p className={styles.university}>{dentist.university}</p>}
           {dentist.speciality && <p className={styles.speciality}>{dentist.speciality}</p>}
 
-          <p className={styles.license}>Cédula profesional: {dentist.professional_license}</p>
+          <p className={styles.license}>Cédula profesional: {dentist.professionalLicense}</p>
 
           <p className={styles.schedule}>
-            Horario de atención: {dentist.service_start_time} a {dentist.service_end_time}
+            Horario de atención: {dentist.serviceStartTime} a {dentist.serviceEndTime}
           </p>
         </div>
 
@@ -180,7 +180,7 @@ const DentistDetail: React.FC = () => {
             <h3 className={styles.contactTitle}>Contacto</h3>
             <div className={styles.contactItem}>
               <img src={Phone} alt="Teléfono" className={styles.contactIcon} />
-              <span>{formatPhoneNumber(dentist.phone_number)}</span>
+              <span>{formatPhoneNumber(dentist.phoneNumber)}</span>
             </div>
             <div className={styles.contactItem}>
               <img src={Mail} alt="Correo" className={styles.contactIcon} />

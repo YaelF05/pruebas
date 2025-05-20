@@ -10,18 +10,18 @@ interface Dentist {
 
 interface ChildFormData {
   name: string
-  last_name: string
+  lastName: string
   gender: 'M' | 'F'
-  birth_date: string
-  morning_brushing_time: string
-  afternoon_brushing_time: string
-  night_brushing_time: string
-  dentist_id: number | null
+  birthDate: string
+  morningBrushingTime: string
+  afternoonBrushingTime: string
+  nightBrushingTime: string
+  dentistId: number | null
 }
 
 interface FormErrors {
-  birth_date?: string
-  dentist_id?: string
+  birthDate?: string
+  dentistId?: string
 }
 
 interface AddChildFormProps {
@@ -33,13 +33,13 @@ interface AddChildFormProps {
 const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState<ChildFormData>({
     name: '',
-    last_name: '',
+    lastName: '',
     gender: 'M',
-    birth_date: '',
-    morning_brushing_time: '08:00',
-    afternoon_brushing_time: '14:00',
-    night_brushing_time: '20:00',
-    dentist_id: null
+    birthDate: '',
+    morningBrushingTime: '08:00',
+    afternoonBrushingTime: '14:00',
+    nightBrushingTime: '20:00',
+    dentistId: null
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -50,8 +50,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   ) => {
     const { name, value } = e.target
 
-    // Para el campo dentist_id, convertir a número o null
-    if (name === 'dentist_id') {
+    // Para el campo dentistId, convertir a número o null
+    if (name === 'dentistId') {
       setFormData({
         ...formData,
         [name]: value ? parseInt(value) : null
@@ -119,17 +119,17 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     e.preventDefault()
 
     // Validar campos
-    const birthDateError = validateAge(formData.birth_date)
-    const dentistError = validateDentist(formData.dentist_id)
+    const birthDateError = validateAge(formData.birthDate)
+    const dentistError = validateDentist(formData.dentistId)
 
     const newErrors: FormErrors = {}
 
     if (birthDateError) {
-      newErrors.birth_date = birthDateError
+      newErrors.birthDate = birthDateError
     }
 
     if (dentistError) {
-      newErrors.dentist_id = dentistError
+      newErrors.dentistId = dentistError
     }
 
     // Si hay errores, actualizar el estado y no enviar
@@ -186,7 +186,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
           label="Apellidos"
           name="last_name"
           type="text"
-          value={formData.last_name}
+          value={formData.lastName}
           placeholder="Apellidos"
           onChange={handleInputChange}
           required
@@ -197,23 +197,23 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
       <div className={styles.formField}>
         <InputForm
           label="Fecha de nacimiento (4-13 años)"
-          name="birth_date"
+          name="birthDate"
           type="date"
-          value={formData.birth_date}
+          value={formData.birthDate}
           placeholder="Fecha de nacimiento"
           onChange={handleInputChange}
           required
           classname={styles.formInput}
         />
-        {errors.birth_date && <div className={styles.errorMessage}>{errors.birth_date}</div>}
+        {errors.birthDate && <div className={styles.errorMessage}>{errors.birthDate}</div>}
       </div>
 
       <div className={styles.formField}>
         <InputForm
           label="Hora de cepillado matutino"
-          name="morning_brushing_time"
+          name="morningBrushingTime"
           type="time"
-          value={formData.morning_brushing_time}
+          value={formData.morningBrushingTime}
           placeholder="Hora de cepillado matutino"
           onChange={handleInputChange}
           required
@@ -224,9 +224,9 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
       <div className={styles.formField}>
         <InputForm
           label="Hora de cepillado al medio día"
-          name="afternoon_brushing_time"
+          name="afternoonBrushingTime"
           type="time"
-          value={formData.afternoon_brushing_time}
+          value={formData.afternoonBrushingTime}
           placeholder="Hora de cepillado al medio día"
           onChange={handleInputChange}
           required
@@ -237,9 +237,9 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
       <div className={styles.formField}>
         <InputForm
           label="Hora de cepillado nocturno"
-          name="night_brushing_time"
+          name="nightBrushingTime"
           type="time"
-          value={formData.night_brushing_time}
+          value={formData.nightBrushingTime}
           placeholder="Hora de cepillado nocturno"
           onChange={handleInputChange}
           required
@@ -251,13 +251,13 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
         <InputList
           options={dentistOptions}
           label="Odontólogo *"
-          name="dentist_id"
-          value={formData.dentist_id?.toString() || ''}
+          name="dentistId"
+          value={formData.dentistId?.toString() || ''}
           placeholder="Seleccionar odontólogo"
           onChange={handleInputChange}
           required={true}
         />
-        {errors.dentist_id && <div className={styles.errorMessage}>{errors.dentist_id}</div>}
+        {errors.dentistId && <div className={styles.errorMessage}>{errors.dentistId}</div>}
       </div>
 
       <div className={styles.formActions}>

@@ -17,11 +17,11 @@ import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 interface Child {
   id: number
   name: string
-  last_name?: string
-  birth_date: string
-  morning_brushing_time: string
-  afternoon_brushing_time: string
-  night_brushing_time: string
+  lastName?: string
+  birthDate: string
+  morningBrushingTime: string
+  afternoonBrushingTime: string
+  nightBrushingTime: string
   nextAppointment: string | null
 }
 
@@ -107,11 +107,11 @@ const HomePage: FC = () => {
       {
         id: 1,
         name: 'Jhon',
-        last_name: 'Doe',
-        birth_date: '2020-05-05T00:00:00',
-        morning_brushing_time: '08:00',
-        afternoon_brushing_time: '14:00',
-        night_brushing_time: '20:00',
+        lastName: 'Doe',
+        birthDate: '2020-05-05T00:00:00',
+        morningBrushingTime: '08:00',
+        afternoonBrushingTime: '14:00',
+        nightBrushingTime: '20:00',
         nextAppointment: '2025-05-06T10:00:00'
       }
     ]
@@ -343,11 +343,11 @@ const HomePage: FC = () => {
 
   const handleAddChild = async (data: {
     name: string
-    last_name: string
-    birth_date: string
-    morning_brushing_time: string
-    afternoon_brushing_time: string
-    night_brushing_time: string
+    lastName: string
+    birthDate: string
+    morningBrushingTime: string
+    afternoonBrushingTime: string
+    nightBrushingTime: string
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }) => {
     try {
@@ -358,11 +358,11 @@ const HomePage: FC = () => {
       const newChild: Child = {
         id: children.length + 1,
         name: data.name,
-        last_name: data.last_name,
-        birth_date: data.birth_date,
-        morning_brushing_time: data.morning_brushing_time,
-        afternoon_brushing_time: data.afternoon_brushing_time,
-        night_brushing_time: data.night_brushing_time,
+        lastName: data.lastName,
+        birthDate: data.birthDate,
+        morningBrushingTime: data.morningBrushingTime,
+        afternoonBrushingTime: data.afternoonBrushingTime,
+        nightBrushingTime: data.nightBrushingTime,
         nextAppointment: null
       }
 
@@ -439,21 +439,21 @@ const HomePage: FC = () => {
               <div className={styles.brushingCards}>
                 <BrushingCard
                   time="morning"
-                  schedule={selectedChild.morning_brushing_time}
+                  schedule={selectedChild.morningBrushingTime}
                   status={currentBrushingData.todayBrushing.morning}
                   label="Mañana"
                   onStatusToggle={() => updateTodayBrushing('morning')}
                 />
                 <BrushingCard
                   time="afternoon"
-                  schedule={selectedChild.afternoon_brushing_time}
+                  schedule={selectedChild.afternoonBrushingTime}
                   status={currentBrushingData.todayBrushing.afternoon}
                   label="Tarde"
                   onStatusToggle={() => updateTodayBrushing('afternoon')}
                 />
                 <BrushingCard
                   time="night"
-                  schedule={selectedChild.night_brushing_time}
+                  schedule={selectedChild.nightBrushingTime}
                   status={currentBrushingData.todayBrushing.night}
                   label="Noche"
                   onStatusToggle={() => updateTodayBrushing('night')}
