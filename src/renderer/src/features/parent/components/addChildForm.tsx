@@ -46,7 +46,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   ) => {
     const { name, value } = e.target
 

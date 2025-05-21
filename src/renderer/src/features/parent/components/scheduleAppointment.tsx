@@ -40,12 +40,10 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
 
   // Efecto para cargar la lista de hijos
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     const fetchChildren = async () => {
       try {
         setIsLoading(true)
-        // Aquí iría la llamada a la API para obtener los hijos
-        // Por ahora, usamos datos de ejemplo
+        // Aquí iría la llamada a la API
         const mockChildren: Child[] = [
           { childId: 1, name: 'Jhon', lastName: 'Doe' },
           { childId: 2, name: 'María', lastName: 'García' }
@@ -65,7 +63,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   }, [isOpen])
 
   // Función para manejar el envío del formulario
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -107,8 +104,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   }))
 
   // Reset del formulario
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     setSelectedChild(null)
     setAppointmentDate('')
     setAppointmentTime('')

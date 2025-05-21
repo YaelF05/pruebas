@@ -17,7 +17,6 @@ interface WeeklyBrushingListProps {
 }
 
 const WeeklyBrushingList: React.FC<WeeklyBrushingListProps> = ({ days }) => {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const formatDate = (date: Date) => {
     const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'long' }).format(date)
     const dayDate = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'long' }).format(date)

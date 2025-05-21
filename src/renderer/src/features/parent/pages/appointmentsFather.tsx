@@ -152,8 +152,7 @@ const AppointmentsPage: FC = () => {
   }
 
   // Función para reagendar cita en proceso
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleReschedule = (appointmentId: string) => {
+  const handleReschedule = (appointmentId: string): void => {
     const appointment = allAppointments.find((a) => a.appointmentId.toString() === appointmentId)
 
     if (appointment) {
@@ -179,8 +178,7 @@ const AppointmentsPage: FC = () => {
   }
 
   // Función para cancelar cita en proceso
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleCancel = (appointmentId: string) => {
+  const handleCancel = (appointmentId: string): void => {
     const reason = prompt('Motivo de la cancelación')
 
     if (reason && confirm('¿Está seguro de cancelar esta cita?')) {
@@ -194,14 +192,12 @@ const AppointmentsPage: FC = () => {
   }
 
   // Función para navegar a la página de dentistas
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const navigateToDentists = () => {
+  const navigateToDentists = (): void => {
     navigate('/dentistDirectory')
   }
 
   // Función para manejar la navegación
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleNavClick = (tab: string) => {
+  const handleNavClick = (tab: string): void => {
     if (tab === 'inicio') {
       navigate('/homeFather')
     } else if (tab === 'hijos') {

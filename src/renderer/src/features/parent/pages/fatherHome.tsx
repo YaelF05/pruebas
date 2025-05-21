@@ -62,8 +62,7 @@ const HomePage: FC = () => {
   const [dentists, setDentists] = useState<Dentist[]>([])
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void> => {
       try {
         setIsLoading(true)
 
@@ -88,10 +87,8 @@ const HomePage: FC = () => {
     }
 
     fetchData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const fetchDentists = async () => {
     return [
       { userId: 1, name: 'Dr. María Pérez' },
@@ -136,7 +133,6 @@ const HomePage: FC = () => {
   }
 
   // modificar para que se guarde la info
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const fetchBrushRecords = async () => {
     return [
       {
@@ -178,7 +174,6 @@ const HomePage: FC = () => {
   }
 
   // Genera datos semanales basados en registros de cepillado
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const generateWeeklyBrushing = (brushRecords: any[], childId: number): DayBrushing[] => {
     const days: DayBrushing[] = []
     const today = new Date()
@@ -226,7 +221,6 @@ const HomePage: FC = () => {
     return days
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night') => {
     if (!selectedChild) return
 
@@ -284,18 +278,15 @@ const HomePage: FC = () => {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const createBrushRecord = async (childId: number, brushDatetime: string) => {
     console.log(`Creando registro de cepillado para niño ${childId} en ${brushDatetime}`)
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const deleteBrushRecord = async (childId: number, time: string) => {
     console.log(`Eliminando registro de cepillado para niño ${childId} en periodo ${time}`)
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleNavClick = (tab: string) => {
+  const handleNavClick = (tab: string): void => {
     if (tab === 'citas') {
       navigate('/appointmentFather')
     } else if (tab === 'hijos') {
@@ -349,7 +340,6 @@ const HomePage: FC = () => {
     afternoonBrushingTime: string
     nightBrushingTime: string
     userId: number
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   }) => {
     try {
       setIsLoading(true)

@@ -35,8 +35,7 @@ const DentistDetail: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-    const fetchDentistData = async () => {
+    const fetchDentistData = async (): Promise<void> => {
       try {
         setLoading(true)
 
@@ -96,15 +95,13 @@ const DentistDetail: React.FC = () => {
     fetchDentistData()
   }, [userId])
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleScheduleAppointment = () => {
+  const handleScheduleAppointment = (): void => {
     // Abrir el modal en lugar de navegar
     setIsModalOpen(true)
   }
 
   // Función para manejar el envío del formulario de cita
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleAppointmentSubmit = (appointmentData: unknown) => {
+  const handleAppointmentSubmit = (appointmentData: unknown): void => {
     // Aquí iría la lógica para enviar los datos a la API
     console.log('Datos de la cita:', appointmentData)
 
@@ -116,20 +113,17 @@ const DentistDetail: React.FC = () => {
     navigate('/appointmentFather')
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const formatPhoneNumber = (phone: string) => {
+  const formatPhoneNumber = (phone: string): string => {
     return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')
   }
 
   // Genera la URL del mapa estático de OpenStreetMap
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, @typescript-eslint/no-unused-vars
-  const getMapUrl = (lat: number, lon: number, _zoom = 15) => {
+  const getMapUrl = (lat: number, lon: number): string => {
     return `https://www.openstreetmap.org/export/embed.html?bbox=${lon - 0.01}%2C${lat - 0.01}%2C${lon + 0.01}%2C${lat + 0.01}&layer=mapnik&marker=${lat}%2C${lon}`
   }
 
   // Genera la URL para abrir el mapa en una nueva ventana
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const getMapLinkUrl = (lat: number, lon: number) => {
+  const getMapLinkUrl = (lat: number, lon: number): string => {
     return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`
   }
 

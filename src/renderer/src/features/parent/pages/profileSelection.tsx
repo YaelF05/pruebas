@@ -45,8 +45,7 @@ const ProfileSelection: FC = () => {
     }
   ]
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleProfileSelect = (profile: Profile) => {
+  const handleProfileSelect = (profile: Profile): void => {
     if (profile.type === 'FATHER') {
       console.log(`Perfil seleccionado: ${profile.name} (Padre)`)
       navigate('/homeFather')
