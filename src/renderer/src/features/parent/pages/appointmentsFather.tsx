@@ -30,7 +30,7 @@ interface AppointmentData {
   }
 }
 
-// Mock data simulando respuesta de la API
+// Mock data
 const mockAppointments: AppointmentData[] = [
   {
     appointmentId: 1,
@@ -122,13 +122,10 @@ const mockAppointments: AppointmentData[] = [
 const AppointmentsPage: FC = () => {
   const navigate = useNavigate()
 
-  // Estado para la fecha actual seleccionada
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
 
-  // Estado para todas las citas (inicializado con los datos mock)
   const [allAppointments, setAllAppointments] = useState<AppointmentData[]>(mockAppointments)
 
-  // Estado para la pestaña activa
   const [activeTab, setActiveTab] = useState<string>('citas')
 
   // Función para filtrar las citas por fecha
@@ -154,18 +151,16 @@ const AppointmentsPage: FC = () => {
     }).format(date)
   }
 
-  // Función para reagendar cita (mock)
+  // Función para reagendar cita en proceso
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleReschedule = (appointmentId: string) => {
     const appointment = allAppointments.find((a) => a.appointmentId.toString() === appointmentId)
 
     if (appointment) {
-      // Simular modal o formulario para seleccionar nueva fecha/hora
       const newDateTime = prompt('Ingrese nueva fecha y hora (YYYY-MM-DD HH:mm)')
       const reason = prompt('Motivo del reagendamiento')
 
       if (newDateTime && reason) {
-        // Mock: actualizar la cita en el estado local
         const updatedAppointments = allAppointments.map((app) => {
           if (app.appointmentId.toString() === appointmentId) {
             return {
@@ -183,19 +178,17 @@ const AppointmentsPage: FC = () => {
     }
   }
 
-  // Función para cancelar cita (mock)
+  // Función para cancelar cita en proceso
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleCancel = (appointmentId: string) => {
     const reason = prompt('Motivo de la cancelación')
 
     if (reason && confirm('¿Está seguro de cancelar esta cita?')) {
-      // Mock: remover la cita del estado local
       const updatedAppointments = allAppointments.filter(
         (app) => app.appointmentId.toString() !== appointmentId
       )
       setAllAppointments(updatedAppointments)
 
-      // Simulación de éxito
       alert('Cita cancelada con éxito')
     }
   }
@@ -206,7 +199,7 @@ const AppointmentsPage: FC = () => {
     navigate('/dentistDirectory')
   }
 
-  // Función para manejar la navegación de la barra inferior
+  // Función para manejar la navegación
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleNavClick = (tab: string) => {
     if (tab === 'inicio') {

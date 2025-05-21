@@ -50,18 +50,16 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   ) => {
     const { name, value } = e.target
 
-    // Para el campo id, convertir a número o null
-    if (name === 'id') {
-      setFormData({
-        ...formData,
-        [name]: value ? parseInt(value) : null
-      })
-    } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      })
-    }
+    const fieldName = name === 'id' ? 'userId' : (name as keyof ChildFormData)
+
+    // Procesar el valor según el tipo de campo
+    const processedValue = name === 'id' ? (value ? parseInt(value) : null) : value
+
+    // Actualizar el estado con un typing seguro
+    setFormData((prevData) => ({
+      ...prevData,
+      [fieldName]: processedValue
+    }))
 
     // Limpiar errores cuando el usuario modifica el campo
     if (errors[name as keyof FormErrors]) {
@@ -114,8 +112,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     return undefined
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
 
     // Validar campos
