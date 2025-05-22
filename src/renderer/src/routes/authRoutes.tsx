@@ -13,7 +13,7 @@ import DentistDetail from '@renderer/features/parent/pages/dentistDetail'
 function AuthRoutes(): React.JSX.Element {
   return (
     <Routes>
-      <Route path="/" element={<HomePageFather />} />
+      <Route path="/" element={<Login />} />
       <Route path="/signup" element={<Singup />} />
 
       {/* Routes for Dentist */}

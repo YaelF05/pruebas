@@ -1,4 +1,3 @@
-// src/renderer/src/features/parent/pages/fatherHome.tsx
 import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BrushingCard from '../components/brushingCard'

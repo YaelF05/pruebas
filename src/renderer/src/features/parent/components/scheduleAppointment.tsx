@@ -3,9 +3,14 @@ import Modal from './modal'
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
 import TextareaInput from '@renderer/components/textareaInput'
-import { getChildrenService, ChildResponse } from '../services/childService'
 import { createAppointmentService, AppointmentData } from '../services/appointmentService'
 import styles from '../styles/scheduleAppointment.module.css'
+
+const mockChildren = [
+  { childId: 1, name: 'Ana', lastName: 'García' },
+  { childId: 2, name: 'Luis', lastName: 'García' },
+  { childId: 3, name: 'María', lastName: 'García' }
+]
 
 interface ScheduleAppointmentModalProps {
   isOpen: boolean
@@ -20,42 +25,28 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   onSubmit,
   dentistId
 }) => {
-  const [children, setChildren] = useState<ChildResponse[]>([])
-  const [selectedChild, setSelectedChild] = useState<number | null>(null)
+  const [selectedChildId, setSelectedChildId] = useState<number | null>(null)
   const [appointmentDate, setAppointmentDate] = useState<string>('')
   const [appointmentTime, setAppointmentTime] = useState<string>('')
   const [reason, setReason] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Efecto para cargar la lista de hijos
   useEffect(() => {
-    const fetchChildren = async () => {
-      if (!isOpen) return
-
-      try {
-        setIsLoading(true)
-        setError(null)
-        const childrenData = await getChildrenService()
-        setChildren(childrenData)
-      } catch (error) {
-        console.error('Error al cargar los hijos:', error)
-        setError('No se pudieron cargar los datos de los hijos')
-      } finally {
-        setIsLoading(false)
-      }
+    if (isOpen) {
+      console.log('Modal abierto - usando datos mock de hijos')
+      // Aquí normalmente cargaríamos los hijos desde la API
+      // const childrenData = await getChildrenService()
+      // Por ahora usamos datos mock
     }
-
-    fetchChildren()
   }, [isOpen])
 
-  // Función para manejar el envío del formulario
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    // Validación básica
-    if (!selectedChild) {
+    // Validaciones
+    if (!selectedChildId) {
       setError('Por favor seleccione un hijo')
       return
     }
@@ -75,25 +66,36 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return
     }
 
-    // Combinar fecha y hora para el datetime
-    const appointmentDatetime = `${appointmentDate}T${appointmentTime}:00`
+    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}:00`)
+    const now = new Date()
+
+    if (appointmentDateTime <= now) {
+      setError('La fecha y hora de la cita debe ser en el futuro')
+      return
+    }
 
     const appointmentData: AppointmentData = {
-      childId: selectedChild,
       dentistId: dentistId,
+      childId: selectedChildId,
       reason: reason.trim(),
-      appointmentDatetime
+      appointmentDatetime: `${appointmentDate}T${appointmentTime}:00`
     }
 
     try {
       setIsLoading(true)
+      console.log('Creando cita con datos:', appointmentData)
+
       await createAppointmentService(appointmentData)
 
-      // Llamar al callback del padre con los datos
+      console.log('Cita creada exitosamente')
+
+      // Llamar al callback del padre
       onSubmit(appointmentData)
 
-      // Limpiar el formulario
+      // Limpiar formulario
       handleCancel()
+
+      alert('¡Cita agendada con éxito!')
     } catch (error) {
       console.error('Error al crear la cita:', error)
       setError(error instanceof Error ? error.message : 'Error al agendar la cita')
@@ -102,15 +104,13 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  // Opciones para el selector de hijos
-  const childOptions = children.map((child) => ({
+  const childOptions = mockChildren.map((child) => ({
     label: `${child.name} ${child.lastName}`,
     value: child.childId.toString()
   }))
 
-  // Reset del formulario
   const handleCancel = (): void => {
-    setSelectedChild(null)
+    setSelectedChildId(null)
     setAppointmentDate('')
     setAppointmentTime('')
     setReason('')
@@ -118,80 +118,76 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     onClose()
   }
 
-  // Obtener la fecha mínima (hoy)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const today = new Date().toISOString().split('T')[0]
 
   return (
     <Modal isOpen={isOpen} onClose={handleCancel} title="Agenda tu cita">
-      {isLoading && children.length === 0 ? (
-        <div className={styles.loading}>Cargando...</div>
-      ) : (
-        <form onSubmit={handleSubmit} className={styles.modalContent}>
-          {error && <div className={styles.errorMessage}>{error}</div>}
+      <form onSubmit={handleSubmit} className={styles.modalContent}>
+        {error && <div className={styles.errorMessage}>{error}</div>}
 
-          <div className={styles.formGroup}>
-            <InputList
-              label="Seleccione hijo"
-              name="childId"
-              value={selectedChild?.toString() || ''}
-              placeholder="Seleccione hijo"
-              options={childOptions}
-              onChange={(e) => setSelectedChild(parseInt(e.target.value))}
+        <div className={styles.formGroup}>
+          <InputList
+            label="Seleccione hijo"
+            name="childId"
+            value={selectedChildId?.toString() || ''}
+            placeholder="Seleccione hijo"
+            options={childOptions}
+            onChange={(e) => setSelectedChildId(parseInt(e.target.value))}
+            required
+          />
+        </div>
+
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Ingresa la fecha y horario para la cita</label>
+          <div className={styles.dateTimeGroup}>
+            <InputForm
+              label="Fecha de la cita"
+              name="appointmentDate"
+              type="date"
+              value={appointmentDate}
+              placeholder="DD/MM/AAAA"
+              onChange={(e) => setAppointmentDate(e.target.value)}
+              required
+            />
+            <InputForm
+              label="Hora de la cita"
+              name="appointmentTime"
+              type="time"
+              value={appointmentTime}
+              placeholder="HH:MM"
+              onChange={(e) => setAppointmentTime(e.target.value)}
               required
             />
           </div>
+          {/* ✅ Agregar restricción de fecha mínima */}
+          <input type="hidden" min={today} />
+        </div>
 
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Ingresa la fecha y horario para la cita</label>
-            <div className={styles.dateTimeGroup}>
-              <InputForm
-                label="Nueva fecha"
-                name="appointmentDate"
-                type="date"
-                value={appointmentDate}
-                placeholder="DD/MM/AAAA"
-                onChange={(e) => setAppointmentDate(e.target.value)}
-                required
-              />
-              <InputForm
-                label="Nuevo horario"
-                name="appointmentTime"
-                type="time"
-                value={appointmentTime}
-                placeholder="HH:MM"
-                onChange={(e) => setAppointmentTime(e.target.value)}
-                required
-              />
-            </div>
-          </div>
+        <div className={styles.formGroup}>
+          <TextareaInput
+            label="Motivo de la cita"
+            name="reason"
+            value={reason}
+            placeholder="Describa el motivo de la cita (ej: Limpieza dental, Revisión general, Dolor en muela, etc.)"
+            onChange={(e) => setReason(e.target.value)}
+            required
+          />
+        </div>
 
-          <div className={styles.formGroup}>
-            <TextareaInput
-              label="Motivo de la cita"
-              name="reason"
-              value={reason}
-              placeholder="Describa el motivo de la cita"
-              onChange={(e) => setReason(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className={styles.buttonGroup}>
-            <button
-              type="button"
-              className={styles.cancelButton}
-              onClick={handleCancel}
-              disabled={isLoading}
-            >
-              Regresar
-            </button>
-            <button type="submit" className={styles.scheduleButton} disabled={isLoading}>
-              {isLoading ? 'Agendando...' : 'Agendar cita'}
-            </button>
-          </div>
-        </form>
-      )}
+        <div className={styles.buttonGroup}>
+          <button
+            type="button"
+            className={styles.cancelButton}
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
+            Cancelar
+          </button>
+          <button type="submit" className={styles.scheduleButton} disabled={isLoading}>
+            {isLoading ? 'Agendando...' : 'Agendar cita'}
+          </button>
+        </div>
+      </form>
     </Modal>
   )
 }

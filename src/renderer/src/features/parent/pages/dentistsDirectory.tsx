@@ -1,103 +1,164 @@
 import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BackButton from '@renderer/components/backButton'
-import {
-  getDentistsService,
-  getNearbyDentistsService,
-  DentistResponse
-} from '../services/dentistService'
-import { getCurrentLocation } from '@renderer/utils/location/geolocation'
-import { getDistanceFromLatLonInKm } from '@renderer/utils/location/distance'
 import styles from '../styles/dentistsDirectory.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import FilterIcon from '@renderer/assets/icons/filterIcon.png'
 
+interface MockDentist {
+  userId: number
+  name: string
+  lastName: string
+  email: string
+  professionalLicense: string
+  university?: string
+  speciality?: string
+  serviceStartTime: string
+  serviceEndTime: string
+  phoneNumber: string
+  latitude?: number
+  longitude?: number
+  distance?: number
+}
+
+const mockDentists: MockDentist[] = [
+  {
+    userId: 1,
+    name: 'María',
+    lastName: 'González',
+    email: 'maria.gonzalez@email.com',
+    professionalLicense: '1234567',
+    university: 'Universidad Nacional',
+    speciality: 'Odontopediatría',
+    serviceStartTime: '08:00',
+    serviceEndTime: '18:00',
+    phoneNumber: '5512345678',
+    latitude: 19.4326,
+    longitude: -99.1332,
+    distance: 2.5
+  },
+  {
+    userId: 2,
+    name: 'Carlos',
+    lastName: 'Rodríguez',
+    email: 'carlos.rodriguez@email.com',
+    professionalLicense: '2345678',
+    university: 'Universidad Autónoma',
+    speciality: 'Ortodoncia Pediátrica',
+    serviceStartTime: '09:00',
+    serviceEndTime: '17:00',
+    phoneNumber: '5523456789',
+    distance: 5.2
+  },
+  {
+    userId: 3,
+    name: 'Ana',
+    lastName: 'Martínez',
+    email: 'ana.martinez@email.com',
+    professionalLicense: '3456789',
+    university: 'Universidad Metropolitana',
+    speciality: 'Odontología General',
+    serviceStartTime: '10:00',
+    serviceEndTime: '19:00',
+    phoneNumber: '5534567890',
+    distance: 1.8
+  },
+  {
+    userId: 4,
+    name: 'Luis',
+    lastName: 'Fernández',
+    email: 'luis.fernandez@email.com',
+    professionalLicense: '4567890',
+    serviceStartTime: '07:00',
+    serviceEndTime: '16:00',
+    phoneNumber: '5545678901',
+    distance: 8.1
+  }
+]
+
 const DentistsPage: FC = () => {
   const navigate = useNavigate()
-  const [dentists, setDentists] = useState<DentistResponse[]>([])
+
+  const [dentists, setDentists] = useState<MockDentist[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sortByDistance, setSortByDistance] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
-  const [sortByDistance, setSortByDistance] = useState(false)
 
   useEffect(() => {
-    const fetchDentists = async () => {
+    const loadMockData = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        // Intentar obtener la ubicación del usuario
+        // Simular delay de carga
+        await new Promise((resolve) => setTimeout(resolve, 500))
+
         try {
           const position = await getCurrentLocation()
-          const location = {
+          setUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          }
-          setUserLocation(location)
-
-          // Si tenemos ubicación, obtener dentistas cercanos
-          const nearbyDentists = await getNearbyDentistsService(location.lat, location.lng, 50) // 50km radius
-
-          // Calcular distancias y ordenar
-          const dentistsWithDistance = nearbyDentists
-            .map((dentist) => ({
-              ...dentist,
-              distance: getDistanceFromLatLonInKm(
-                location.lat,
-                location.lng,
-                dentist.latitude,
-                dentist.longitude
-              )
-            }))
-            .sort((a, b) => a.distance! - b.distance!)
-
-          setDentists(dentistsWithDistance)
+          })
+          console.log('Ubicación obtenida:', position.coords)
         } catch (locationError) {
-          console.warn('No se pudo obtener la ubicación del usuario:', locationError)
-
-          // Si no se puede obtener la ubicación, obtener todos los dentistas
-          const allDentists = await getDentistsService()
-          setDentists(allDentists)
+          console.warn('No se pudo obtener ubicación:', locationError)
+          // Usar ubicación por defecto (Ciudad de México)
+          setUserLocation({
+            lat: 19.4326,
+            lng: -99.1332
+          })
         }
+
+        const sortedDentists = [...mockDentists].sort((a, b) => {
+          const distanceA = a.distance || 999
+          const distanceB = b.distance || 999
+          return distanceA - distanceB
+        })
+
+        setDentists(sortedDentists)
       } catch (error) {
-        console.error('Error al obtener dentistas:', error)
+        console.error('Error al cargar dentistas:', error)
         setError(error instanceof Error ? error.message : 'Error al cargar los dentistas')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchDentists()
+    loadMockData()
   }, [])
 
-  // Función para alternar ordenamiento por distancia
-  const handleToggleDistanceSort = () => {
-    if (!userLocation) return
+  const getCurrentLocation = (): Promise<GeolocationPosition> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        return reject(new Error('La geolocalización no está disponible'))
+      }
 
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000
+      })
+    })
+  }
+
+  const handleToggleDistanceSort = () => {
     setSortByDistance(!sortByDistance)
 
     const sortedDentists = [...dentists].sort((a, b) => {
       if (!sortByDistance) {
         // Ordenar por distancia (ascendente)
-        const distanceA =
-          a.distance ||
-          getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, a.latitude, a.longitude)
-        const distanceB =
-          b.distance ||
-          getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, b.latitude, b.longitude)
+        const distanceA = a.distance || 999
+        const distanceB = b.distance || 999
         return distanceA - distanceB
       } else {
         // Ordenar alfabéticamente por nombre
-        return `${a.user.name} ${a.user.lastName}`.localeCompare(
-          `${b.user.name} ${b.user.lastName}`
-        )
+        return `${a.name} ${a.lastName}`.localeCompare(`${b.name} ${b.lastName}`)
       }
     })
 
     setDentists(sortedDentists)
   }
 
-  // Función para navegar al detalle del dentista
   const handleDentistClick = (userId: number): void => {
     navigate(`/dentist/${userId}`)
   }
@@ -156,13 +217,13 @@ const DentistsPage: FC = () => {
               <div className={styles.dentistImage}>
                 <img
                   src={ProfileAvatar}
-                  alt={`${dentist.user.name} ${dentist.user.lastName}`}
+                  alt={`${dentist.name} ${dentist.lastName}`}
                   className={styles.profileImage}
                 />
               </div>
               <div className={styles.dentistInfo}>
                 <h3 className={styles.dentistName}>
-                  Dr. {dentist.user.name} {dentist.user.lastName}
+                  Dr. {dentist.name} {dentist.lastName}
                 </h3>
                 {dentist.distance !== undefined && (
                   <p className={styles.dentistDistance}>
