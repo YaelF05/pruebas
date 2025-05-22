@@ -1,7 +1,13 @@
-import { FC, useState } from 'react'
+import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
+import {
+  getAppointmentsService,
+  rescheduleAppointmentService,
+  cancelAppointmentService,
+  AppointmentResponse
+} from '../services/appointmentService'
 import styles from '../styles/appointmentsFather.module.css'
 import Dentist from '@renderer/assets/images/dentist.png'
 import Clock from '@renderer/assets/icons/clock.png'
@@ -12,124 +18,36 @@ import Home from '@renderer/assets/icons/home.png'
 import HomeActive from '@renderer/assets/icons/home-active.png'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
-interface AppointmentData {
-  appointmentId: number
-  userId: number
-  childId: number
-  reason: string
-  appointmentDatetime: string
-  child?: {
-    name: string
-    lastName: string
-  }
-  dentist?: {
-    user: {
-      name: string
-      lastName: string
-    }
-  }
-}
-
-// Mock data
-const mockAppointments: AppointmentData[] = [
-  {
-    appointmentId: 1,
-    userId: 1,
-    childId: 1,
-    reason: 'Sensibilidad en molares',
-    appointmentDatetime: '2025-05-06T10:00:00',
-    child: {
-      name: 'Jhon',
-      lastName: 'Doe'
-    },
-    dentist: {
-      user: {
-        name: 'Sinhue',
-        lastName: 'Montalvo Villagomez'
-      }
-    }
-  },
-  {
-    appointmentId: 2,
-    userId: 1,
-    childId: 2,
-    reason: 'Limpieza dental',
-    appointmentDatetime: '2025-05-07T14:30:00',
-    child: {
-      name: 'María',
-      lastName: 'García'
-    },
-    dentist: {
-      user: {
-        name: 'Sinhue',
-        lastName: 'Montalvo Villagomez'
-      }
-    }
-  },
-  {
-    appointmentId: 3,
-    userId: 2,
-    childId: 3,
-    reason: 'Revisión ortodóncia',
-    appointmentDatetime: '2025-05-06T16:00:00',
-    child: {
-      name: 'Pedro',
-      lastName: 'López'
-    },
-    dentist: {
-      user: {
-        name: 'Ana',
-        lastName: 'Martínez Ruiz'
-      }
-    }
-  },
-  {
-    appointmentId: 4,
-    userId: 1,
-    childId: 4,
-    reason: 'Blanqueamiento dental',
-    appointmentDatetime: '2025-05-08T11:00:00',
-    child: {
-      name: 'Ana',
-      lastName: 'Martínez'
-    },
-    dentist: {
-      user: {
-        name: 'Sinhue',
-        lastName: 'Montalvo Villagomez'
-      }
-    }
-  },
-  {
-    appointmentId: 5,
-    userId: 2,
-    childId: 1,
-    reason: 'Control de brackets',
-    appointmentDatetime: '2025-05-23T09:30:00',
-    child: {
-      name: 'Jhon',
-      lastName: 'Doe'
-    },
-    dentist: {
-      user: {
-        name: 'Ana',
-        lastName: 'Martínez Ruiz'
-      }
-    }
-  }
-]
-
 const AppointmentsPage: FC = () => {
   const navigate = useNavigate()
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-
-  const [allAppointments, setAllAppointments] = useState<AppointmentData[]>(mockAppointments)
-
+  const [allAppointments, setAllAppointments] = useState<AppointmentResponse[]>([])
   const [activeTab, setActiveTab] = useState<string>('citas')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Cargar las citas al montar el componente
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const appointments = await getAppointmentsService()
+        setAllAppointments(appointments)
+      } catch (error) {
+        console.error('Error al cargar las citas:', error)
+        setError(error instanceof Error ? error.message : 'Error al cargar las citas')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAppointments()
+  }, [])
 
   // Función para filtrar las citas por fecha
-  const getAppointmentsForDate = (date: Date): AppointmentData[] => {
+  const getAppointmentsForDate = (date: Date): AppointmentResponse[] => {
     return allAppointments.filter((appointment) => {
       const appointmentDate = new Date(appointment.appointmentDatetime)
       return (
@@ -151,43 +69,67 @@ const AppointmentsPage: FC = () => {
     }).format(date)
   }
 
-  // Función para reagendar cita en proceso
-  const handleReschedule = (appointmentId: string): void => {
+  // Función para reagendar cita
+  const handleReschedule = async (appointmentId: string): Promise<void> => {
     const appointment = allAppointments.find((a) => a.appointmentId.toString() === appointmentId)
 
-    if (appointment) {
-      const newDateTime = prompt('Ingrese nueva fecha y hora (YYYY-MM-DD HH:mm)')
-      const reason = prompt('Motivo del reagendamiento')
+    if (!appointment) {
+      alert('Cita no encontrada')
+      return
+    }
 
-      if (newDateTime && reason) {
+    const newDateTime = prompt(
+      'Ingrese nueva fecha y hora (YYYY-MM-DD HH:MM)',
+      appointment.appointmentDatetime.slice(0, 16)
+    )
+    const reason = prompt('Motivo del reagendamiento')
+
+    if (newDateTime && reason) {
+      try {
+        const newDateTimeFormatted = `${newDateTime}:00`
+
+        await rescheduleAppointmentService(parseInt(appointmentId), newDateTimeFormatted, reason)
+
+        // Actualizar la cita en el estado local
         const updatedAppointments = allAppointments.map((app) => {
           if (app.appointmentId.toString() === appointmentId) {
             return {
               ...app,
-              appointmentDatetime: new Date(newDateTime).toISOString()
+              appointmentDatetime: newDateTimeFormatted,
+              lastModificationDate: new Date().toISOString()
             }
           }
           return app
         })
         setAllAppointments(updatedAppointments)
 
-        // Simulación de éxito
         alert('Cita reagendada con éxito')
+      } catch (error) {
+        console.error('Error al reagendar la cita:', error)
+        alert('Error al reagendar la cita. Por favor, inténtelo de nuevo.')
       }
     }
   }
 
-  // Función para cancelar cita en proceso
-  const handleCancel = (appointmentId: string): void => {
+  // Función para cancelar cita
+  const handleCancel = async (appointmentId: string): Promise<void> => {
     const reason = prompt('Motivo de la cancelación')
 
     if (reason && confirm('¿Está seguro de cancelar esta cita?')) {
-      const updatedAppointments = allAppointments.filter(
-        (app) => app.appointmentId.toString() !== appointmentId
-      )
-      setAllAppointments(updatedAppointments)
+      try {
+        await cancelAppointmentService(parseInt(appointmentId), reason)
 
-      alert('Cita cancelada con éxito')
+        // Remover la cita del estado local
+        const updatedAppointments = allAppointments.filter(
+          (app) => app.appointmentId.toString() !== appointmentId
+        )
+        setAllAppointments(updatedAppointments)
+
+        alert('Cita cancelada con éxito')
+      } catch (error) {
+        console.error('Error al cancelar la cita:', error)
+        alert('Error al cancelar la cita. Por favor, inténtelo de nuevo.')
+      }
     }
   }
 
@@ -224,6 +166,16 @@ const AppointmentsPage: FC = () => {
     })
   }
 
+  if (loading) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.appointmentsPage}>
+          <div className={styles.loading}>Cargando citas...</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.appointmentsPage}>
@@ -253,7 +205,12 @@ const AppointmentsPage: FC = () => {
           {/* Columna derecha: Lista de citas */}
           <div className={styles.rightColumn}>
             <div className={styles.appointmentsList}>
-              {appointments.length > 0 ? (
+              {error ? (
+                <div className={styles.error}>
+                  <p>Error: {error}</p>
+                  <button onClick={() => window.location.reload()}>Reintentar</button>
+                </div>
+              ) : appointments.length > 0 ? (
                 appointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment.appointmentId}

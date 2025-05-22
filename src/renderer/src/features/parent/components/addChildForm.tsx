@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
+import { ChildData } from '../services/childService'
 import styles from '../styles/addChildForm.module.css'
 
 interface Dentist {
@@ -8,30 +9,19 @@ interface Dentist {
   name: string
 }
 
-interface ChildFormData {
-  name: string
-  lastName: string
-  gender: 'M' | 'F'
-  birthDate: string
-  morningBrushingTime: string
-  afternoonBrushingTime: string
-  nightBrushingTime: string
-  userId: number
-}
-
 interface FormErrors {
   birthDate?: string
-  id?: string
+  userId?: string
 }
 
 interface AddChildFormProps {
   dentists: Dentist[]
-  onSubmit: (childData: ChildFormData) => void
+  onSubmit: (childData: ChildData) => void
   onCancel: () => void
 }
 
 const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState<ChildFormData>({
+  const [formData, setFormData] = useState<ChildData>({
     name: '',
     lastName: '',
     gender: 'M',
@@ -49,15 +39,17 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   ) => {
     const { name, value } = e.target
 
-    const fieldName = name === 'id' ? 'userId' : (name as keyof ChildFormData)
+    let processedValue: string | number = value
 
     // Procesar el valor según el tipo de campo
-    const processedValue = name === 'id' ? (value ? parseInt(value) : null) : value
+    if (name === 'userId') {
+      processedValue = value ? parseInt(value) : 0
+    }
 
-    // Actualizar el estado con un typing seguro
+    // Actualizar el estado
     setFormData((prevData) => ({
       ...prevData,
-      [fieldName]: processedValue
+      [name]: processedValue
     }))
 
     // Limpiar errores cuando el usuario modifica el campo
@@ -78,7 +70,24 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     const birth = new Date(birthDate)
     const today = new Date()
 
-    // Calcular la edad
+    // Validar que la fecha no sea futura
+    if (birth > today) {
+      return 'La fecha de nacimiento no puede ser futura'
+    }
+
+    // Validar que la fecha esté dentro del rango permitido
+    const maxAllowedDate = new Date(today.getFullYear() - 4, today.getMonth(), today.getDate())
+    const minAllowedDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
+
+    if (birth > maxAllowedDate) {
+      return 'El niño debe tener al menos 4 años'
+    }
+
+    if (birth < minAllowedDate) {
+      return 'El niño no puede tener más de 13 años'
+    }
+
+    // Calcular la edad exacta
     let age = today.getFullYear() - birth.getFullYear()
     const monthDiff = today.getMonth() - birth.getMonth()
 
@@ -86,14 +95,9 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
       age--
     }
 
-    // Validar que la fecha no sea futura
-    if (birth > today) {
-      return 'La fecha de nacimiento no puede ser futura'
-    }
-
-    // Validar rango de edad
+    // Validación adicional por si acaso
     if (age < 4) {
-      return 'El niño debe tener al menos 4 años'
+      return 'El niño debe tener al menos 4 años cumplidos'
     }
 
     if (age > 13) {
@@ -104,8 +108,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   }
 
   // Función para validar el odontólogo
-  const validateDentist = (id: number): string | undefined => {
-    if (!id) {
+  const validateDentist = (userId: number): string | undefined => {
+    if (!userId || userId === 0) {
       return 'Debe seleccionar un odontólogo'
     }
     return undefined
@@ -125,7 +129,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     }
 
     if (dentistError) {
-      newErrors.id = dentistError
+      newErrors.userId = dentistError
     }
 
     // Si hay errores, actualizar el estado y no enviar
@@ -149,6 +153,15 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     label: dentist.name,
     value: dentist.userId.toString()
   }))
+
+  // Obtener la fecha máxima (hace 4 años) y mínima (hace 13 años)
+  const today = new Date()
+  const maxDate = new Date(today.getFullYear() - 4, today.getMonth(), today.getDate())
+    .toISOString()
+    .split('T')[0]
+  const minDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
+    .toISOString()
+    .split('T')[0]
 
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
@@ -191,16 +204,22 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
       </div>
 
       <div className={styles.formField}>
-        <InputForm
-          label="Fecha de nacimiento (4-13 años)"
-          name="birthDate"
-          type="date"
-          value={formData.birthDate}
-          placeholder="Fecha de nacimiento"
-          onChange={handleInputChange}
-          required
-          classname={styles.formInput}
-        />
+        <div className={styles.dateInputContainer}>
+          <label htmlFor="birthDate" className={styles.dateLabel}>
+            Fecha de nacimiento (4-13 años)
+          </label>
+          <input
+            type="date"
+            id="birthDate"
+            name="birthDate"
+            value={formData.birthDate}
+            onChange={handleInputChange}
+            min={minDate}
+            max={maxDate}
+            required
+            className={styles.dateInput}
+          />
+        </div>
         {errors.birthDate && <div className={styles.errorMessage}>{errors.birthDate}</div>}
       </div>
 
@@ -253,7 +272,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
           onChange={handleInputChange}
           required={true}
         />
-        {errors.id && <div className={styles.errorMessage}>{errors.id}</div>}
+        {errors.userId && <div className={styles.errorMessage}>{errors.userId}</div>}
       </div>
 
       <div className={styles.formActions}>

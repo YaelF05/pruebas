@@ -1,92 +1,39 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import BackButton from '@renderer/components/backButton'
+import { getDentistByIdService, DentistResponse } from '../services/dentistService'
+import { AppointmentData } from '../services/appointmentService'
+import ScheduleAppointmentModal from '../components/scheduleAppointment'
 import styles from '../styles/dentistDetail.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import Phone from '@renderer/assets/icons/phone.png'
 import Mail from '@renderer/assets/icons/mail.png'
-import ScheduleAppointmentModal from '../components/scheduleAppointment'
-
-interface DentistData {
-  userId: number
-  user: {
-    userId: number
-    name: string
-    lastName: string
-    email: string
-  }
-  professionalLicense: string
-  university?: string
-  speciality?: string
-  about?: string
-  serviceStartTime: string
-  serviceEndTime: string
-  phoneNumber: string
-  latitude: number
-  longitude: number
-}
 
 const DentistDetail: React.FC = () => {
   const { userId } = useParams<{ userId: string }>()
   const navigate = useNavigate()
-  const [dentist, setDentist] = useState<DentistData | null>(null)
+  const [dentist, setDentist] = useState<DentistResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     const fetchDentistData = async (): Promise<void> => {
+      if (!userId) {
+        setError('ID de dentista no encontrado')
+        setLoading(false)
+        return
+      }
+
       try {
         setLoading(true)
+        setError(null)
 
-        const authToken = localStorage.getItem('authToken')
-
-        if (!authToken) {
-          throw new Error('No se encontró el token de autenticación')
-        }
-
-        // URL de la API para obtener los detalles del dentista
-        const apiUrl = ``
-
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error(`Error al obtener los detalles del dentista: ${response.status}`)
-        }
-
-        const data = await response.json()
-        setDentist(data)
+        const dentistData = await getDentistByIdService(parseInt(userId))
+        setDentist(dentistData)
       } catch (error) {
         console.error('Error al obtener los datos del dentista:', error)
-        setError('')
-
-        // Pruebas
-        const mockDentist: DentistData = {
-          userId: parseInt(userId || '1'),
-          user: {
-            userId: 1,
-            name: 'Jhon',
-            lastName: 'Doe',
-            email: 'loremimpsum@email.com'
-          },
-          professionalLicense: '12345678',
-          university: 'Universidad Veracruzana',
-          speciality: 'Ortodoncista',
-          about: 'Acerca de mí (texto descriptivo del dentista)...',
-          serviceStartTime: '09:00',
-          serviceEndTime: '17:00',
-          phoneNumber: '9211111111',
-          latitude: 18.1511,
-          longitude: -94.4746
-        }
-
-        setDentist(mockDentist)
+        setError(error instanceof Error ? error.message : 'Error al cargar los datos del dentista')
       } finally {
         setLoading(false)
       }
@@ -96,24 +43,25 @@ const DentistDetail: React.FC = () => {
   }, [userId])
 
   const handleScheduleAppointment = (): void => {
-    // Abrir el modal en lugar de navegar
     setIsModalOpen(true)
   }
 
   // Función para manejar el envío del formulario de cita
-  const handleAppointmentSubmit = (appointmentData: unknown): void => {
-    // Aquí iría la lógica para enviar los datos a la API
+  const handleAppointmentSubmit = (appointmentData: AppointmentData): void => {
     console.log('Datos de la cita:', appointmentData)
 
-    // alerta de creación de la cita
+    // Mostrar mensaje de éxito
     alert('¡Cita agendada con éxito!')
 
+    // Cerrar modal
     setIsModalOpen(false)
 
+    // Navegar a la página de citas
     navigate('/appointmentFather')
   }
 
   const formatPhoneNumber = (phone: string): string => {
+    // Formato: XXX XXX XXXX
     return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')
   }
 
@@ -131,8 +79,29 @@ const DentistDetail: React.FC = () => {
     return <div className={styles.loading}>Cargando información del dentista...</div>
   }
 
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <BackButton />
+        </div>
+        <div className={styles.error}>
+          <p>Error: {error}</p>
+          <button onClick={() => window.location.reload()}>Reintentar</button>
+        </div>
+      </div>
+    )
+  }
+
   if (!dentist) {
-    return <div className={styles.error}>No se encontró la información del dentista.</div>
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <BackButton />
+        </div>
+        <div className={styles.error}>No se encontró la información del dentista.</div>
+      </div>
+    )
   }
 
   return (
@@ -141,8 +110,6 @@ const DentistDetail: React.FC = () => {
         <BackButton />
       </div>
 
-      {error && <div className={styles.errorBanner}>{error}</div>}
-
       <div className={styles.profileSection}>
         <div className={styles.profileImage}>
           <img src={ProfileAvatar} alt={`${dentist.user.name} ${dentist.user.lastName}`} />
@@ -150,7 +117,7 @@ const DentistDetail: React.FC = () => {
 
         <div className={styles.profileInfo}>
           <h1 className={styles.name}>
-            {dentist.user.name} {dentist.user.lastName}
+            Dr. {dentist.user.name} {dentist.user.lastName}
           </h1>
           {dentist.university && <p className={styles.university}>{dentist.university}</p>}
           {dentist.speciality && <p className={styles.speciality}>{dentist.speciality}</p>}
@@ -227,7 +194,7 @@ const DentistDetail: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAppointmentSubmit}
-        userId={userId}
+        dentistId={dentist.userId}
       />
     </div>
   )

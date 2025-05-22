@@ -3,34 +3,24 @@ import Modal from './modal'
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
 import TextareaInput from '@renderer/components/textareaInput'
+import { getChildrenService, ChildResponse } from '../services/childService'
+import { createAppointmentService, AppointmentData } from '../services/appointmentService'
 import styles from '../styles/scheduleAppointment.module.css'
 
 interface ScheduleAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (appointmentData: AppointmentData) => void
-  userId: string | undefined
-}
-
-interface Child {
-  childId: number
-  name: string
-  lastName: string
-}
-
-interface AppointmentData {
-  childId: number
-  appointmentDate: string
-  appointmentTime: string
-  reason: string
+  dentistId: number
 }
 
 const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   isOpen,
   onClose,
-  onSubmit
+  onSubmit,
+  dentistId
 }) => {
-  const [children, setChildren] = useState<Child[]>([])
+  const [children, setChildren] = useState<ChildResponse[]>([])
   const [selectedChild, setSelectedChild] = useState<number | null>(null)
   const [appointmentDate, setAppointmentDate] = useState<string>('')
   const [appointmentTime, setAppointmentTime] = useState<string>('')
@@ -41,30 +31,28 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   // Efecto para cargar la lista de hijos
   useEffect(() => {
     const fetchChildren = async () => {
+      if (!isOpen) return
+
       try {
         setIsLoading(true)
-        // Aquí iría la llamada a la API
-        const mockChildren: Child[] = [
-          { childId: 1, name: 'Jhon', lastName: 'Doe' },
-          { childId: 2, name: 'María', lastName: 'García' }
-        ]
-        setChildren(mockChildren)
-        setIsLoading(false)
+        setError(null)
+        const childrenData = await getChildrenService()
+        setChildren(childrenData)
       } catch (error) {
         console.error('Error al cargar los hijos:', error)
         setError('No se pudieron cargar los datos de los hijos')
+      } finally {
         setIsLoading(false)
       }
     }
 
-    if (isOpen) {
-      fetchChildren()
-    }
+    fetchChildren()
   }, [isOpen])
 
   // Función para manejar el envío del formulario
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
 
     // Validación básica
     if (!selectedChild) {
@@ -87,14 +75,31 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return
     }
 
+    // Combinar fecha y hora para el datetime
+    const appointmentDatetime = `${appointmentDate}T${appointmentTime}:00`
+
     const appointmentData: AppointmentData = {
       childId: selectedChild,
-      appointmentDate,
-      appointmentTime,
-      reason
+      dentistId: dentistId,
+      reason: reason.trim(),
+      appointmentDatetime
     }
 
-    onSubmit(appointmentData)
+    try {
+      setIsLoading(true)
+      await createAppointmentService(appointmentData)
+
+      // Llamar al callback del padre con los datos
+      onSubmit(appointmentData)
+
+      // Limpiar el formulario
+      handleCancel()
+    } catch (error) {
+      console.error('Error al crear la cita:', error)
+      setError(error instanceof Error ? error.message : 'Error al agendar la cita')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Opciones para el selector de hijos
@@ -113,9 +118,13 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     onClose()
   }
 
+  // Obtener la fecha mínima (hoy)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const today = new Date().toISOString().split('T')[0]
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Agenda tu cita">
-      {isLoading ? (
+    <Modal isOpen={isOpen} onClose={handleCancel} title="Agenda tu cita">
+      {isLoading && children.length === 0 ? (
         <div className={styles.loading}>Cargando...</div>
       ) : (
         <form onSubmit={handleSubmit} className={styles.modalContent}>
@@ -169,11 +178,16 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
           </div>
 
           <div className={styles.buttonGroup}>
-            <button type="button" className={styles.cancelButton} onClick={handleCancel}>
+            <button
+              type="button"
+              className={styles.cancelButton}
+              onClick={handleCancel}
+              disabled={isLoading}
+            >
               Regresar
             </button>
-            <button type="submit" className={styles.scheduleButton}>
-              Agendar cita
+            <button type="submit" className={styles.scheduleButton} disabled={isLoading}>
+              {isLoading ? 'Agendando...' : 'Agendar cita'}
             </button>
           </div>
         </form>
