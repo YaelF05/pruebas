@@ -1,0 +1,45 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 11rem;
+  height: 12rem;
+  border-radius: 0.5rem;
+}
+
+.iconContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--primary-normal);
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+.iconContainer > img {
+  width: 5rem;
+  height: 5rem;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 4rem;
+  padding: 0.3rem;
+  background-color: var(--tertiary-normal);
+  border-end-end-radius: 0.5rem;
+  border-end-start-radius: 0.5rem;
+}
+
+.name {
+  font-size: var(--font-size-h3);
+  color: var(--neutral-darker);
+}
+
+.age {
+  font-size: var(--font-size-h4);
+  color: var(--neutral-darker);
+}

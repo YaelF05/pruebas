@@ -1,140 +1,84 @@
-.app-container {
+.pageWrapper {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   height: 100vh;
-  max-width: 768px;
-  margin: 0 auto;
-  background-color: #f5f7fa;
 }
 
-.main-content {
+.container {
   display: flex;
-  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  max-width: 1280px;
+  justify-content: center;
   overflow: hidden;
 }
 
-.appointments-section {
-  flex: 2;
-  padding: 20px;
+.mainContent {
+  display: flex;
+  flex: 1;
   overflow-y: auto;
+  padding: 20px;
+  overflow: hidden;
 }
 
 .header {
-  margin-bottom: 20px;
-}
-
-.header h1 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.header p {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.date {
-  font-weight: 500;
-  margin-top: 5px;
-}
-
-.appointment-card {
-  display: flex;
-  background-color: #e8f7f2;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  align-items: center;
-}
-
-.time-block {
-  background-color: #3498db;
-  color: white;
-  padding: 10px;
-  border-radius: 8px;
-  margin-right: 15px;
-  text-align: center;
-  min-width: 80px;
-}
-
-.time {
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.time-info {
-  font-size: 0.7rem;
-  margin-top: 4px;
-}
-
-.patient-info h3 {
-  font-size: 1rem;
-  margin-bottom: 5px;
-}
-
-.patient-info p {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-.side-panel {
-  flex: 1;
-  border-left: 1px solid #ddd;
-  padding: 20px;
-  background-color: white;
-}
-
-.side-panel h3 {
-  font-size: 1rem;
-  color: #333;
-  margin-bottom: 15px;
-}
-
-.recent-patient {
-  display: flex;
-  align-items: center;
-  background-color: #e6f3ff;
-  padding: 10px;
-  border-radius: 8px;
-}
-
-.recent-patient svg {
-  margin-right: 10px;
-}
-
-.bottom-nav {
-  display: flex;
-  justify-content: space-around;
-  background-color: white;
-  padding: 10px 0;
-  border-top: 1px solid #eee;
-}
-
-.nav-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  font-size: 0.7rem;
-  color: #777;
-  cursor: pointer;
+  flex: 3;
+  overflow-y: auto;
+
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-.nav-item.active {
-  color: #3498db;
+.header:-webkit-scrollbar {
+  display: none;
 }
 
-.nav-item span {
-  margin-top: 4px;
+.header > h1 {
+  font-size: var(--font-size-h1);
+  color: var(--primary-darker);
+  font-weight: 700;
 }
 
-@media (max-width: 768px) {
-  .main-content {
-    flex-direction: column;
-  }
+.header > p {
+  font-size: var(--font-size-h3);
+  color: var(--neutral-dark);
+}
 
-  .side-panel {
-    border-left: none;
-    border-top: 1px solid #ddd;
-  }
+.header > .date {
+  font-size: var(--font-size-title2);
+  color: var(--primary-darker);
+  font-weight: 700;
+  margin-top: 1rem;
+}
+
+.recentPatients {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 2;
+  border-left: 1px solid var(--secondary-dark-active);
+  direction: rtl;
+}
+
+.recentPatients > h2 {
+  font-size: var(--font-size-h3);
+  font-weight: 700;
+  color: var(--primary-darker);
+  margin-bottom: 0.5rem;
+  margin-left: 20px;
+}
+
+.recentPatients > * {
+  direction: ltr;
+}
+
+.loadingRecentPatients {
+  font-size: var(--font-size-title1);
+  color: var(--primary-darker);
+  margin-top: 1rem;
+  text-align: center;
 }

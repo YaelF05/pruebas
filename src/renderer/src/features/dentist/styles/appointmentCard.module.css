@@ -1,0 +1,48 @@
+.container {
+  display: flex;
+  background-color: var(--primary-light-active);
+  border-radius: 10px;
+  height: 6rem;
+  max-width: 650px;
+  margin: 5px 20px 5px 0px;
+}
+
+.timeBox {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  background-color: var(--primary-normal);
+  color: var(--primary-light);
+  padding: 1rem;
+  width: 140px;
+  border-radius: 10px;
+}
+
+.time {
+  font-size: var(--font-size-h3);
+  font-weight: 700;
+}
+
+.countdown {
+  font-size: var(--font-size-title2);
+  margin-top: 2px;
+}
+
+.details {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.name {
+  font-size: var(--font-size-title1);
+  font-weight: 700;
+  color: var(--primary-darker);
+}
+
+.reason {
+  font-size: var(--font-size-title1);
+  color: var(--primary-darker);
+}

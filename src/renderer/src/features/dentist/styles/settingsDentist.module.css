@@ -1,0 +1,62 @@
+.pageWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  max-width: 1280px;
+  overflow: hidden;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+}
+
+.header > h1 {
+  font-size: var(--font-size-h1);
+  font-weight: 700;
+  color: var(--neutral-darker);
+}
+
+.header img {
+  rotate: 180deg;
+  width: 1.5rem;
+  opacity: 0.5;
+}
+
+.changeEmail {
+  display: flex;
+  justify-content: space-between;
+  margin: 20px 0;
+  font-size: var(--font-size-title1);
+  color: var(--neutral-darker);
+}
+
+.changePassword {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--font-size-title1);
+  color: var(--neutral-darker);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}

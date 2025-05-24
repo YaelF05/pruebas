@@ -8,7 +8,7 @@ export interface ChildData {
   morningBrushingTime: string
   afternoonBrushingTime: string
   nightBrushingTime: string
-  userId: number // Este es el dentist ID
+  dentistId: number
 }
 
 export interface ChildResponse {
@@ -29,7 +29,7 @@ export interface ChildResponse {
 
 export interface CreateChildResult {
   message: string
-  childId: number
+  childId?: number
 }
 
 /**
@@ -46,17 +46,39 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('No authentication token found')
     }
 
-    // Mapear userId a dentistId para el body del request
+    // Validar datos antes de enviar
+    if (!childData.name.trim()) {
+      throw new Error('El nombre del niño es requerido')
+    }
+
+    if (!childData.lastName.trim()) {
+      throw new Error('El apellido del niño es requerido')
+    }
+
+    if (!['M', 'F'].includes(childData.gender)) {
+      throw new Error('El género debe ser M o F')
+    }
+
+    if (!childData.birthDate) {
+      throw new Error('La fecha de nacimiento es requerida')
+    }
+
+    if (!childData.dentistId || childData.dentistId <= 0) {
+      throw new Error('Debe seleccionar un dentista válido')
+    }
+
+    // Preparar el body de la request
     const requestBody = {
-      name: childData.name,
-      lastName: childData.lastName,
+      name: childData.name.trim(),
+      lastName: childData.lastName.trim(),
       gender: childData.gender,
       birthDate: childData.birthDate,
       morningBrushingTime: childData.morningBrushingTime,
       afternoonBrushingTime: childData.afternoonBrushingTime,
-      nightBrushingTime: childData.nightBrushingTime,
-      dentistId: childData.userId // Cambio de nombre para que coincida con la DB
+      nightBrushingTime: childData.nightBrushingTime
     }
+
+    console.log('Enviando datos del niño:', requestBody)
 
     const response = await fetch(`${API_BASE_URL}/child`, {
       method: 'PUT',
@@ -68,14 +90,24 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `Failed to create child: ${response.status}`)
+      let errorMessage = `Error al crear el niño: ${response.status}`
+
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+        console.error('Error del servidor:', errorData)
+      } catch (e) {
+        console.error('Error al parsear respuesta de error:', e)
+      }
+
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
+    console.log('Niño creado exitosamente:', data)
     return data as CreateChildResult
   } catch (error) {
-    console.error('Create child service error:', error)
+    console.error('Error en createChildService:', error)
     throw error
   }
 }
@@ -93,6 +125,8 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
       throw new Error('No authentication token found')
     }
 
+    console.log('Obteniendo lista de hijos...')
+
     const response = await fetch(`${API_BASE_URL}/child`, {
       method: 'GET',
       headers: {
@@ -102,19 +136,41 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `Failed to fetch children: ${response.status}`)
+      let errorMessage = `Error al obtener hijos: ${response.status}`
+
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+        console.error('Error al obtener hijos:', errorData)
+      } catch (e) {
+        console.error('Error al parsear respuesta:', e)
+      }
+
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
+    console.log('Hijos recibidos:', data)
 
-    // Mapear la respuesta para incluir nextAppointment si está disponible
-    return (data as ChildResponse[]).map((child) => ({
-      ...child,
-      nextAppointment: child.nextAppointment || null
-    }))
+    // La API puede devolver datos paginados o directamente el array
+    if (data.items && Array.isArray(data.items)) {
+      return data.items.map((child: any) => ({
+        ...child,
+        nextAppointment: child.nextAppointment || null
+      }))
+    }
+
+    if (Array.isArray(data)) {
+      return data.map((child: any) => ({
+        ...child,
+        nextAppointment: child.nextAppointment || null
+      }))
+    }
+
+    console.warn('Formato inesperado de respuesta:', data)
+    return []
   } catch (error) {
-    console.error('Get children service error:', error)
+    console.error('Error en getChildrenService:', error)
     throw error
   }
 }
@@ -137,6 +193,8 @@ export async function updateChildService(
       throw new Error('No authentication token found')
     }
 
+    console.log(`Actualizando niño ID ${childId}:`, childData)
+
     const response = await fetch(`${API_BASE_URL}/child/${childId}`, {
       method: 'PUT',
       headers: {
@@ -147,14 +205,24 @@ export async function updateChildService(
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.message || `Failed to update child: ${response.status}`)
+      let errorMessage = `Error al actualizar el niño: ${response.status}`
+
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+        console.error('Error al actualizar niño:', errorData)
+      } catch (e) {
+        console.error('Error al parsear respuesta:', e)
+      }
+
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
+    console.log('Niño actualizado exitosamente:', data)
     return data
   } catch (error) {
-    console.error('Update child service error:', error)
+    console.error('Error en updateChildService:', error)
     throw error
   }
 }

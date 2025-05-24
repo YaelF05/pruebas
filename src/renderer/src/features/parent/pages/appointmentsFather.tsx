@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
 import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
+import { getChildrenService } from '../services/childService'
+import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/appointmentsFather.module.css'
 import Dentist from '@renderer/assets/images/dentist.png'
 import Clock from '@renderer/assets/icons/clock.png'
@@ -13,45 +15,15 @@ import Home from '@renderer/assets/icons/home.png'
 import HomeActive from '@renderer/assets/icons/home-active.png'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
-const mockAppointments: AppointmentResponse[] = [
-  {
-    appointmentId: 1,
-    dentistId: 1,
-    fatherId: 1,
-    childId: 1,
-    reason: 'Limpieza dental rutinaria',
-    appointmentDatetime: '2025-01-25T10:00:00',
-    creationDate: '2025-01-20T09:00:00',
-    lastModificationDate: null,
-    isActive: true
-  },
-  {
-    appointmentId: 2,
-    dentistId: 2,
-    fatherId: 1,
-    childId: 2,
-    reason: 'Revisión de ortodoncia',
-    appointmentDatetime: '2025-01-26T14:30:00',
-    creationDate: '2025-01-20T10:15:00',
-    lastModificationDate: null,
-    isActive: true
-  },
-  {
-    appointmentId: 3,
-    dentistId: 1,
-    fatherId: 1,
-    childId: 1,
-    reason: 'Control post-tratamiento',
-    appointmentDatetime: '2025-01-28T16:00:00',
-    creationDate: '2025-01-21T11:30:00',
-    lastModificationDate: null,
-    isActive: true
-  }
-]
+interface DentistData {
+  userId: number
+  name: string
+}
 
-const mockNames = {
-  dentists: { 1: 'Dr. María González', 2: 'Dr. Carlos Rodríguez' },
-  children: { 1: 'Ana García', 2: 'Luis García' }
+interface ChildData {
+  childId: number
+  name: string
+  lastName: string
 }
 
 const AppointmentsPage: FC = () => {
@@ -59,35 +31,110 @@ const AppointmentsPage: FC = () => {
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [allAppointments, setAllAppointments] = useState<AppointmentResponse[]>([])
+  const [children, setChildren] = useState<ChildData[]>([])
+  const [dentists, setDentists] = useState<DentistData[]>([])
   const [activeTab, setActiveTab] = useState<string>('citas')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        try {
-          const appointments = await getAppointmentsService()
-          console.log('Citas cargadas desde API:', appointments)
-          setAllAppointments(appointments)
-        } catch (apiError) {
-          console.warn('Error al cargar desde API, usando mock data:', apiError)
-          setAllAppointments(mockAppointments)
-        }
-      } catch (error) {
-        console.error('Error al cargar las citas:', error)
-        setError(error instanceof Error ? error.message : 'Error al cargar las citas')
-        setAllAppointments(mockAppointments)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAppointments()
+    fetchAllData()
   }, [])
+
+  const fetchAllData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      console.log('Cargando datos de citas, hijos y dentistas...')
+
+      // Cargar datos en paralelo
+      const [appointmentsResult, childrenResult, dentistsResult] = await Promise.allSettled([
+        getAppointmentsService(),
+        getChildrenService(),
+        getDentistsForSelectService()
+      ])
+
+      // Procesar citas
+      if (appointmentsResult.status === 'fulfilled') {
+        console.log('Citas cargadas:', appointmentsResult.value)
+        setAllAppointments(appointmentsResult.value)
+      } else {
+        console.error('Error al cargar citas:', appointmentsResult.reason)
+        // Usar datos mock
+        setAllAppointments(getMockAppointments())
+      }
+
+      // Procesar hijos
+      if (childrenResult.status === 'fulfilled') {
+        console.log('Hijos cargados:', childrenResult.value)
+        const childrenData = childrenResult.value.map((child) => ({
+          childId: child.childId,
+          name: child.name,
+          lastName: child.lastName
+        }))
+        setChildren(childrenData)
+      } else {
+        console.error('Error al cargar hijos:', childrenResult.reason)
+        setChildren(getMockChildren())
+      }
+
+      // Procesar dentistas
+      if (dentistsResult.status === 'fulfilled') {
+        console.log('Dentistas cargados:', dentistsResult.value)
+        setDentists(dentistsResult.value)
+      } else {
+        console.error('Error al cargar dentistas:', dentistsResult.reason)
+        setDentists(getMockDentists())
+      }
+    } catch (error) {
+      console.error('Error general al cargar datos:', error)
+      setError(error instanceof Error ? error.message : 'Error al cargar los datos')
+
+      // Cargar datos mock como fallback
+      setAllAppointments(getMockAppointments())
+      setChildren(getMockChildren())
+      setDentists(getMockDentists())
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Datos mock
+  const getMockAppointments = (): AppointmentResponse[] => [
+    {
+      appointmentId: 1,
+      dentistId: 1,
+      fatherId: 1,
+      childId: 1,
+      reason: 'Limpieza dental rutinaria',
+      appointmentDatetime: '2025-05-25T10:00:00',
+      creationDate: '2025-01-20T09:00:00',
+      lastModificationDate: null,
+      isActive: true
+    },
+    {
+      appointmentId: 2,
+      dentistId: 2,
+      fatherId: 1,
+      childId: 2,
+      reason: 'Revisión de ortodoncia',
+      appointmentDatetime: '2025-01-26T14:30:00',
+      creationDate: '2025-01-20T10:15:00',
+      lastModificationDate: null,
+      isActive: true
+    }
+  ]
+
+  const getMockChildren = (): ChildData[] => [
+    { childId: 1, name: 'Ana', lastName: 'García' },
+    { childId: 2, name: 'Luis', lastName: 'García' }
+  ]
+
+  const getMockDentists = (): DentistData[] => [
+    { userId: 1, name: 'Dr. María González' },
+    { userId: 2, name: 'Dr. Carlos Rodríguez' }
+  ]
 
   const getAppointmentsForDate = (date: Date): AppointmentResponse[] => {
     return allAppointments.filter((appointment) => {
@@ -125,6 +172,7 @@ const AppointmentsPage: FC = () => {
 
     if (newDateTime && reason) {
       try {
+        // Implementar API para reagendar cuando esté disponible
         alert('Función de reagendar pendiente de implementación en backend')
 
         const updatedAppointments = allAppointments.map((app) => {
@@ -152,6 +200,7 @@ const AppointmentsPage: FC = () => {
 
     if (reason && confirm('¿Está seguro de cancelar esta cita?')) {
       try {
+        // Implementar API para cancelar cuando esté disponible
         alert('Función de cancelar pendiente de implementación en backend')
 
         const updatedAppointments = allAppointments.filter(
@@ -167,7 +216,6 @@ const AppointmentsPage: FC = () => {
     }
   }
 
-  // ✅ Funciones de navegación (mantenidas)
   const navigateToDentists = (): void => {
     navigate('/dentistDirectory')
   }
@@ -181,7 +229,6 @@ const AppointmentsPage: FC = () => {
     setActiveTab(tab)
   }
 
-  // ✅ Función para calcular minutos hasta la cita (mantenida)
   const calculateMinutesUntil = (appointmentDateTime: string): number => {
     const appointmentTime = new Date(appointmentDateTime)
     const now = new Date()
@@ -189,7 +236,6 @@ const AppointmentsPage: FC = () => {
     return Math.floor(diffMs / 60000)
   }
 
-  // ✅ Función para formatear hora (mantenida)
   const formatTime = (dateTimeString: string): string => {
     const date = new Date(dateTimeString)
     return date.toLocaleTimeString('es-ES', {
@@ -199,17 +245,18 @@ const AppointmentsPage: FC = () => {
     })
   }
 
-  // ✅ CORREGIDO: Función para obtener nombres usando mock data
   const getChildName = (childId: number | null): string => {
     if (!childId) return 'Niño desconocido'
-    return mockNames.children[childId as keyof typeof mockNames.children] || `Niño ${childId}`
+
+    const child = children.find((c) => c.childId === childId)
+    return child ? `${child.name} ${child.lastName}` : `Niño ${childId}`
   }
 
   const getDentistName = (dentistId: number | null): string => {
     if (!dentistId) return 'Dentista desconocido'
-    return (
-      mockNames.dentists[dentistId as keyof typeof mockNames.dentists] || `Dentista ${dentistId}`
-    )
+
+    const dentist = dentists.find((d) => d.userId === dentistId)
+    return dentist ? dentist.name : `Dentista ${dentistId}`
   }
 
   if (loading) {
@@ -251,12 +298,14 @@ const AppointmentsPage: FC = () => {
           {/* Columna derecha: Lista de citas */}
           <div className={styles.rightColumn}>
             <div className={styles.appointmentsList}>
-              {error ? (
+              {error && (
                 <div className={styles.error}>
-                  <p>Error: {error}</p>
-                  <button onClick={() => window.location.reload()}>Reintentar</button>
+                  <p>⚠️ {error}</p>
+                  <button onClick={fetchAllData}>Reintentar</button>
                 </div>
-              ) : appointments.length > 0 ? (
+              )}
+
+              {appointments.length > 0 ? (
                 appointments.map((appointment) => (
                   <AppointmentCard
                     key={appointment.appointmentId}

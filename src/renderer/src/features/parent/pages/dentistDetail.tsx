@@ -1,88 +1,119 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import BackButton from '@renderer/components/backButton'
 import { AppointmentData } from '../services/appointmentService'
+import { getDentistByIdService, DentistResponse } from '../services/dentistService'
 import ScheduleAppointmentModal from '../components/scheduleAppointment'
 import styles from '../styles/dentistDetail.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import Phone from '@renderer/assets/icons/phone.png'
 import Mail from '@renderer/assets/icons/mail.png'
 
-interface MockDentist {
-  userId: number
-  name: string
-  lastName: string
-  email: string
-  professionalLicense: string
-  university?: string
-  speciality?: string
-  about?: string
-  serviceStartTime: string
-  serviceEndTime: string
-  phoneNumber: string
-  latitude?: number
-  longitude?: number
-}
-
-const mockDentists: Record<string, MockDentist> = {
-  '1': {
-    userId: 1,
-    name: 'María',
-    lastName: 'González',
-    email: 'maria.gonzalez@email.com',
-    professionalLicense: '1234567',
-    university: 'Universidad Nacional',
-    speciality: 'Odontopediatría',
-    about:
-      'Especialista en odontología pediátrica con más de 10 años de experiencia. Me dedico a crear experiencias positivas para los niños durante sus visitas dentales.',
-    serviceStartTime: '08:00',
-    serviceEndTime: '18:00',
-    phoneNumber: '5512345678',
-    latitude: 19.4326,
-    longitude: -99.1332
-  },
-  '2': {
-    userId: 2,
-    name: 'Carlos',
-    lastName: 'Rodríguez',
-    email: 'carlos.rodriguez@email.com',
-    professionalLicense: '2345678',
-    university: 'Universidad Autónoma',
-    speciality: 'Ortodoncia Pediátrica',
-    about:
-      'Experto en ortodoncia para niños y adolescentes. Utilizo técnicas modernas y tratamientos personalizados.',
-    serviceStartTime: '09:00',
-    serviceEndTime: '17:00',
-    phoneNumber: '5523456789'
-  }
-}
-
 const DentistDetail: React.FC = () => {
   const { dentistId } = useParams<{ dentistId: string }>()
   const navigate = useNavigate()
 
+  const [dentist, setDentist] = useState<DentistResponse | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [loading] = useState(false)
-  const [error] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const dentist = dentistId ? mockDentists[dentistId] : null
+  useEffect(() => {
+    if (dentistId) {
+      loadDentistData(parseInt(dentistId))
+    } else {
+      setError('ID de dentista no proporcionado')
+      setLoading(false)
+    }
+  }, [dentistId])
+
+  const loadDentistData = async (id: number) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      console.log(`Cargando datos del dentista ID: ${id}`)
+      const dentistData = await getDentistByIdService(id)
+
+      console.log('Datos del dentista cargados:', dentistData)
+      setDentist(dentistData)
+    } catch (error) {
+      console.error('Error al cargar dentista:', error)
+      setError(error instanceof Error ? error.message : 'Error al cargar el dentista')
+
+      // Si no funciona la API, usar datos mock
+      console.log('Usando datos mock como fallback')
+      setDentist(getMockDentist(id))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Datos mock
+  const getMockDentist = (id: number): DentistResponse => {
+    const mockDentists: Record<number, DentistResponse> = {
+      1: {
+        userId: 1,
+        user: {
+          userId: 1,
+          name: 'María',
+          lastName: 'González',
+          email: 'maria.gonzalez@email.com'
+        },
+        professionalLicense: '1234567',
+        university: 'Universidad Nacional',
+        speciality: 'Odontopediatría',
+        about: 'Especialista en odontología pediátrica con más de 10 años de experiencia.',
+        serviceStartTime: '08:00',
+        serviceEndTime: '18:00',
+        phoneNumber: '5512345678',
+        latitude: 19.4326,
+        longitude: -99.1332
+      },
+      2: {
+        userId: 2,
+        user: {
+          userId: 2,
+          name: 'Carlos',
+          lastName: 'Rodríguez',
+          email: 'carlos.rodriguez@email.com'
+        },
+        professionalLicense: '2345678',
+        university: 'Universidad Autónoma',
+        speciality: 'Ortodoncia Pediátrica',
+        about: 'Experto en ortodoncia para niños y adolescentes.',
+        serviceStartTime: '09:00',
+        serviceEndTime: '17:00',
+        phoneNumber: '5523456789',
+        latitude: 19.42,
+        longitude: -99.15
+      }
+    }
+
+    return mockDentists[id] || mockDentists[1]
+  }
 
   const handleScheduleAppointment = (): void => {
     setIsModalOpen(true)
   }
 
   const handleAppointmentSubmit = (appointmentData: AppointmentData): void => {
-    console.log('Datos de la cita enviados:', appointmentData)
+    console.log('Cita agendada exitosamente:', appointmentData)
 
     // Cerrar modal
     setIsModalOpen(false)
 
-    // Navegar a la página de citas del padre
-    navigate('/appointmentFather')
+    // Navegar a la página de citas del padre después de un breve delay
+    setTimeout(() => {
+      navigate('/appointmentFather')
+    }, 1000)
   }
 
   const formatPhoneNumber = (phone: string): string => {
-    return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')
+    if (phone.length === 10) {
+      return phone.replace(/(\d{3})(\d{3})(\d{4})/, '$1 $2 $3')
+    }
+    return phone
   }
 
   const getMapUrl = (lat: number, lon: number): string => {
@@ -104,25 +135,18 @@ const DentistDetail: React.FC = () => {
     )
   }
 
-  if (!dentist) {
+  if (loading) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
           <BackButton />
         </div>
-        <div className={styles.error}>
-          <p>Dentista no encontrado (ID: {dentistId})</p>
-          <p>Dentistas disponibles: {Object.keys(mockDentists).join(', ')}</p>
-        </div>
+        <div className={styles.loading}>Cargando información del dentista...</div>
       </div>
     )
   }
 
-  if (loading) {
-    return <div className={styles.loading}>Cargando información del dentista...</div>
-  }
-
-  if (error) {
+  if (error && !dentist) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
@@ -130,8 +154,19 @@ const DentistDetail: React.FC = () => {
         </div>
         <div className={styles.error}>
           <p>Error: {error}</p>
-          <button onClick={() => window.location.reload()}>Reintentar</button>
+          <button onClick={() => loadDentistData(parseInt(dentistId))}>Reintentar</button>
         </div>
+      </div>
+    )
+  }
+
+  if (!dentist) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <BackButton />
+        </div>
+        <div className={styles.error}>Dentista no encontrado.</div>
       </div>
     )
   }
@@ -144,12 +179,12 @@ const DentistDetail: React.FC = () => {
 
       <div className={styles.profileSection}>
         <div className={styles.profileImage}>
-          <img src={ProfileAvatar} alt={`${dentist.name} ${dentist.lastName}`} />
+          <img src={ProfileAvatar} alt={`${dentist.user.name} ${dentist.user.lastName}`} />
         </div>
 
         <div className={styles.profileInfo}>
           <h1 className={styles.name}>
-            Dr. {dentist.name} {dentist.lastName}
+            Dr. {dentist.user.name} {dentist.user.lastName}
           </h1>
           {dentist.university && <p className={styles.university}>{dentist.university}</p>}
           {dentist.speciality && <p className={styles.speciality}>{dentist.speciality}</p>}
@@ -174,7 +209,7 @@ const DentistDetail: React.FC = () => {
             </div>
             <div className={styles.contactItem}>
               <img src={Mail} alt="Correo" className={styles.contactIcon} />
-              <span>{dentist.email}</span>
+              <span>{dentist.user.email}</span>
             </div>
           </div>
         </div>
@@ -187,7 +222,7 @@ const DentistDetail: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ Sección de ubicación condicional */}
+      {/* Sección de ubicación condicional */}
       {dentist.latitude && dentist.longitude && (
         <div className={styles.locationSection}>
           <h2 className={styles.locationTitle}>Me encuentras en</h2>
@@ -200,10 +235,6 @@ const DentistDetail: React.FC = () => {
             ></iframe>
           </div>
           <div className={styles.addressInfo}>
-            <p className={styles.addressText}>
-              <strong>Coordenadas:</strong> {dentist.latitude.toFixed(6)},{' '}
-              {dentist.longitude.toFixed(6)}
-            </p>
             <a
               href={getMapLinkUrl(dentist.latitude, dentist.longitude)}
               target="_blank"
@@ -216,7 +247,7 @@ const DentistDetail: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ CORREGIDO: Modal con dentistId correcto */}
+      {/* Modal con dentistId correcto */}
       <ScheduleAppointmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
