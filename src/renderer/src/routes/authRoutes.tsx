@@ -28,21 +28,6 @@ function AuthRoutes(): React.JSX.Element {
       <Route path="/configuracion" element={<SettingsDentist />} />
       <Route path="/perfil" element={<ProfileDentist />} />
 
-      {/* Routes for Patient */}
-      {/* <Route path="/patientDashboard" element={<PatientDashboard />} /> */}
-
-      {/* Routes for Receptionist */}
-      {/* <Route path="/receptionistDashboard" element={<ReceptionistDashboard />} /> */}
-
-      {/* Routes for Dentist */}
-      {/* <Route path="/dentistDashboard" element={<DentistDashboard />} /> */}
-
-      {/* Routes for Admin */}
-      {/* <Route path="/adminDashboard" element={<AdminDashboard />} /> */}
-
-      {/* Routes for Mother */}
-      {/* <Route path="/motherDashboard" element={<MotherDashboard />} /> */}
-
       {/* Routes for Child */}
       {/* <Route path="/childDashboard" element={<ChildDashboard />} /> */}
 
