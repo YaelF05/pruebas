@@ -1,3 +1,4 @@
+// src/renderer/src/features/parent/pages/profileSelection.tsx
 import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getChildrenService, ChildResponse } from '../services/childService'
@@ -22,71 +23,106 @@ const ProfileSelection: FC = () => {
     fetchProfiles()
   }, [])
 
+  const extractUserInfoFromToken = () => {
+    const authToken = localStorage.getItem('authToken')
+    if (!authToken) return null
+
+    try {
+      const payload = JSON.parse(atob(authToken.split('.')[1]))
+      return {
+        userId: payload.userId || 1,
+        email: payload.email || 'usuario@email.com',
+        type: payload.type || 'FATHER'
+      }
+    } catch (error) {
+      console.warn('No se pudo decodificar el token JWT:', error)
+      return null
+    }
+  }
+
   const fetchProfiles = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      console.log('Cargando perfiles del usuario...')
-
-      // Cargar perfil del padre
-      const userProfile = await getUserProfileService()
-      console.log('Perfil del usuario cargado:', userProfile)
-
-      // Cargar hijos
-      const children = await getChildrenService()
-      console.log('Hijos cargados:', children)
-
-      // Crear array de perfiles
+      console.log('=== INICIANDO CARGA DE PERFILES ===')
+      
       const profilesList: Profile[] = []
-
-      // Agregar perfil del padre
-      profilesList.push({
-        id: userProfile.userId,
-        type: 'FATHER',
-        name: `${userProfile.name} ${userProfile.lastName}`,
-        data: userProfile
-      })
-
-      // Agregar perfiles de los hijos
-      children.forEach(child => {
+      
+      // Intentar cargar perfil del padre
+      try {
+        console.log('Intentando cargar perfil del usuario...')
+        const userProfile = await getUserProfileService()
+        console.log('✅ Perfil del usuario cargado exitosamente:', userProfile)
+        
         profilesList.push({
-          id: child.childId,
-          type: 'CHILD',
-          name: `${child.name} ${child.lastName}`,
-          data: child
-        })
-      })
-
-      setProfiles(profilesList)
-    } catch (error) {
-      console.error('Error al cargar perfiles:', error)
-      setError(error instanceof Error ? error.message : 'Error al cargar los perfiles')
-
-      // En caso de error, crear al menos el perfil del padre básico
-      setProfiles([{
-          id: Date.now(),
+          id: userProfile.userId,
           type: 'FATHER',
-          name: 'Mi perfil',
-          data: {
-            userId: 1,
+          name: `${userProfile.name} ${userProfile.lastName}`,
+          data: userProfile
+        })
+      } catch (userError) {
+        console.error('❌ Error al cargar perfil del usuario:', userError)
+        
+        // Crear perfil básico usando información del token
+        const tokenInfo = extractUserInfoFromToken()
+        if (tokenInfo) {
+          console.log('📝 Creando perfil básico desde token:', tokenInfo)
+          const basicProfile: UserProfileResponse = {
+            userId: tokenInfo.userId,
             name: 'Usuario',
             lastName: 'Padre',
-            email: localStorage.getItem('userEmail') || 'usuario@email.com',
-            type: 'FATHER',
+            email: tokenInfo.email,
+            type: tokenInfo.type as 'FATHER',
             birthDate: '1990-01-01',
             creationDate: new Date().toISOString(),
             isActive: true
-          } as UserProfileResponse
+          }
+          
+          profilesList.push({
+            id: basicProfile.userId,
+            type: 'FATHER',
+            name: `${basicProfile.name} ${basicProfile.lastName}`,
+            data: basicProfile
+          })
+        } else {
+          throw new Error('No se pudo obtener información del usuario')
         }
-      ])
+      }
+
+      // Intentar cargar hijos
+      try {
+        console.log('Intentando cargar hijos del usuario...')
+        const children = await getChildrenService()
+        console.log('✅ Hijos cargados exitosamente:', children)
+        
+        children.forEach(child => {
+          profilesList.push({
+            id: child.childId,
+            type: 'CHILD',
+            name: `${child.name} ${child.lastName}`,
+            data: child
+          })
+        })
+      } catch (childrenError) {
+        console.error('❌ Error al cargar hijos (esto es normal si no hay endpoint o no hay hijos):', childrenError)
+        // No es un error crítico si no se pueden cargar los hijos
+      }
+
+      console.log('📋 Lista final de perfiles:', profilesList)
+      setProfiles(profilesList)
+
+    } catch (error) {
+      console.error('💥 Error crítico al cargar perfiles:', error)
+      setError(error instanceof Error ? error.message : 'Error desconocido al cargar los perfiles')
     } finally {
       setLoading(false)
+      console.log('=== FINALIZADA CARGA DE PERFILES ===')
     }
   }
 
   const handleProfileSelect = (profile: Profile): void => {
-    console.log(`Perfil seleccionado:`, profile)
+    console.log(`🎯 Perfil seleccionado:`, profile)
     
     if (profile.type === 'FATHER') {
       // Guardar información del perfil del padre seleccionado
@@ -167,7 +203,7 @@ const ProfileSelection: FC = () => {
       
       {error && (
         <div className={styles.warningMessage}>
-          <p>⚠️ Algunos perfiles no pudieron cargarse: {error}</p>
+          <p>⚠️ Algunos perfiles no pudieron cargarse completamente</p>
         </div>
       )}
 

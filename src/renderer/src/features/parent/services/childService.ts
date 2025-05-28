@@ -56,18 +56,6 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('El apellido del niño es requerido')
     }
 
-    if (!['M', 'F'].includes(childData.gender)) {
-      throw new Error('El género debe ser M o F')
-    }
-
-    if (!childData.birthDate) {
-      throw new Error('La fecha de nacimiento es requerida')
-    }
-
-    if (!childData.dentistId || childData.dentistId <= 0) {
-      throw new Error('Debe seleccionar un dentista válido')
-    }
-
     // Preparar el body de la request - coincidir exactamente con lo que espera el backend
     const requestBody = {
       name: childData.name.trim(),
@@ -77,7 +65,6 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       morningBrushingTime: childData.morningBrushingTime,
       afternoonBrushingTime: childData.afternoonBrushingTime,
       nightBrushingTime: childData.nightBrushingTime
-      // NO enviamos dentistId porque el backend no lo espera en el body
     }
 
     console.log('Enviando datos del niño:', requestBody)
@@ -93,15 +80,12 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
 
     if (!response.ok) {
       let errorMessage = `Error al crear el niño: ${response.status}`
-
       try {
         const errorData = await response.json()
         errorMessage = errorData.message || errorMessage
-        console.error('Error del servidor:', errorData)
       } catch (e) {
         console.error('Error al parsear respuesta de error:', e)
       }
-
       throw new Error(errorMessage)
     }
 
@@ -124,10 +108,11 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     const authToken = localStorage.getItem('authToken')
 
     if (!authToken) {
+      console.error('No authentication token found')
       throw new Error('No authentication token found')
     }
 
-    console.log('Obteniendo lista de hijos...')
+    console.log('Intentando obtener lista de hijos...')
 
     const response = await fetch(`${API_BASE_URL}/child`, {
       method: 'GET',
@@ -138,27 +123,17 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     })
 
     if (!response.ok) {
-      // Si es 404, significa que no hay hijos, retornar array vacío
+      console.error(`Error al obtener hijos: ${response.status}`)
+      // Si es 404, significa que el endpoint no existe o no hay hijos
       if (response.status === 404) {
-        console.log('No se encontraron hijos para este usuario')
+        console.log('Endpoint de children no existe o no hay hijos registrados')
         return []
       }
-
-      let errorMessage = `Error al obtener hijos: ${response.status}`
-
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
-        console.error('Error al obtener hijos:', errorData)
-      } catch (e) {
-        console.error('Error al parsear respuesta:', e)
-      }
-
-      throw new Error(errorMessage)
+      throw new Error(`Failed to fetch children: ${response.status}`)
     }
 
     const data = await response.json()
-    console.log('Hijos recibidos:', data)
+    console.log('Hijos recibidos del backend:', data)
 
     // El backend puede retornar diferentes formatos, manejar ambos casos
     let childrenArray: any[] = []
@@ -167,20 +142,17 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
       childrenArray = data.items
     } else if (Array.isArray(data)) {
       childrenArray = data
-    } else if (data.message && data.message.includes('not found')) {
-      // Si el mensaje indica que no se encontraron hijos
-      return []
     } else {
-      console.warn('Formato inesperado de respuesta:', data)
+      console.warn('Formato inesperado de respuesta de children:', data)
       return []
     }
 
     // Mapear los datos para asegurar consistencia
     const mappedChildren = childrenArray.map((child: any) => ({
-      childId: child.childId,
-      fatherId: child.fatherId,
+      childId: child.childId || child.child_id,
+      fatherId: child.fatherId || child.father_id,
       name: child.name,
-      lastName: child.lastName || child.last_name, // Manejar ambos formatos
+      lastName: child.lastName || child.last_name,
       gender: child.gender,
       birthDate: child.birthDate || child.birth_date,
       morningBrushingTime: child.morningBrushingTime || child.morning_brushing_time,
@@ -195,13 +167,6 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     return mappedChildren as ChildResponse[]
   } catch (error) {
     console.error('Error en getChildrenService:', error)
-    
-    // Si es un error de red o CORS, devolver array vacío y mostrar mensaje amigable
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.warn('Error de conexión, retornando datos mock')
-      return []
-    }
-    
     throw error
   }
 }
@@ -237,15 +202,12 @@ export async function updateChildService(
 
     if (!response.ok) {
       let errorMessage = `Error al actualizar el niño: ${response.status}`
-
       try {
         const errorData = await response.json()
         errorMessage = errorData.message || errorMessage
-        console.error('Error al actualizar niño:', errorData)
       } catch (e) {
         console.error('Error al parsear respuesta:', e)
       }
-
       throw new Error(errorMessage)
     }
 
