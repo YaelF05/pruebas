@@ -33,7 +33,7 @@ export async function getUserProfileService(): Promise<UserProfileResponse> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       }
     })
 
