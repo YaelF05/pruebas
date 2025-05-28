@@ -4,11 +4,6 @@ import InputList from '@renderer/components/inputList'
 import { ChildData } from '../services/childService'
 import styles from '../styles/addChildForm.module.css'
 
-interface Dentist {
-  userId: number
-  name: string
-}
-
 interface FormErrors {
   name?: string
   lastName?: string
@@ -17,16 +12,14 @@ interface FormErrors {
   morningBrushingTime?: string
   afternoonBrushingTime?: string
   nightBrushingTime?: string
-  dentistId?: string
 }
 
 interface AddChildFormProps {
-  dentists: Dentist[]
   onSubmit: (childData: ChildData) => void
   onCancel: () => void
 }
 
-const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCancel }) => {
+const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
   const [formData, setFormData] = useState<ChildData>({
     name: '',
     lastName: '',
@@ -34,8 +27,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     birthDate: '',
     morningBrushingTime: '08:00',
     afternoonBrushingTime: '14:00',
-    nightBrushingTime: '20:00',
-    dentistId: 0
+    nightBrushingTime: '20:00'
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -45,17 +37,10 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
   ) => {
     const { name, value } = e.target
 
-    let processedValue: string | number = value
-
-    // Procesar el valor según el tipo de campo
-    if (name === 'dentistId') {
-      processedValue = value ? parseInt(value) : 0
-    }
-
     // Actualizar el estado
     setFormData((prevData) => ({
       ...prevData,
-      [name]: processedValue
+      [name]: value
     }))
 
     // Limpiar errores cuando el usuario modifica el campo
@@ -154,21 +139,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     return undefined
   }
 
-  // Función para validar el dentista
-  const validateDentist = (dentistId: number): string | undefined => {
-    if (!dentistId || dentistId === 0) {
-      return 'Debe seleccionar un dentista'
-    }
-
-    // Verificar que el dentista existe en la lista
-    const dentistExists = dentists.some((dentist) => dentist.userId === dentistId)
-    if (!dentistExists) {
-      return 'El dentista seleccionado no es válido'
-    }
-
-    return undefined
-  }
-
   // Función para validar horarios
   const validateTime = (time: string, label: string): string | undefined => {
     if (!time) {
@@ -209,7 +179,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     const nameError = validateName(formData.name)
     const lastNameError = validateLastName(formData.lastName)
     const birthDateError = validateAge(formData.birthDate)
-    const dentistError = validateDentist(formData.dentistId)
     const morningTimeError = validateTime(formData.morningBrushingTime, 'cepillado matutino')
     const afternoonTimeError = validateTime(formData.afternoonBrushingTime, 'cepillado vespertino')
     const nightTimeError = validateTime(formData.nightBrushingTime, 'cepillado nocturno')
@@ -220,7 +189,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     if (nameError) newErrors.name = nameError
     if (lastNameError) newErrors.lastName = lastNameError
     if (birthDateError) newErrors.birthDate = birthDateError
-    if (dentistError) newErrors.dentistId = dentistError
     if (morningTimeError) newErrors.morningBrushingTime = morningTimeError
     if (afternoonTimeError) newErrors.afternoonBrushingTime = afternoonTimeError
     if (nightTimeError) newErrors.nightBrushingTime = nightTimeError
@@ -247,12 +215,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
     { label: 'Masculino', value: 'M' },
     { label: 'Femenino', value: 'F' }
   ]
-
-  // Opciones para los dentistas
-  const dentistOptions = dentists.map((dentist) => ({
-    label: dentist.name,
-    value: dentist.userId.toString()
-  }))
 
   // Obtener la fecha máxima (hace 4 años) y mínima (hace 13 años)
   const today = new Date()
@@ -374,29 +336,11 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ dentists, onSubmit, onCance
         )}
       </div>
 
-      <div className={styles.formField}>
-        <InputList
-          options={dentistOptions}
-          label="Dentista asignado *"
-          name="dentistId"
-          value={formData.dentistId ? formData.dentistId.toString() : ''}
-          placeholder="Seleccionar dentista"
-          onChange={handleInputChange}
-          required={true}
-        />
-        {errors.dentistId && <div className={styles.errorMessage}>{errors.dentistId}</div>}
-        {dentists.length === 0 && (
-          <div className={styles.warningMessage}>
-            No hay dentistas disponibles. Por favor, contacte al administrador.
-          </div>
-        )}
-      </div>
-
       <div className={styles.formActions}>
         <button type="button" className={styles.cancelButton} onClick={onCancel} disabled={false}>
           Cancelar
         </button>
-        <button type="submit" className={styles.submitButton} disabled={dentists.length === 0}>
+        <button type="submit" className={styles.submitButton}>
           Agregar Niño
         </button>
       </div>

@@ -9,7 +9,6 @@ export interface ChildData {
   morningBrushingTime: string
   afternoonBrushingTime: string
   nightBrushingTime: string
-  dentistId: number
 }
 
 export interface ChildResponse {
@@ -54,6 +53,18 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
 
     if (!childData.lastName.trim()) {
       throw new Error('El apellido del niño es requerido')
+    }
+
+    if (!childData.gender || (childData.gender !== 'M' && childData.gender !== 'F')) {
+      throw new Error('El género debe ser M o F')
+    }
+
+    if (!childData.birthDate) {
+      throw new Error('La fecha de nacimiento es requerida')
+    }
+
+    if (!childData.morningBrushingTime || !childData.afternoonBrushingTime || !childData.nightBrushingTime) {
+      throw new Error('Todos los horarios de cepillado son requeridos')
     }
 
     // Preparar el body de la request - coincidir exactamente con lo que espera el backend

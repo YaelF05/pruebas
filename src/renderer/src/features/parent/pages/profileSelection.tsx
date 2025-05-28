@@ -86,7 +86,8 @@ const ProfileSelection: FC = () => {
             data: basicProfile
           })
         } else {
-          throw new Error('No se pudo obtener información del usuario')
+          console.error('No se pudo obtener información del usuario')
+          setError('No se pudo cargar el perfil del usuario')
         }
       }
 
@@ -111,6 +112,12 @@ const ProfileSelection: FC = () => {
 
       console.log('📋 Lista final de perfiles:', profilesList)
       setProfiles(profilesList)
+
+      // Si solo hay un perfil (el padre), continuar automáticamente
+      if (profilesList.length === 1 && profilesList[0].type === 'FATHER') {
+        console.log('Solo hay un perfil (padre), continuando automáticamente...')
+        handleProfileSelect(profilesList[0])
+      }
 
     } catch (error) {
       console.error('💥 Error crítico al cargar perfiles:', error)
@@ -175,6 +182,7 @@ const ProfileSelection: FC = () => {
       <div className={styles.profileSelectionPage}>
         <div className={styles.loadingContainer}>
           <h1 className={styles.title}>Cargando perfiles...</h1>
+          <p>Por favor espere mientras cargamos su información</p>
         </div>
       </div>
     )
@@ -192,6 +200,18 @@ const ProfileSelection: FC = () => {
           >
             Reintentar
           </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Si solo hay un perfil, continuar automáticamente (esto se maneja en fetchProfiles)
+  if (profiles.length === 1 && loading === false) {
+    return (
+      <div className={styles.profileSelectionPage}>
+        <div className={styles.loadingContainer}>
+          <h1 className={styles.title}>Redirigiendo...</h1>
+          <p>Cargando su perfil...</p>
         </div>
       </div>
     )

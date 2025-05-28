@@ -293,45 +293,47 @@ const HomePage: FC = () => {
   }
 
   const handleAddChild = async (data: ChildData) => {
-    try {
+  try {
       setIsLoading(true)
 
-      const result = await createChildService(data)
-      console.log('Niño creado:', result)
+    // Llamamos directamente al servicio para crear un niño
+    const result = await createChildService(data);
+    console.log('Niño creado:', result);
 
-      // Recargar la lista de hijos
-      const updatedChildren = await getChildrenService()
-      setChildren(updatedChildren)
+    // Recargar la lista de hijos
+    const updatedChildren = await getChildrenService();
+    setChildren(updatedChildren);
 
-      // Seleccionar el nuevo hijo si es el primero
-      if (updatedChildren.length === 1) {
-        setSelectedChild(updatedChildren[0])
-      }
+    // Seleccionar el nuevo hijo si es el primero
+    if (updatedChildren.length === 1) {
+      setSelectedChild(updatedChildren[0]);
+    }
 
-      // Inicializar datos de cepillado para el nuevo hijo
-      const newChild = updatedChildren.find(
-        (child) => child.name === data.name && child.lastName === data.lastName
-      )
-      if (newChild) {
+    // Inicializar datos de cepillado para el nuevo hijo
+    const newChild = updatedChildren.find(
+      (child) => child.name === data.name && child.lastName === data.lastName
+    );
+    
+    if (newChild) {
         const todayRecords = await getTodayBrushRecordsService(newChild.childId)
         const weeklyRecords = await getWeeklyBrushRecordsService(newChild.childId)
 
-        const newBrushingData: ChildBrushingData = {
-          todayBrushing: getBrushingStatusFromRecords(todayRecords),
-          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
-          todayRecords: todayRecords
-        }
+      const newBrushingData: ChildBrushingData = {
+        todayBrushing: getBrushingStatusFromRecords(todayRecords),
+        weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+        todayRecords: todayRecords
+      };
 
-        setChildrenBrushingData({
-          ...childrenBrushingData,
-          [newChild.childId]: newBrushingData
-        })
+      setChildrenBrushingData({
+        ...childrenBrushingData,
+        [newChild.childId]: newBrushingData
+      });
 
-        setSelectedChild(newChild)
-      }
+      setSelectedChild(newChild);
+    }
 
-      // Cerrar el modal
-      setIsModalOpen(false)
+    // Cerrar el modal
+    setIsModalOpen(false);
       alert('Niño agregado con éxito')
     } catch (error) {
       console.error('Error al agregar niño:', error)
