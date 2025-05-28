@@ -80,6 +80,10 @@
     cursor: pointer;
     gap: 10px;
     transition: background-color 0.2s;
+    font-family: var(--Quicksand);
+    font-size: var(--font-size-title1);
+    font-weight: 600;
+    color: var(--secondary-darker);
   }
   
   .addChildButton:hover {
@@ -89,6 +93,45 @@
   .plusIcon {
     font-size: 32px;
     color: var(--secondary-darker);
+  }
+
+  /* Estilos para cuando no hay hijos */
+  .noChildrenMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .noChildrenMessage p {
+    font-size: var(--font-size-h3);
+    color: var(--neutral-normal);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .addFirstChildButton {
+    padding: 15px 30px;
+    background-color: var(--primary-normal);
+    color: var(--background-light);
+    border: none;
+    border-radius: 10px;
+    font-size: var(--font-size-title1);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-family: var(--Quicksand);
+  }
+
+  .addFirstChildButton:hover {
+    background-color: var(--primary-normal-hover);
+  }
+
+  .addFirstChildButton:active {
+    background-color: var(--primary-normal-active);
   }
   
   .brushingSection {
@@ -123,6 +166,49 @@
     color: var(--neutral-darker);
     font-weight: 700;
     margin-bottom: 15px;
+  }
+
+  .loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: var(--font-size-h3);
+    color: var(--neutral-normal);
+    font-family: var(--Quicksand);
+  }
+
+  .error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .error p {
+    font-size: var(--font-size-title1);
+    color: var(--error-primary);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .error button {
+    padding: 10px 20px;
+    background-color: var(--primary-normal);
+    color: var(--background-light);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: var(--Quicksand);
+    font-weight: 600;
+  }
+
+  .error button:hover {
+    background-color: var(--primary-normal-hover);
   }
   
   /* barra nav */

@@ -329,6 +329,9 @@ const HomePage: FC = () => {
 
       // Cerrar el modal
       setIsModalOpen(false)
+      
+      // Mostrar mensaje de éxito
+      alert('¡Hijo agregado exitosamente!')
     } catch (error) {
       console.error('Error al agregar hijo:', error)
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
@@ -336,6 +339,16 @@ const HomePage: FC = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleOpenModal = () => {
+    setAddChildError(null)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setAddChildError(null)
+    setIsModalOpen(false)
   }
 
   const currentBrushingData = getCurrentChildBrushingData()
@@ -378,9 +391,9 @@ const HomePage: FC = () => {
               />
             ))}
 
-            <button className={styles.addChildButton} onClick={() => setIsModalOpen(true)}>
+            <button className={styles.addChildButton} onClick={handleOpenModal}>
               <span className={styles.plusIcon}>+</span>
-              <span>Agregar</span>
+              <span>Agregar Hijo</span>
             </button>
           </div>
         </div>
@@ -421,6 +434,16 @@ const HomePage: FC = () => {
               <WeeklyBrushingList days={currentBrushingData.weeklyBrushing} />
             </div>
           </>
+        )}
+
+        {/* Mensaje cuando no hay hijos */}
+        {children.length === 0 && (
+          <div className={styles.noChildrenMessage}>
+            <p>¡Comienza agregando a tu primer hijo!</p>
+            <button className={styles.addFirstChildButton} onClick={handleOpenModal}>
+              Agregar primer hijo
+            </button>
+          </div>
         )}
       </div>
 
@@ -469,10 +492,7 @@ const HomePage: FC = () => {
       {/* Modal para agregar un nuevo hijo */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false)
-          setAddChildError(null)
-        }}
+        onClose={handleCloseModal}
         title="Danos a conocer un poco más sobre tu hijo"
       >
         {addChildError && (
@@ -492,10 +512,7 @@ const HomePage: FC = () => {
         )}
         <AddChildForm
           onSubmit={handleAddChild}
-          onCancel={() => {
-            setIsModalOpen(false)
-            setAddChildError(null)
-          }}
+          onCancel={handleCloseModal}
         />
       </Modal>
     </div>

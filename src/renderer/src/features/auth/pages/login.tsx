@@ -39,7 +39,7 @@ const Login = (): React.JSX.Element => {
       if (result.userType === 'DENTIST') {
         navigate('/dentistDashboard')
       } else if (result.userType === 'FATHER') {
-        navigate('/profile-selection')
+        navigate('/homeFather')
       }
     } catch (error) {
       console.error('Error al iniciar sesión:', error)
