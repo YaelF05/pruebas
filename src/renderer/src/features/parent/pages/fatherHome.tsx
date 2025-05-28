@@ -435,16 +435,6 @@ const HomePage: FC = () => {
             </div>
           </>
         )}
-
-        {/* Mensaje cuando no hay hijos */}
-        {children.length === 0 && (
-          <div className={styles.noChildrenMessage}>
-            <p>¡Comienza agregando a tu primer hijo!</p>
-            <button className={styles.addFirstChildButton} onClick={handleOpenModal}>
-              Agregar primer hijo
-            </button>
-          </div>
-        )}
       </div>
 
       <nav className={styles.bottomNav}>
@@ -510,10 +500,7 @@ const HomePage: FC = () => {
             {addChildError}
           </div>
         )}
-        <AddChildForm
-          onSubmit={handleAddChild}
-          onCancel={handleCloseModal}
-        />
+        <AddChildForm onSubmit={handleAddChild} onCancel={handleCloseModal} />
       </Modal>
     </div>
   )
