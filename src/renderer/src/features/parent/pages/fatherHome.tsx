@@ -18,7 +18,6 @@ import {
   deleteBrushRecordService,
   BrushRecord
 } from '../services/brushService'
-import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/fatherHome.module.css'
 import Clock from '@renderer/assets/icons/clock.png'
 import ClockActive from '@renderer/assets/icons/clock-active.png'
@@ -45,11 +44,6 @@ interface ChildBrushingData {
   todayRecords: BrushRecord[]
 }
 
-interface Dentist {
-  userId: number
-  name: string
-}
-
 const HomePage: FC = () => {
   const navigate = useNavigate()
 
@@ -58,13 +52,13 @@ const HomePage: FC = () => {
   const [activeTab, setActiveTab] = useState<string>('inicio')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [addChildError, setAddChildError] = useState<string | null>(null)
 
   const [childrenBrushingData, setChildrenBrushingData] = useState<{
     [key: number]: ChildBrushingData
   }>({})
 
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [dentists, setDentists] = useState<Dentist[]>([])
 
   useEffect(() => {
     const fetchData = async (): Promise<void> => {
@@ -72,8 +66,10 @@ const HomePage: FC = () => {
         setIsLoading(true)
         setError(null)
 
+        console.log('Cargando hijos del usuario...')
         // Cargar hijos
         const childrenData = await getChildrenService()
+        console.log('Hijos cargados:', childrenData)
         setChildren(childrenData)
 
         if (childrenData.length > 0) {
@@ -103,10 +99,6 @@ const HomePage: FC = () => {
         })
 
         setChildrenBrushingData(brushingData)
-
-        // Cargar dentistas para el formulario
-        const dentistsData = await getDentistsForSelectService()
-        setDentists(dentistsData)
       } catch (error) {
         console.error('Error al cargar datos:', error)
         setError(error instanceof Error ? error.message : 'Error al cargar los datos')
@@ -293,54 +285,54 @@ const HomePage: FC = () => {
   }
 
   const handleAddChild = async (data: ChildData) => {
-  try {
+    try {
       setIsLoading(true)
+      setAddChildError(null)
 
-    // Llamamos directamente al servicio para crear un niño
-    const result = await createChildService(data);
-    console.log('Niño creado:', result);
+      console.log('Creando nuevo hijo:', data)
+      // Llamamos directamente al servicio para crear un niño
+      const result = await createChildService(data)
+      console.log('Niño creado exitosamente:', result)
 
-    // Recargar la lista de hijos
-    const updatedChildren = await getChildrenService();
-    setChildren(updatedChildren);
+      // Recargar la lista de hijos
+      const updatedChildren = await getChildrenService()
+      setChildren(updatedChildren)
 
-    // Seleccionar el nuevo hijo si es el primero
-    if (updatedChildren.length === 1) {
-      setSelectedChild(updatedChildren[0]);
-    }
+      // Seleccionar el primer hijo si es el único
+      if (updatedChildren.length === 1) {
+        setSelectedChild(updatedChildren[0])
+      }
 
-    // Inicializar datos de cepillado para el nuevo hijo
-    const newChild = updatedChildren.find(
-      (child) => child.name === data.name && child.lastName === data.lastName
-    );
-    
-    if (newChild) {
+      // Buscar el nuevo hijo para seleccionarlo
+      const newChild = updatedChildren.find(
+        (child) => child.name === data.name && child.lastName === data.lastName
+      )
+
+      if (newChild) {
+        // Inicializar datos de cepillado para el nuevo hijo
         const todayRecords = await getTodayBrushRecordsService(newChild.childId)
         const weeklyRecords = await getWeeklyBrushRecordsService(newChild.childId)
 
-      const newBrushingData: ChildBrushingData = {
-        todayBrushing: getBrushingStatusFromRecords(todayRecords),
-        weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
-        todayRecords: todayRecords
-      };
+        const newBrushingData: ChildBrushingData = {
+          todayBrushing: getBrushingStatusFromRecords(todayRecords),
+          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+          todayRecords: todayRecords
+        }
 
-      setChildrenBrushingData({
-        ...childrenBrushingData,
-        [newChild.childId]: newBrushingData
-      });
+        setChildrenBrushingData({
+          ...childrenBrushingData,
+          [newChild.childId]: newBrushingData
+        })
 
-      setSelectedChild(newChild);
-    }
+        setSelectedChild(newChild)
+      }
 
-    // Cerrar el modal
-    setIsModalOpen(false);
-      alert('Niño agregado con éxito')
+      // Cerrar el modal
+      setIsModalOpen(false)
     } catch (error) {
-      console.error('Error al agregar niño:', error)
-      alert(
-        'Error al agregar el niño: ' +
-          (error instanceof Error ? error.message : 'Error desconocido')
-      )
+      console.error('Error al agregar hijo:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      setAddChildError(`Error al agregar el hijo: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }
@@ -477,13 +469,33 @@ const HomePage: FC = () => {
       {/* Modal para agregar un nuevo hijo */}
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false)
+          setAddChildError(null)
+        }}
         title="Danos a conocer un poco más sobre tu hijo"
       >
+        {addChildError && (
+          <div
+            style={{
+              color: 'var(--error-primary)',
+              marginBottom: '15px',
+              padding: '10px',
+              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+              borderRadius: '5px',
+              fontWeight: '600',
+              textAlign: 'center'
+            }}
+          >
+            {addChildError}
+          </div>
+        )}
         <AddChildForm
-          dentists={dentists}
           onSubmit={handleAddChild}
-          onCancel={() => setIsModalOpen(false)}
+          onCancel={() => {
+            setIsModalOpen(false)
+            setAddChildError(null)
+          }}
         />
       </Modal>
     </div>
