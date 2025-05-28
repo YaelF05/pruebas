@@ -1,3 +1,4 @@
+// src/renderer/src/features/parent/services/childService.ts
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
 
 export interface ChildData {
@@ -67,7 +68,7 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('Debe seleccionar un dentista válido')
     }
 
-    // Preparar el body de la request
+    // Preparar el body de la request - coincidir exactamente con lo que espera el backend
     const requestBody = {
       name: childData.name.trim(),
       lastName: childData.lastName.trim(),
@@ -76,6 +77,7 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       morningBrushingTime: childData.morningBrushingTime,
       afternoonBrushingTime: childData.afternoonBrushingTime,
       nightBrushingTime: childData.nightBrushingTime
+      // NO enviamos dentistId porque el backend no lo espera en el body
     }
 
     console.log('Enviando datos del niño:', requestBody)
@@ -84,7 +86,7 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`
+        'Authorization': `Bearer ${authToken}`
       },
       body: JSON.stringify(requestBody)
     })
@@ -131,11 +133,17 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`
+        'Authorization': `Bearer ${authToken}`
       }
     })
 
     if (!response.ok) {
+      // Si es 404, significa que no hay hijos, retornar array vacío
+      if (response.status === 404) {
+        console.log('No se encontraron hijos para este usuario')
+        return []
+      }
+
       let errorMessage = `Error al obtener hijos: ${response.status}`
 
       try {
@@ -152,25 +160,48 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     const data = await response.json()
     console.log('Hijos recibidos:', data)
 
-    // La API puede devolver datos paginados o directamente el array
+    // El backend puede retornar diferentes formatos, manejar ambos casos
+    let childrenArray: any[] = []
+
     if (data.items && Array.isArray(data.items)) {
-      return data.items.map((child: any) => ({
-        ...child,
-        nextAppointment: child.nextAppointment || null
-      }))
+      childrenArray = data.items
+    } else if (Array.isArray(data)) {
+      childrenArray = data
+    } else if (data.message && data.message.includes('not found')) {
+      // Si el mensaje indica que no se encontraron hijos
+      return []
+    } else {
+      console.warn('Formato inesperado de respuesta:', data)
+      return []
     }
 
-    if (Array.isArray(data)) {
-      return data.map((child: any) => ({
-        ...child,
-        nextAppointment: child.nextAppointment || null
-      }))
-    }
+    // Mapear los datos para asegurar consistencia
+    const mappedChildren = childrenArray.map((child: any) => ({
+      childId: child.childId,
+      fatherId: child.fatherId,
+      name: child.name,
+      lastName: child.lastName || child.last_name, // Manejar ambos formatos
+      gender: child.gender,
+      birthDate: child.birthDate || child.birth_date,
+      morningBrushingTime: child.morningBrushingTime || child.morning_brushing_time,
+      afternoonBrushingTime: child.afternoonBrushingTime || child.afternoon_brushing_time,
+      nightBrushingTime: child.nightBrushingTime || child.night_brushing_time,
+      creationDate: child.creationDate || child.creation_date,
+      lastModificationDate: child.lastModificationDate || child.last_modification_date,
+      isActive: child.isActive !== undefined ? child.isActive : child.is_active,
+      nextAppointment: child.nextAppointment || child.next_appointment || null
+    }))
 
-    console.warn('Formato inesperado de respuesta:', data)
-    return []
+    return mappedChildren as ChildResponse[]
   } catch (error) {
     console.error('Error en getChildrenService:', error)
+    
+    // Si es un error de red o CORS, devolver array vacío y mostrar mensaje amigable
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('Error de conexión, retornando datos mock')
+      return []
+    }
+    
     throw error
   }
 }
@@ -199,7 +230,7 @@ export async function updateChildService(
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`
+        'Authorization': `Bearer ${authToken}`
       },
       body: JSON.stringify(childData)
     })

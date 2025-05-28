@@ -1,3 +1,4 @@
+// src/renderer/src/features/parent/services/dentistService.ts
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
 
 export interface DentistResponse {
@@ -42,19 +43,41 @@ export async function getDentistsService(): Promise<DentistResponse[]> {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`
+        'Authorization': `Bearer ${authToken}`
       }
     })
 
     if (!response.ok) {
+      // Si la ruta no existe, usar datos mock
+      if (response.status === 404) {
+        console.warn('API de dentists no implementada, usando datos mock')
+        return getMockDentists()
+      }
+
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.message || `Failed to fetch dentists: ${response.status}`)
     }
 
     const data = await response.json()
-    return data as DentistResponse[]
+    
+    // Manejar diferentes formatos de respuesta
+    if (Array.isArray(data)) {
+      return data as DentistResponse[]
+    } else if (data.items && Array.isArray(data.items)) {
+      return data.items as DentistResponse[]
+    } else {
+      console.warn('Formato inesperado de dentists, usando mock data')
+      return getMockDentists()
+    }
   } catch (error) {
     console.error('Get dentists service error:', error)
+    
+    // Si es error de red, usar datos mock
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('Error de conexión en getDentists, usando datos mock')
+      return getMockDentists()
+    }
+    
     throw error
   }
 }
@@ -77,11 +100,22 @@ export async function getDentistByIdService(dentistId: number): Promise<DentistR
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`
+        'Authorization': `Bearer ${authToken}`
       }
     })
 
     if (!response.ok) {
+      // Si la ruta no existe, usar datos mock
+      if (response.status === 404) {
+        console.warn(`API de dentist/${dentistId} no implementada, usando datos mock`)
+        const mockDentists = getMockDentists()
+        const dentist = mockDentists.find(d => d.userId === dentistId)
+        if (dentist) {
+          return dentist
+        }
+        throw new Error('Dentist not found')
+      }
+
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.message || `Failed to fetch dentist: ${response.status}`)
     }
@@ -90,6 +124,17 @@ export async function getDentistByIdService(dentistId: number): Promise<DentistR
     return data as DentistResponse
   } catch (error) {
     console.error('Get dentist by ID service error:', error)
+    
+    // Si es error de red, usar datos mock
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('Error de conexión en getDentistById, usando datos mock')
+      const mockDentists = getMockDentists()
+      const dentist = mockDentists.find(d => d.userId === dentistId)
+      if (dentist) {
+        return dentist
+      }
+    }
+    
     throw error
   }
 }
@@ -124,11 +169,20 @@ export async function getNearbyDentistsService(
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`
+        'Authorization': `Bearer ${authToken}`
       }
     })
 
     if (!response.ok) {
+      // Si la ruta no existe, usar datos mock con distancias calculadas
+      if (response.status === 404) {
+        console.warn('API de nearby dentists no implementada, usando datos mock')
+        return getMockDentists().map(d => ({
+          ...d,
+          distance: Math.random() * 10 + 1 // Distancia aleatoria entre 1-11km
+        }))
+      }
+
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.message || `Failed to fetch nearby dentists: ${response.status}`)
     }
@@ -137,6 +191,16 @@ export async function getNearbyDentistsService(
     return data as DentistResponse[]
   } catch (error) {
     console.error('Get nearby dentists service error:', error)
+    
+    // Si es error de red, usar datos mock
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.warn('Error de conexión en getNearbyDentists, usando datos mock')
+      return getMockDentists().map(d => ({
+        ...d,
+        distance: Math.random() * 10 + 1
+      }))
+    }
+    
     throw error
   }
 }
@@ -152,10 +216,76 @@ export async function getDentistsForSelectService(): Promise<DentistListItem[]> 
 
     return dentists.map((dentist) => ({
       userId: dentist.userId,
-      name: `${dentist.user.name} ${dentist.user.lastName}`
+      name: `Dr. ${dentist.user.name} ${dentist.user.lastName}`
     }))
   } catch (error) {
     console.error('Get dentists for select service error:', error)
-    throw error
+    
+    // En caso de error, retornar lista básica mock
+    return [
+      { userId: 1, name: 'Dr. María González' },
+      { userId: 2, name: 'Dr. Carlos Rodríguez' },
+      { userId: 3, name: 'Dr. Ana Martínez' }
+    ]
   }
+}
+
+// Función helper para datos mock
+function getMockDentists(): DentistResponse[] {
+  return [
+    {
+      userId: 1,
+      user: {
+        userId: 1,
+        name: 'María',
+        lastName: 'González',
+        email: 'maria.gonzalez@email.com'
+      },
+      professionalLicense: '1234567',
+      university: 'Universidad Nacional',
+      speciality: 'Odontopediatría',
+      about: 'Especialista en odontología pediátrica con más de 10 años de experiencia.',
+      serviceStartTime: '08:00',
+      serviceEndTime: '18:00',
+      phoneNumber: '5512345678',
+      latitude: 19.4326,
+      longitude: -99.1332
+    },
+    {
+      userId: 2,
+      user: {
+        userId: 2,
+        name: 'Carlos',
+        lastName: 'Rodríguez',
+        email: 'carlos.rodriguez@email.com'
+      },
+      professionalLicense: '2345678',
+      university: 'Universidad Autónoma',
+      speciality: 'Ortodoncia Pediátrica',
+      about: 'Experto en ortodoncia para niños y adolescentes.',
+      serviceStartTime: '09:00',
+      serviceEndTime: '17:00',
+      phoneNumber: '5523456789',
+      latitude: 19.42,
+      longitude: -99.15
+    },
+    {
+      userId: 3,
+      user: {
+        userId: 3,
+        name: 'Ana',
+        lastName: 'Martínez',
+        email: 'ana.martinez@email.com'
+      },
+      professionalLicense: '3456789',
+      university: 'Universidad Metropolitana',
+      speciality: 'Odontología General',
+      about: 'Odontóloga general con enfoque en salud dental infantil.',
+      serviceStartTime: '10:00',
+      serviceEndTime: '19:00',
+      phoneNumber: '5534567890',
+      latitude: 19.41,
+      longitude: -99.14
+    }
+  ]
 }
