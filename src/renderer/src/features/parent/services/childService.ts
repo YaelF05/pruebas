@@ -1,5 +1,4 @@
-// src/renderer/src/features/parent/services/childService.ts
-const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
+const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/child'
 
 export interface ChildData {
   name: string
@@ -40,10 +39,13 @@ export interface CreateChildResult {
  */
 export async function createChildService(childData: ChildData): Promise<CreateChildResult> {
   try {
+    // Obtener el token de autenticación
     const authToken = localStorage.getItem('authToken')
 
     if (!authToken) {
-      throw new Error('No authentication token found')
+      throw new Error(
+        'No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.'
+      )
     }
 
     // Validar datos antes de enviar
@@ -71,7 +73,7 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('Todos los horarios de cepillado son requeridos')
     }
 
-    // Preparar el body de la request - usando camelCase como espera el backend
+    // Preparar el body de la request
     const requestBody = {
       name: childData.name.trim(),
       lastName: childData.lastName.trim(),
@@ -84,7 +86,7 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
 
     console.log('Enviando datos del niño:', requestBody)
 
-    const response = await fetch(`${API_BASE_URL}/child`, {
+    const response = await fetch(API_BASE_URL, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -128,13 +130,12 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     const authToken = localStorage.getItem('authToken')
 
     if (!authToken) {
-      console.warn('No authentication token found, retornando array vacío')
+      console.warn('No se encontró token de autenticación, retornando array vacío')
       return []
     }
 
-    // Try to get from the API with Authorization header
     try {
-      const response = await fetch(`${API_BASE_URL}/child`, {
+      const response = await fetch(API_BASE_URL, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +147,6 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
         const data = await response.json()
         console.log('Hijos recibidos del backend:', data)
 
-        // El backend puede retornar diferentes formatos, manejar ambos casos
         let childrenArray: any[] = []
 
         if (data.items && Array.isArray(data.items)) {
@@ -158,7 +158,6 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
           return []
         }
 
-        // Mapear los datos para asegurar consistencia - manejar tanto camelCase como snake_case
         const mappedChildren = childrenArray.map((child: any) => ({
           childId: child.childId || child.child_id,
           fatherId: child.fatherId || child.father_id,
@@ -179,7 +178,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
       } else if (response.status === 404) {
         // Si es 404, significa que el endpoint no existe o no hay hijos
         console.log(
-          'Endpoint de children no existe o no hay hijos registrados, usando datos por defecto'
+          'Endpoint de children no existe o no hay hijos registrados, retornando array vacío'
         )
         return []
       } else {
@@ -209,13 +208,13 @@ export async function updateChildService(
   childData: Partial<ChildData>
 ): Promise<{ message: string }> {
   try {
-    console.log(`Actualizando niño ID ${childId}:`, childData)
-
     const authToken = localStorage.getItem('authToken')
 
     if (!authToken) {
-      throw new Error('No authentication token found')
+      throw new Error('No se encontró el token de autenticación')
     }
+
+    console.log(`Actualizando niño ID ${childId}:`, childData)
 
     // Convertir a camelCase para el backend (como está definido en el esquema)
     const requestBody: any = {}
@@ -242,7 +241,7 @@ export async function updateChildService(
       requestBody.nightBrushingTime = childData.nightBrushingTime
     }
 
-    const response = await fetch(`${API_BASE_URL}/child/${childId}`, {
+    const response = await fetch(`${API_BASE_URL}/${childId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

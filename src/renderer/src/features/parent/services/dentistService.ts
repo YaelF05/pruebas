@@ -1,5 +1,4 @@
-// src/renderer/src/features/parent/services/dentistService.ts
-const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
+const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/dentist'
 
 export interface DentistResponse {
   userId: number
@@ -39,7 +38,7 @@ export async function getDentistsService(): Promise<DentistResponse[]> {
       throw new Error('No authentication token found')
     }
 
-    const response = await fetch(`${API_BASE_URL}/dentist`, {
+    const response = await fetch(API_BASE_URL, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +58,7 @@ export async function getDentistsService(): Promise<DentistResponse[]> {
     }
 
     const data = await response.json()
-    
+
     // Manejar diferentes formatos de respuesta
     if (Array.isArray(data)) {
       return data as DentistResponse[]
@@ -71,13 +70,13 @@ export async function getDentistsService(): Promise<DentistResponse[]> {
     }
   } catch (error) {
     console.error('Get dentists service error:', error)
-    
+
     // Si es error de red, usar datos mock
     if (error instanceof TypeError && error.message.includes('fetch')) {
       console.warn('Error de conexión en getDentists, usando datos mock')
       return getMockDentists()
     }
-    
+
     throw error
   }
 }
@@ -96,7 +95,7 @@ export async function getDentistByIdService(dentistId: number): Promise<DentistR
       throw new Error('No authentication token found')
     }
 
-    const response = await fetch(`${API_BASE_URL}/dentist/${dentistId}`, {
+    const response = await fetch(`${API_BASE_URL}/${dentistId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -109,7 +108,7 @@ export async function getDentistByIdService(dentistId: number): Promise<DentistR
       if (response.status === 404) {
         console.warn(`API de dentist/${dentistId} no implementada, usando datos mock`)
         const mockDentists = getMockDentists()
-        const dentist = mockDentists.find(d => d.userId === dentistId)
+        const dentist = mockDentists.find((d) => d.userId === dentistId)
         if (dentist) {
           return dentist
         }
@@ -124,17 +123,17 @@ export async function getDentistByIdService(dentistId: number): Promise<DentistR
     return data as DentistResponse
   } catch (error) {
     console.error('Get dentist by ID service error:', error)
-    
+
     // Si es error de red, usar datos mock
     if (error instanceof TypeError && error.message.includes('fetch')) {
       console.warn('Error de conexión en getDentistById, usando datos mock')
       const mockDentists = getMockDentists()
-      const dentist = mockDentists.find(d => d.userId === dentistId)
+      const dentist = mockDentists.find((d) => d.userId === dentistId)
       if (dentist) {
         return dentist
       }
     }
-    
+
     throw error
   }
 }
@@ -165,7 +164,7 @@ export async function getNearbyDentistsService(
       radius: radius.toString()
     })
 
-    const response = await fetch(`${API_BASE_URL}/dentist/nearby?${queryParams}`, {
+    const response = await fetch(`${API_BASE_URL}/nearby?${queryParams}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -177,7 +176,7 @@ export async function getNearbyDentistsService(
       // Si la ruta no existe, usar datos mock con distancias calculadas
       if (response.status === 404) {
         console.warn('API de nearby dentists no implementada, usando datos mock')
-        return getMockDentists().map(d => ({
+        return getMockDentists().map((d) => ({
           ...d,
           distance: Math.random() * 10 + 1 // Distancia aleatoria entre 1-11km
         }))
@@ -191,16 +190,16 @@ export async function getNearbyDentistsService(
     return data as DentistResponse[]
   } catch (error) {
     console.error('Get nearby dentists service error:', error)
-    
+
     // Si es error de red, usar datos mock
     if (error instanceof TypeError && error.message.includes('fetch')) {
       console.warn('Error de conexión en getNearbyDentists, usando datos mock')
-      return getMockDentists().map(d => ({
+      return getMockDentists().map((d) => ({
         ...d,
         distance: Math.random() * 10 + 1
       }))
     }
-    
+
     throw error
   }
 }
@@ -220,7 +219,7 @@ export async function getDentistsForSelectService(): Promise<DentistListItem[]> 
     }))
   } catch (error) {
     console.error('Get dentists for select service error:', error)
-    
+
     // En caso de error, retornar lista básica mock
     return [
       { userId: 1, name: 'Dr. María González' },

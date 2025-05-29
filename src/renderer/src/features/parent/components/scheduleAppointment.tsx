@@ -100,6 +100,12 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return 'Las citas solo se pueden agendar entre 8:00 AM y 6:00 PM'
     }
 
+    // Validar que no sea domingo
+    const dayOfWeek = appointmentDateTime.getDay()
+    if (dayOfWeek === 0) {
+      return 'No se pueden agendar citas los domingos'
+    }
+
     return null
   }
 
@@ -123,7 +129,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       dentistId: dentistId,
       childId: selectedChildId,
       reason: reason.trim(),
-      appointmentDatetime: `${appointmentDate}T${appointmentTime}:00`
+      appointmentDatetime: `${appointmentDate}T${appointmentTime}`
     }
 
     try {
@@ -164,11 +170,10 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     onClose()
   }
 
-  // Obtener fecha mínima (mañana)
+  // Obtener fecha mínima (hoy)
   const getMinDate = (): string => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split('T')[0]
+    const today = new Date()
+    return today.toISOString().split('T')[0]
   }
 
   // Obtener fecha máxima (6 meses en el futuro)
@@ -187,7 +192,8 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
           <div className={styles.loading}>Cargando hijos...</div>
         ) : children.length === 0 ? (
           <div className={styles.errorMessage}>
-            No tienes hijos registrados. Por favor, agrega un hijo primero.
+            No tienes hijos registrados. Por favor, agrega un hijo primero desde la pantalla
+            principal.
           </div>
         ) : (
           <>
@@ -206,27 +212,35 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
             <div className={styles.formGroup}>
               <label className={styles.label}>Ingresa la fecha y horario para la cita</label>
               <div className={styles.dateTimeGroup}>
-                <InputForm
-                  label="Fecha de la cita"
-                  name="appointmentDate"
-                  type="date"
-                  value={appointmentDate}
-                  placeholder="DD/MM/AAAA"
-                  onChange={(e) => setAppointmentDate(e.target.value)}
-                  required
-                />
-                <InputForm
-                  label="Hora de la cita"
-                  name="appointmentTime"
-                  type="time"
-                  value={appointmentTime}
-                  placeholder="HH:MM"
-                  onChange={(e) => setAppointmentTime(e.target.value)}
-                  required
-                />
+                <div style={{ flex: 1 }}>
+                  <InputForm
+                    label="Fecha de la cita"
+                    name="appointmentDate"
+                    type="date"
+                    value={appointmentDate}
+                    placeholder="DD/MM/AAAA"
+                    onChange={(e) => setAppointmentDate(e.target.value)}
+                    required
+                  />
+                  <input type="hidden" min={getMinDate()} max={getMaxDate()} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <InputForm
+                    label="Hora de la cita"
+                    name="appointmentTime"
+                    type="time"
+                    value={appointmentTime}
+                    placeholder="HH:MM"
+                    onChange={(e) => setAppointmentTime(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
-              {/* Agregar restricciones de fecha */}
-              <input type="hidden" min={getMinDate()} max={getMaxDate()} />
+              <small
+                style={{ color: '#666', fontSize: '12px', marginTop: '5px', display: 'block' }}
+              >
+                * Horario de atención: Lunes a Sábado de 8:00 AM a 6:00 PM
+              </small>
             </div>
 
             <div className={styles.formGroup}>

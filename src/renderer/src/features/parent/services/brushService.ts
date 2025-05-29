@@ -1,4 +1,3 @@
-// src/renderer/src/features/parent/services/brushService.ts
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
 
 export interface BrushRecord {

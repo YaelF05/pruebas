@@ -49,16 +49,20 @@ export async function createAppointmentService(
     // Validar que la fecha sea futura
     const appointmentDate = new Date(appointmentData.appointmentDatetime)
     const now = new Date()
+    const minTime = new Date(now.getTime() + 30 * 60000) // 30 minutos en el futuro
 
-    if (appointmentDate <= now) {
-      throw new Error('La fecha de la cita debe ser en el futuro')
+    if (appointmentDate <= minTime) {
+      throw new Error('La cita debe ser al menos 30 minutos en el futuro')
     }
+
+    // Formatear la fecha para el backend (YYYY-MM-DD HH:MM:SS)
+    const formattedDateTime = appointmentData.appointmentDatetime.replace('T', ' ') + ':00'
 
     const requestBody = {
       dentistId: appointmentData.dentistId,
       childId: appointmentData.childId,
       reason: appointmentData.reason.trim(),
-      appointmentDatetime: appointmentData.appointmentDatetime
+      appointmentDatetime: formattedDateTime
     }
 
     console.log('Enviando datos de cita:', requestBody)
@@ -130,7 +134,7 @@ export async function getAppointmentsService(): Promise<AppointmentResponse[]> {
     const data = await response.json()
     console.log('Citas recibidas:', data)
 
-    // La API puede devolver datos paginados o directamente el array
+    // La API devuelve datos paginados
     if (data.items && Array.isArray(data.items)) {
       return data.items as AppointmentResponse[]
     }

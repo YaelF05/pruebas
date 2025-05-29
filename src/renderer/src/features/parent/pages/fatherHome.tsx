@@ -289,27 +289,21 @@ const HomePage: FC = () => {
       setIsLoading(true)
       setAddChildError(null)
 
-      console.log('Creando nuevo hijo:', data)
-      // Llamamos directamente al servicio para crear un niño
       const result = await createChildService(data)
       console.log('Niño creado exitosamente:', result)
 
-      // Recargar la lista de hijos
       const updatedChildren = await getChildrenService()
       setChildren(updatedChildren)
 
-      // Seleccionar el primer hijo si es el único
       if (updatedChildren.length === 1) {
         setSelectedChild(updatedChildren[0])
       }
 
-      // Buscar el nuevo hijo para seleccionarlo
       const newChild = updatedChildren.find(
         (child) => child.name === data.name && child.lastName === data.lastName
       )
 
       if (newChild) {
-        // Inicializar datos de cepillado para el nuevo hijo
         const todayRecords = await getTodayBrushRecordsService(newChild.childId)
         const weeklyRecords = await getWeeklyBrushRecordsService(newChild.childId)
 
@@ -327,10 +321,8 @@ const HomePage: FC = () => {
         setSelectedChild(newChild)
       }
 
-      // Cerrar el modal
       setIsModalOpen(false)
-      
-      // Mostrar mensaje de éxito
+
       alert('¡Hijo agregado exitosamente!')
     } catch (error) {
       console.error('Error al agregar hijo:', error)

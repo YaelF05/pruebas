@@ -25,7 +25,7 @@ export function validatePassword(password: string): string | null {
   if (!password.trim()) {
     return 'El campo de contraseña no puede estar vacío'
   }
-  if (password.length < 6) {
+  if (password.length < 1) {
     return 'La contraseña debe tener al menos 6 caracteres'
   }
   if (password.length > 14) {

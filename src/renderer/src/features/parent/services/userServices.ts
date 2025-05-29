@@ -44,7 +44,9 @@ export async function getUserProfileService(): Promise<UserProfileResponse> {
         console.log('Perfil de usuario recibido desde API:', data)
         return data as UserProfileResponse
       } else {
-        console.warn(`API profile endpoint no disponible (${response.status}), extrayendo del token`)
+        console.warn(
+          `API profile endpoint no disponible (${response.status}), extrayendo del token`
+        )
         return extractUserFromToken()
       }
     } catch (networkError) {
