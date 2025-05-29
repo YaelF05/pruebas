@@ -61,8 +61,7 @@ const AppointmentsPage: FC = () => {
         setAllAppointments(appointmentsResult.value)
       } else {
         console.error('Error al cargar citas:', appointmentsResult.reason)
-        // Usar datos mock
-        setAllAppointments(getMockAppointments())
+        setAllAppointments([])
       }
 
       // Procesar hijos
@@ -76,7 +75,7 @@ const AppointmentsPage: FC = () => {
         setChildren(childrenData)
       } else {
         console.error('Error al cargar hijos:', childrenResult.reason)
-        setChildren(getMockChildren())
+        setChildren([])
       }
 
       // Procesar dentistas
@@ -85,56 +84,20 @@ const AppointmentsPage: FC = () => {
         setDentists(dentistsResult.value)
       } else {
         console.error('Error al cargar dentistas:', dentistsResult.reason)
-        setDentists(getMockDentists())
+        setDentists([])
       }
     } catch (error) {
       console.error('Error general al cargar datos:', error)
       setError(error instanceof Error ? error.message : 'Error al cargar los datos')
 
-      // Cargar datos mock como fallback
-      setAllAppointments(getMockAppointments())
-      setChildren(getMockChildren())
-      setDentists(getMockDentists())
+      // En caso de error general, mantener arrays vacíos
+      setAllAppointments([])
+      setChildren([])
+      setDentists([])
     } finally {
       setLoading(false)
     }
   }
-
-  // Datos mock
-  const getMockAppointments = (): AppointmentResponse[] => [
-    {
-      appointmentId: 1,
-      dentistId: 1,
-      fatherId: 1,
-      childId: 1,
-      reason: 'Limpieza dental rutinaria',
-      appointmentDatetime: '2025-05-25T10:00:00',
-      creationDate: '2025-01-20T09:00:00',
-      lastModificationDate: null,
-      isActive: true
-    },
-    {
-      appointmentId: 2,
-      dentistId: 2,
-      fatherId: 1,
-      childId: 2,
-      reason: 'Revisión de ortodoncia',
-      appointmentDatetime: '2025-01-26T14:30:00',
-      creationDate: '2025-01-20T10:15:00',
-      lastModificationDate: null,
-      isActive: true
-    }
-  ]
-
-  const getMockChildren = (): ChildData[] => [
-    { childId: 1, name: 'Ana', lastName: 'García' },
-    { childId: 2, name: 'Luis', lastName: 'García' }
-  ]
-
-  const getMockDentists = (): DentistData[] => [
-    { userId: 1, name: 'Dr. María González' },
-    { userId: 2, name: 'Dr. Carlos Rodríguez' }
-  ]
 
   const getAppointmentsForDate = (date: Date): AppointmentResponse[] => {
     return allAppointments.filter((appointment) => {
@@ -187,7 +150,7 @@ const AppointmentsPage: FC = () => {
         })
         setAllAppointments(updatedAppointments)
 
-        console.log('Cita reagendada (mock):', { appointmentId, newDateTime, reason })
+        console.log('Cita reagendada (pendiente API):', { appointmentId, newDateTime, reason })
       } catch (error) {
         console.error('Error al reagendar la cita:', error)
         alert('Error al reagendar la cita. Por favor, inténtelo de nuevo.')
@@ -208,7 +171,7 @@ const AppointmentsPage: FC = () => {
         )
         setAllAppointments(updatedAppointments)
 
-        console.log('Cita cancelada (mock):', { appointmentId, reason })
+        console.log('Cita cancelada (pendiente API):', { appointmentId, reason })
       } catch (error) {
         console.error('Error al cancelar la cita:', error)
         alert('Error al cancelar la cita. Por favor, inténtelo de nuevo.')
