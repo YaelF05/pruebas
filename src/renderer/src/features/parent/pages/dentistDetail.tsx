@@ -7,6 +7,7 @@ import ScheduleAppointmentModal from '../components/scheduleAppointment'
 import styles from '../styles/dentistDetail.module.css'
 import Phone from '@renderer/assets/icons/phone.png'
 import Mail from '@renderer/assets/icons/mail.png'
+import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 const DentistDetail: React.FC = () => {
   const { dentistId } = useParams<{ dentistId: string }>()
@@ -130,11 +131,11 @@ const DentistDetail: React.FC = () => {
 
       <div className={styles.profileSection}>
         <div className={styles.profileImage}>
-
         </div>
 
         <div className={styles.profileInfo}>
           <h1 className={styles.name}>
+
           </h1>
           {dentist.university && <p className={styles.university}>{dentist.university}</p>}
           {dentist.speciality && <p className={styles.speciality}>{dentist.speciality}</p>}
@@ -159,7 +160,7 @@ const DentistDetail: React.FC = () => {
             </div>
             <div className={styles.contactItem}>
               <img src={Mail} alt="Correo" className={styles.contactIcon} />
-              <span>{dentist.user.email}</span>
+
             </div>
           </div>
         </div>

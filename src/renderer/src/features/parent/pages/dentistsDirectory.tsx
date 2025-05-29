@@ -7,7 +7,7 @@ import styles from '../styles/dentistsDirectory.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import FilterIcon from '@renderer/assets/icons/filterIcon.png'
 
-const DentistsPage: FC = () => {
+const DentistsDirectory: FC = () => {
   const navigate = useNavigate()
 
   const [dentists, setDentists] = useState<DentistResponse[]>([])
@@ -146,6 +146,7 @@ const DentistsPage: FC = () => {
   }
 
   const handleDentistClick = (userId: number): void => {
+    console.log('Navegando a dentista con ID:', userId)
     navigate(`/dentist/${userId}`)
   }
 
@@ -209,11 +210,13 @@ const DentistsPage: FC = () => {
               onClick={() => handleDentistClick(dentist.userId)}
             >
               <div className={styles.dentistImage}>
-                <img src={ProfileAvatar} className={styles.profileImage} />
+                <img 
+                  src={ProfileAvatar} 
+                  className={styles.profileImage} 
+                />
               </div>
               <div className={styles.dentistInfo}>
                 <h3 className={styles.dentistName}>
-
                 </h3>
                 {dentist.distance !== undefined && (
                   <p className={styles.dentistDistance}>
@@ -223,15 +226,12 @@ const DentistsPage: FC = () => {
                 {dentist.university && (
                   <p className={styles.dentistUniversity}>{dentist.university}</p>
                 )}
-                <p className={styles.dentistLicense}>
+                <p className={styles.dentistId}>
                   Cédula profesional: {dentist.professionalLicense}
                 </p>
                 {dentist.speciality && (
                   <p className={styles.dentistSpecialty}>Especialidad: {dentist.speciality}</p>
                 )}
-                <p className={styles.dentistSchedule}>
-                  Horario: {dentist.serviceStartTime} - {dentist.serviceEndTime}
-                </p>
               </div>
             </div>
           ))
@@ -249,4 +249,4 @@ const DentistsPage: FC = () => {
   )
 }
 
-export default DentistsPage
+export default DentistsDirectory
