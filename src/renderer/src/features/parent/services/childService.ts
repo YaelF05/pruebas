@@ -40,6 +40,12 @@ export interface CreateChildResult {
  */
 export async function createChildService(childData: ChildData): Promise<CreateChildResult> {
   try {
+    const authToken = localStorage.getItem('authToken')
+
+    if (!authToken) {
+      throw new Error('No authentication token found')
+    }
+
     // Validar datos antes de enviar
     if (!childData.name.trim()) {
       throw new Error('El nombre del niño es requerido')
@@ -81,9 +87,9 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
     const response = await fetch(`${API_BASE_URL}/child`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
       },
-      credentials: 'include', // Incluir cookies si las hay
       body: JSON.stringify(requestBody)
     })
 
@@ -119,14 +125,21 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
   try {
     console.log('Intentando obtener lista de hijos...')
 
-    // Try to get from the API without Authorization header
+    const authToken = localStorage.getItem('authToken')
+
+    if (!authToken) {
+      console.warn('No authentication token found, retornando array vacío')
+      return []
+    }
+
+    // Try to get from the API with Authorization header
     try {
       const response = await fetch(`${API_BASE_URL}/child`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include' // Incluir cookies si las hay
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
       })
 
       if (response.ok) {
@@ -198,6 +211,12 @@ export async function updateChildService(
   try {
     console.log(`Actualizando niño ID ${childId}:`, childData)
 
+    const authToken = localStorage.getItem('authToken')
+
+    if (!authToken) {
+      throw new Error('No authentication token found')
+    }
+
     // Convertir a camelCase para el backend (como está definido en el esquema)
     const requestBody: any = {}
 
@@ -226,9 +245,9 @@ export async function updateChildService(
     const response = await fetch(`${API_BASE_URL}/child/${childId}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
       },
-      credentials: 'include', // Incluir cookies si las hay
       body: JSON.stringify(requestBody)
     })
 
