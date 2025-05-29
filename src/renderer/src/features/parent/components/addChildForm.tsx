@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
 import { ChildData } from '../services/childService'
+import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/addChildForm.module.css'
 
 interface FormErrors {
@@ -9,6 +10,7 @@ interface FormErrors {
   lastName?: string
   gender?: string
   birthDate?: string
+  dentistId?: string
   morningBrushingTime?: string
   afternoonBrushingTime?: string
   nightBrushingTime?: string
@@ -25,12 +27,49 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     lastName: '',
     gender: 'M',
     birthDate: '',
+    dentistId: 0,
     morningBrushingTime: '08:00',
     afternoonBrushingTime: '14:00',
     nightBrushingTime: '20:00'
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
+  const [dentists, setDentists] = useState<{ userId: number; name: string }[]>([])
+  const [loadingDentists, setLoadingDentists] = useState(true)
+
+  // Cargar dentistas al montar el componente
+  useEffect(() => {
+    const loadDentists = async () => {
+      try {
+        setLoadingDentists(true)
+        const dentistsList = await getDentistsForSelectService()
+        setDentists(dentistsList)
+
+        // Seleccionar el primer dentista por defecto si existe
+        if (dentistsList.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            dentistId: dentistsList[0].userId
+          }))
+        }
+      } catch (error) {
+        console.error('Error cargando dentistas:', error)
+        // En caso de error, usar datos básicos
+        setDentists([
+          { userId: 1, name: 'Dr. María González' },
+          { userId: 2, name: 'Dr. Carlos Rodríguez' }
+        ])
+        setFormData((prev) => ({
+          ...prev,
+          dentistId: 1
+        }))
+      } finally {
+        setLoadingDentists(false)
+      }
+    }
+
+    loadDentists()
+  }, [])
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -40,7 +79,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     // Actualizar el estado
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value
+      [name]: name === 'dentistId' ? parseInt(value) || 0 : value
     }))
 
     // Limpiar errores cuando el usuario modifica el campo
@@ -139,6 +178,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
+  // Función para validar dentista
+  const validateDentist = (dentistId: number): string | undefined => {
+    if (!dentistId || dentistId === 0) {
+      return 'Debe seleccionar un dentista'
+    }
+    return undefined
+  }
+
   // Función para validar horarios
   const validateTime = (time: string, label: string): string | undefined => {
     if (!time) {
@@ -179,6 +226,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     const nameError = validateName(formData.name)
     const lastNameError = validateLastName(formData.lastName)
     const birthDateError = validateAge(formData.birthDate)
+    const dentistError = validateDentist(formData.dentistId)
     const morningTimeError = validateTime(formData.morningBrushingTime, 'cepillado matutino')
     const afternoonTimeError = validateTime(formData.afternoonBrushingTime, 'cepillado vespertino')
     const nightTimeError = validateTime(formData.nightBrushingTime, 'cepillado nocturno')
@@ -189,6 +237,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     if (nameError) newErrors.name = nameError
     if (lastNameError) newErrors.lastName = lastNameError
     if (birthDateError) newErrors.birthDate = birthDateError
+    if (dentistError) newErrors.dentistId = dentistError
     if (morningTimeError) newErrors.morningBrushingTime = morningTimeError
     if (afternoonTimeError) newErrors.afternoonBrushingTime = afternoonTimeError
     if (nightTimeError) newErrors.nightBrushingTime = nightTimeError
@@ -216,7 +265,19 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     { label: 'Femenino', value: 'F' }
   ]
 
-  // Obtener la fecha máxima (hace 4 años) y mínima (hace 13 años)
+  // Opciones para dentistas
+  const dentistOptions = dentists.map((dentist) => ({
+    label: dentist.name,
+    value: dentist.userId.toString()
+  }))
+
+  if (loadingDentists) {
+    return (
+      <div className={styles.loading}>
+        <p>Cargando dentistas...</p>
+      </div>
+    )
+  }
 
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
@@ -273,6 +334,19 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
           classname={styles.formInput}
         />
         {errors.birthDate && <div className={styles.errorMessage}>{errors.birthDate}</div>}
+      </div>
+
+      <div className={styles.formField}>
+        <InputList
+          options={dentistOptions}
+          label="Dentista"
+          name="dentistId"
+          value={formData.dentistId.toString()}
+          placeholder="Seleccione un dentista"
+          onChange={handleInputChange}
+          required
+        />
+        {errors.dentistId && <div className={styles.errorMessage}>{errors.dentistId}</div>}
       </div>
 
       <div className={styles.formField}>

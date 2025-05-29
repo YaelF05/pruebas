@@ -5,6 +5,7 @@ export interface ChildData {
   lastName: string
   gender: 'M' | 'F'
   birthDate: string
+  dentistId: number // Agregar dentistId
   morningBrushingTime: string
   afternoonBrushingTime: string
   nightBrushingTime: string
@@ -13,6 +14,7 @@ export interface ChildData {
 export interface ChildResponse {
   childId: number
   fatherId: number
+  dentistId?: number // Agregar dentistId opcional
   name: string
   lastName: string
   gender: 'M' | 'F'
@@ -65,6 +67,10 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('La fecha de nacimiento es requerida')
     }
 
+    if (!childData.dentistId || childData.dentistId === 0) {
+      throw new Error('Debe seleccionar un dentista')
+    }
+
     if (
       !childData.morningBrushingTime ||
       !childData.afternoonBrushingTime ||
@@ -73,12 +79,13 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('Todos los horarios de cepillado son requeridos')
     }
 
-    // Preparar el body de la request
+    // Preparar el body de la request exactamente como lo espera el backend
     const requestBody = {
       name: childData.name.trim(),
       lastName: childData.lastName.trim(),
       gender: childData.gender.toUpperCase(),
       birthDate: childData.birthDate,
+      dentistId: childData.dentistId,
       morningBrushingTime: childData.morningBrushingTime,
       afternoonBrushingTime: childData.afternoonBrushingTime,
       nightBrushingTime: childData.nightBrushingTime
@@ -161,6 +168,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
         const mappedChildren = childrenArray.map((child: any) => ({
           childId: child.childId || child.child_id,
           fatherId: child.fatherId || child.father_id,
+          dentistId: child.dentistId || child.dentist_id,
           name: child.name,
           lastName: child.lastName || child.last_name,
           gender: child.gender,
@@ -230,6 +238,9 @@ export async function updateChildService(
     }
     if (childData.birthDate !== undefined) {
       requestBody.birthDate = childData.birthDate
+    }
+    if (childData.dentistId !== undefined) {
+      requestBody.dentistId = childData.dentistId
     }
     if (childData.morningBrushingTime !== undefined) {
       requestBody.morningBrushingTime = childData.morningBrushingTime
