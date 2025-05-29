@@ -10,7 +10,7 @@ export interface AppointmentData {
 export interface AppointmentResponse {
   appointmentId: number
   dentistId: number | null
-  fatherId: number | null
+  fatherId: number | null // Agregado según el schema del backend
   childId: number | null
   reason: string
   appointmentDatetime: string
@@ -21,6 +21,12 @@ export interface AppointmentResponse {
 
 export interface CreateAppointmentResult {
   message: string
+}
+
+export interface DeactivateAppointmentData {
+  deactiveAppointmentId: number  // Cambiado para coincidir con el backend
+  reason: string
+  type: 'FINISHED' | 'CANCELLED' | 'RESCHEDULED'
 }
 
 /**
@@ -80,6 +86,7 @@ export async function createAppointmentService(
     }
 
     // Preparar los datos para el backend exactamente como los espera
+    // Según el backend, espera: dentistId, childId, reason, appointmentDatetime
     const requestBody = {
       dentistId: appointmentData.dentistId,
       childId: appointmentData.childId,
@@ -126,6 +133,8 @@ export async function createAppointmentService(
             )
           } else if (errorMessage.includes('Invalid datetime')) {
             throw new Error('El formato de fecha y hora no es válido.')
+          } else if (errorMessage.includes('future date')) {
+            throw new Error('Las citas solo se pueden agendar para fechas futuras.')
           } else {
             throw new Error('Conflicto al agendar la cita. ' + errorMessage)
           }
@@ -154,10 +163,15 @@ export async function createAppointmentService(
 
 /**
  * Service to get appointments for the current user
- * @returns A promise that resolves to the list of appointments
+ * @param page - Page number for pagination (default: 1)
+ * @param limit - Number of items per page (default: 10)
+ * @returns A promise that resolves to the paginated list of appointments
  * @throws An error if the fetch fails
  */
-export async function getAppointmentsService(): Promise<AppointmentResponse[]> {
+export async function getAppointmentsService(
+  page: number = 1,
+  limit: number = 10
+): Promise<AppointmentResponse[]> {
   try {
     const authToken = localStorage.getItem('authToken')
 
@@ -167,7 +181,13 @@ export async function getAppointmentsService(): Promise<AppointmentResponse[]> {
 
     console.log('Obteniendo citas del usuario...')
 
-    const response = await fetch(`${API_BASE_URL}/appointment`, {
+    // Agregar parámetros de paginación según el backend
+    const queryParams = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    })
+
+    const response = await fetch(`${API_BASE_URL}/appointment?${queryParams}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -197,7 +217,7 @@ export async function getAppointmentsService(): Promise<AppointmentResponse[]> {
     const data = await response.json()
     console.log('Citas recibidas:', data)
 
-    // La API devuelve datos paginados
+    // El backend devuelve datos paginados con la estructura: { page, limit, totalPages, items }
     if (data && typeof data === 'object') {
       if (data.items && Array.isArray(data.items)) {
         return data.items as AppointmentResponse[]
@@ -210,7 +230,15 @@ export async function getAppointmentsService(): Promise<AppointmentResponse[]> {
     return []
   } catch (error) {
     console.error('Error en getAppointmentsService:', error)
-    throw error
+    
+    // Si es un error de autenticación o red, re-lanzarlo
+    if (error instanceof Error) {
+      throw error
+    }
+    
+    // Para errores desconocidos, retornar array vacío para no romper la UI
+    console.warn('Error desconocido al obtener citas, retornando array vacío')
+    return []
   }
 }
 
@@ -248,6 +276,14 @@ export async function getAppointmentByIdService(
         console.error('Error al parsear respuesta:', e)
       }
 
+      if (response.status === 404) {
+        throw new Error('Cita no encontrada')
+      }
+
+      if (response.status === 401) {
+        throw new Error('La cita no te pertenece o no tienes autorización')
+      }
+
       throw new Error(errorMessage)
     }
 
@@ -257,4 +293,141 @@ export async function getAppointmentByIdService(
     console.error('Error en getAppointmentByIdService:', error)
     throw error
   }
+}
+
+/**
+ * Service to deactivate an appointment (cancel, reschedule, or mark as finished)
+ * @param deactivateData - The deactivation data
+ * @returns A promise that resolves to the deactivation result
+ * @throws An error if the deactivation fails
+ */
+export async function deactivateAppointmentService(
+  deactivateData: DeactivateAppointmentData
+): Promise<{ message: string }> {
+  try {
+    const authToken = localStorage.getItem('authToken')
+
+    if (!authToken) {
+      throw new Error('No se encontró el token de autenticación')
+    }
+
+    // Validar que el tipo sea válido
+    const validTypes = ['FINISHED', 'CANCELLED', 'RESCHEDULED']
+    if (!validTypes.includes(deactivateData.type)) {
+      throw new Error('Tipo de desactivación inválido')
+    }
+
+    if (!deactivateData.reason.trim()) {
+      throw new Error('El motivo es requerido')
+    }
+
+    // Preparar datos exactamente como los espera el backend
+    const requestBody = {
+      deactiveAppointmentId: deactivateData.deactiveAppointmentId,
+      reason: deactivateData.reason.trim(),
+      type: deactivateData.type
+    }
+
+    console.log('Desactivando cita:', requestBody)
+
+    const response = await fetch(`${API_BASE_URL}/appointment/deactivate`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    if (!response.ok) {
+      let errorMessage = `Error al ${deactivateData.type.toLowerCase()} la cita: ${response.status}`
+
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.message || errorMessage
+      } catch (e) {
+        console.error('Error al parsear respuesta:', e)
+      }
+
+      // Mensajes específicos según el código de error
+      switch (response.status) {
+        case 400:
+          throw new Error('Datos inválidos para desactivar la cita')
+        case 401:
+          throw new Error('No tienes autorización para realizar esta acción')
+        case 404:
+          throw new Error('Cita no encontrada')
+        case 409:
+          if (errorMessage.includes('24 hours')) {
+            throw new Error('Solo se pueden cancelar o reagendar citas con al menos 24 horas de anticipación')
+          } else if (errorMessage.includes('already deactivated')) {
+            throw new Error('La cita ya ha sido cancelada o modificada anteriormente')
+          } else if (errorMessage.includes('Only future appointments')) {
+            throw new Error('Solo se pueden cancelar o reagendar citas futuras')
+          } else {
+            throw new Error('Conflicto al modificar la cita: ' + errorMessage)
+          }
+        default:
+          throw new Error(errorMessage)
+      }
+    }
+
+    const data = await response.json()
+    console.log('Cita desactivada exitosamente:', data)
+    return data
+  } catch (error) {
+    console.error('Error en deactivateAppointmentService:', error)
+    throw error
+  }
+}
+
+/**
+ * Helper function to cancel an appointment
+ * @param appointmentId - The ID of the appointment to cancel
+ * @param reason - The reason for cancellation
+ * @returns A promise that resolves to the cancellation result
+ */
+export async function cancelAppointmentService(
+  appointmentId: number,
+  reason: string
+): Promise<{ message: string }> {
+  return deactivateAppointmentService({
+    deactiveAppointmentId: appointmentId,
+    reason: reason,
+    type: 'CANCELLED'
+  })
+}
+
+/**
+ * Helper function to reschedule an appointment
+ * @param appointmentId - The ID of the appointment to reschedule
+ * @param reason - The reason for rescheduling
+ * @returns A promise that resolves to the reschedule result
+ */
+export async function rescheduleAppointmentService(
+  appointmentId: number,
+  reason: string
+): Promise<{ message: string }> {
+  return deactivateAppointmentService({
+    deactiveAppointmentId: appointmentId,
+    reason: reason,
+    type: 'RESCHEDULED'
+  })
+}
+
+/**
+ * Helper function to mark an appointment as finished
+ * @param appointmentId - The ID of the appointment to mark as finished
+ * @param reason - The reason or notes for completion
+ * @returns A promise that resolves to the completion result
+ */
+export async function finishAppointmentService(
+  appointmentId: number,
+  reason: string
+): Promise<{ message: string }> {
+  return deactivateAppointmentService({
+    deactiveAppointmentId: appointmentId,
+    reason: reason,
+    type: 'FINISHED'
+  })
 }
