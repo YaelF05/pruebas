@@ -36,6 +36,21 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }, [isOpen])
 
+  // Limpiar formulario cuando se cierra el modal
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm()
+    }
+  }, [isOpen])
+
+  const resetForm = () => {
+    setSelectedChildId(children.length > 0 ? children[0].childId : null)
+    setAppointmentDate('')
+    setAppointmentTime('')
+    setReason('')
+    setError(null)
+  }
+
   const loadChildren = async () => {
     try {
       setIsLoadingChildren(true)
@@ -53,7 +68,9 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       }
     } catch (error) {
       console.error('Error al cargar hijos:', error)
-      setError('Error al cargar la lista de hijos. Por favor, inténtelo de nuevo.')
+      setError(
+        'Error al cargar la lista de hijos. Por favor, verifica que tengas hijos registrados.'
+      )
       setChildren([])
     } finally {
       setIsLoadingChildren(false)
@@ -85,13 +102,29 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return 'El motivo debe tener al menos 10 caracteres'
     }
 
-    // Validar que la fecha y hora sean futuras
+    if (reason.trim().length > 255) {
+      return 'El motivo no puede tener más de 255 caracteres'
+    }
+
+    // Validar que la fecha sea válida
     const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}:00`)
+    
+    if (isNaN(appointmentDateTime.getTime())) {
+      return 'La fecha y hora seleccionadas no son válidas'
+    }
+
+    // Validar que la fecha y hora sean futuras
     const now = new Date()
-    const minTime = new Date(now.getTime() + 30 * 60000)
+    const minTime = new Date(now.getTime() + 30 * 60000) // 30 minutos en el futuro
 
     if (appointmentDateTime <= minTime) {
       return 'La cita debe ser al menos 30 minutos en el futuro'
+    }
+
+    // Validar que no sea más de 6 meses en el futuro
+    const maxTime = new Date(now.getTime() + 6 * 30 * 24 * 60 * 60 * 1000) // ~6 meses
+    if (appointmentDateTime > maxTime) {
+      return 'No se pueden agendar citas con más de 6 meses de anticipación'
     }
 
     // Validar horario de trabajo (8:00 AM - 6:00 PM)
@@ -125,11 +158,14 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return
     }
 
+    // Preparar datos de la cita
+    const appointmentDateTime = `${appointmentDate}T${appointmentTime}:00`
+    
     const appointmentData: AppointmentData = {
       dentistId: dentistId,
       childId: selectedChildId,
       reason: reason.trim(),
-      appointmentDatetime: `${appointmentDate}T${appointmentTime}`
+      appointmentDatetime: appointmentDateTime
     }
 
     try {
@@ -143,7 +179,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       // Llamar al callback del padre
       onSubmit(appointmentData)
 
-      // Limpiar formulario y cerrar modal
+      // Cerrar modal y limpiar formulario
       handleCancel()
 
       // Mostrar mensaje de éxito
@@ -162,18 +198,15 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   }))
 
   const handleCancel = (): void => {
-    setSelectedChildId(children.length > 0 ? children[0].childId : null)
-    setAppointmentDate('')
-    setAppointmentTime('')
-    setReason('')
-    setError(null)
+    resetForm()
     onClose()
   }
 
-  // Obtener fecha mínima (hoy)
+  // Obtener fecha mínima (mañana)
   const getMinDate = (): string => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return tomorrow.toISOString().split('T')[0]
   }
 
   // Obtener fecha máxima (6 meses en el futuro)
@@ -182,6 +215,8 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     maxDate.setMonth(maxDate.getMonth() + 6)
     return maxDate.toISOString().split('T')[0]
   }
+
+  // Generar opciones de hora (8:00 AM - 5:30 PM, cada 30 minutos)
 
   return (
     <Modal isOpen={isOpen} onClose={handleCancel} title="Agenda tu cita">
@@ -210,7 +245,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.label}>Ingresa la fecha y horario para la cita</label>
+              <label className={styles.label}>Fecha y horario para la cita</label>
               <div className={styles.dateTimeGroup}>
                 <div style={{ flex: 1 }}>
                   <InputForm
@@ -222,7 +257,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                     onChange={(e) => setAppointmentDate(e.target.value)}
                     required
                   />
-                  <input type="hidden" min={getMinDate()} max={getMaxDate()} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <InputForm
@@ -236,11 +270,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                   />
                 </div>
               </div>
-              <small
-                style={{ color: '#666', fontSize: '12px', marginTop: '5px', display: 'block' }}
-              >
-                * Horario de atención: Lunes a Sábado de 8:00 AM a 6:00 PM
-              </small>
             </div>
 
             <div className={styles.formGroup}>
@@ -252,9 +281,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                 onChange={(e) => setReason(e.target.value)}
                 required
               />
-              <small style={{ color: '#666', fontSize: '12px' }}>
-                Mínimo 10 caracteres. Caracteres actuales: {reason.length}
-              </small>
             </div>
 
             <div className={styles.buttonGroup}>
