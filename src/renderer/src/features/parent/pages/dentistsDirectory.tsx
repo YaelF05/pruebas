@@ -207,15 +207,11 @@ const DentistsPage: FC = () => {
               onClick={() => handleDentistClick(dentist.userId)}
             >
               <div className={styles.dentistImage}>
-                <img
-                  src={ProfileAvatar}
-                  alt={`${dentist.user.name} ${dentist.user.lastName}`}
-                  className={styles.profileImage}
-                />
+                <img src={ProfileAvatar} className={styles.profileImage} />
               </div>
               <div className={styles.dentistInfo}>
                 <h3 className={styles.dentistName}>
-                  Dr. {dentist.user.name} {dentist.user.lastName}
+
                 </h3>
                 {dentist.distance !== undefined && (
                   <p className={styles.dentistDistance}>
