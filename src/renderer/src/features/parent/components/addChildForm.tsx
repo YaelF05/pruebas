@@ -217,13 +217,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
   ]
 
   // Obtener la fecha máxima (hace 4 años) y mínima (hace 13 años)
-  const today = new Date()
-  const maxDate = new Date(today.getFullYear() - 4, today.getMonth(), today.getDate())
-    .toISOString()
-    .split('T')[0]
-  const minDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
-    .toISOString()
-    .split('T')[0]
 
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
@@ -269,22 +262,16 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       </div>
 
       <div className={styles.formField}>
-        <div className={styles.dateInputContainer}>
-          <label htmlFor="birthDate" className={styles.dateLabel}>
-            Fecha de nacimiento (4-13 años)
-          </label>
-          <input
-            type="date"
-            id="birthDate"
-            name="birthDate"
-            value={formData.birthDate}
-            onChange={handleInputChange}
-            min={minDate}
-            max={maxDate}
-            required
-            className={styles.dateInput}
-          />
-        </div>
+        <InputForm
+          label="Fecha de nacimiento (4-13 años)"
+          name="birthDate"
+          type="date"
+          value={formData.birthDate}
+          placeholder="YYYY-MM-DD"
+          onChange={handleInputChange}
+          required
+          classname={styles.formInput}
+        />
         {errors.birthDate && <div className={styles.errorMessage}>{errors.birthDate}</div>}
       </div>
 

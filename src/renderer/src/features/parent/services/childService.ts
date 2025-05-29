@@ -40,12 +40,6 @@ export interface CreateChildResult {
  */
 export async function createChildService(childData: ChildData): Promise<CreateChildResult> {
   try {
-    const authToken = localStorage.getItem('authToken')
-
-    if (!authToken) {
-      throw new Error('No authentication token found')
-    }
-
     // Validar datos antes de enviar
     if (!childData.name.trim()) {
       throw new Error('El nombre del niño es requerido')
@@ -63,15 +57,19 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('La fecha de nacimiento es requerida')
     }
 
-    if (!childData.morningBrushingTime || !childData.afternoonBrushingTime || !childData.nightBrushingTime) {
+    if (
+      !childData.morningBrushingTime ||
+      !childData.afternoonBrushingTime ||
+      !childData.nightBrushingTime
+    ) {
       throw new Error('Todos los horarios de cepillado son requeridos')
     }
 
-    // Preparar el body de la request - coincidir exactamente con lo que espera el backend
+    // Preparar el body de la request - usando camelCase como espera el backend
     const requestBody = {
       name: childData.name.trim(),
       lastName: childData.lastName.trim(),
-      gender: childData.gender,
+      gender: childData.gender.toUpperCase(),
       birthDate: childData.birthDate,
       morningBrushingTime: childData.morningBrushingTime,
       afternoonBrushingTime: childData.afternoonBrushingTime,
@@ -83,9 +81,9 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
     const response = await fetch(`${API_BASE_URL}/child`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        'Content-Type': 'application/json'
       },
+      credentials: 'include', // Incluir cookies si las hay
       body: JSON.stringify(requestBody)
     })
 
@@ -94,8 +92,11 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       try {
         const errorData = await response.json()
         errorMessage = errorData.message || errorMessage
+        console.error('Error del servidor:', errorData)
       } catch (e) {
         console.error('Error al parsear respuesta de error:', e)
+        const responseText = await response.text()
+        console.error('Respuesta del servidor:', responseText)
       }
       throw new Error(errorMessage)
     }
@@ -116,23 +117,16 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
  */
 export async function getChildrenService(): Promise<ChildResponse[]> {
   try {
-    const authToken = localStorage.getItem('authToken')
-
-    if (!authToken) {
-      console.warn('No authentication token found, returning empty array')
-      return []
-    }
-
     console.log('Intentando obtener lista de hijos...')
 
-    // First, try to get from the API
+    // Try to get from the API without Authorization header
     try {
       const response = await fetch(`${API_BASE_URL}/child`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include' // Incluir cookies si las hay
       })
 
       if (response.ok) {
@@ -151,7 +145,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
           return []
         }
 
-        // Mapear los datos para asegurar consistencia
+        // Mapear los datos para asegurar consistencia - manejar tanto camelCase como snake_case
         const mappedChildren = childrenArray.map((child: any) => ({
           childId: child.childId || child.child_id,
           fatherId: child.fatherId || child.father_id,
@@ -171,7 +165,9 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
         return mappedChildren as ChildResponse[]
       } else if (response.status === 404) {
         // Si es 404, significa que el endpoint no existe o no hay hijos
-        console.log('Endpoint de children no existe o no hay hijos registrados, usando datos por defecto')
+        console.log(
+          'Endpoint de children no existe o no hay hijos registrados, usando datos por defecto'
+        )
         return []
       } else {
         throw new Error(`HTTP Error: ${response.status}`)
@@ -200,21 +196,40 @@ export async function updateChildService(
   childData: Partial<ChildData>
 ): Promise<{ message: string }> {
   try {
-    const authToken = localStorage.getItem('authToken')
-
-    if (!authToken) {
-      throw new Error('No authentication token found')
-    }
-
     console.log(`Actualizando niño ID ${childId}:`, childData)
+
+    // Convertir a camelCase para el backend (como está definido en el esquema)
+    const requestBody: any = {}
+
+    if (childData.name !== undefined) {
+      requestBody.name = childData.name
+    }
+    if (childData.lastName !== undefined) {
+      requestBody.lastName = childData.lastName
+    }
+    if (childData.gender !== undefined) {
+      requestBody.gender = childData.gender
+    }
+    if (childData.birthDate !== undefined) {
+      requestBody.birthDate = childData.birthDate
+    }
+    if (childData.morningBrushingTime !== undefined) {
+      requestBody.morningBrushingTime = childData.morningBrushingTime
+    }
+    if (childData.afternoonBrushingTime !== undefined) {
+      requestBody.afternoonBrushingTime = childData.afternoonBrushingTime
+    }
+    if (childData.nightBrushingTime !== undefined) {
+      requestBody.nightBrushingTime = childData.nightBrushingTime
+    }
 
     const response = await fetch(`${API_BASE_URL}/child/${childId}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(childData)
+      credentials: 'include', // Incluir cookies si las hay
+      body: JSON.stringify(requestBody)
     })
 
     if (!response.ok) {
