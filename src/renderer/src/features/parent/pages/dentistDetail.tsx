@@ -5,7 +5,6 @@ import { AppointmentData } from '../services/appointmentService'
 import { getDentistByIdService, DentistResponse } from '../services/dentistService'
 import ScheduleAppointmentModal from '../components/scheduleAppointment'
 import styles from '../styles/dentistDetail.module.css'
-import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 import Phone from '@renderer/assets/icons/phone.png'
 import Mail from '@renderer/assets/icons/mail.png'
 
@@ -40,57 +39,9 @@ const DentistDetail: React.FC = () => {
     } catch (error) {
       console.error('Error al cargar dentista:', error)
       setError(error instanceof Error ? error.message : 'Error al cargar el dentista')
-
-      // Si no funciona la API, usar datos mock
-      console.log('Usando datos mock como fallback')
-      setDentist(getMockDentist(id))
     } finally {
       setLoading(false)
     }
-  }
-
-  // Datos mock
-  const getMockDentist = (id: number): DentistResponse => {
-    const mockDentists: Record<number, DentistResponse> = {
-      1: {
-        userId: 1,
-        user: {
-          userId: 1,
-          name: 'María',
-          lastName: 'González',
-          email: 'maria.gonzalez@email.com'
-        },
-        professionalLicense: '1234567',
-        university: 'Universidad Nacional',
-        speciality: 'Odontopediatría',
-        about: 'Especialista en odontología pediátrica con más de 10 años de experiencia.',
-        serviceStartTime: '08:00',
-        serviceEndTime: '18:00',
-        phoneNumber: '5512345678',
-        latitude: 19.4326,
-        longitude: -99.1332
-      },
-      2: {
-        userId: 2,
-        user: {
-          userId: 2,
-          name: 'Carlos',
-          lastName: 'Rodríguez',
-          email: 'carlos.rodriguez@email.com'
-        },
-        professionalLicense: '2345678',
-        university: 'Universidad Autónoma',
-        speciality: 'Ortodoncia Pediátrica',
-        about: 'Experto en ortodoncia para niños y adolescentes.',
-        serviceStartTime: '09:00',
-        serviceEndTime: '17:00',
-        phoneNumber: '5523456789',
-        latitude: 19.42,
-        longitude: -99.15
-      }
-    }
-
-    return mockDentists[id] || mockDentists[1]
   }
 
   const handleScheduleAppointment = (): void => {
@@ -146,7 +97,7 @@ const DentistDetail: React.FC = () => {
     )
   }
 
-  if (error && !dentist) {
+  if (error) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
@@ -179,12 +130,11 @@ const DentistDetail: React.FC = () => {
 
       <div className={styles.profileSection}>
         <div className={styles.profileImage}>
-          <img src={ProfileAvatar} alt={`${dentist.user.name} ${dentist.user.lastName}`} />
+
         </div>
 
         <div className={styles.profileInfo}>
           <h1 className={styles.name}>
-            Dr. {dentist.user.name} {dentist.user.lastName}
           </h1>
           {dentist.university && <p className={styles.university}>{dentist.university}</p>}
           {dentist.speciality && <p className={styles.speciality}>{dentist.speciality}</p>}

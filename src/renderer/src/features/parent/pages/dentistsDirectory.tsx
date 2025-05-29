@@ -188,7 +188,9 @@ const DentistsPage: FC = () => {
 
       <div className={styles.titleSection}>
         <h1 className={styles.title}>
-          {userLocation && hasDistanceInfo ? 'Odontopediatras cerca de ti' : 'Odontopediatras disponibles'}
+          {userLocation && hasDistanceInfo
+            ? 'Odontopediatras cerca de ti'
+            : 'Odontopediatras disponibles'}
         </h1>
         {userLocation && hasDistanceInfo && (
           <button className={styles.filterButton} onClick={handleToggleDistanceSort}>
