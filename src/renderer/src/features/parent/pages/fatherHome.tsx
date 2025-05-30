@@ -477,21 +477,6 @@ const HomePage: FC = () => {
         onClose={handleCloseModal}
         title="Danos a conocer un poco más sobre tu hijo"
       >
-        {addChildError && (
-          <div
-            style={{
-              color: 'var(--error-primary)',
-              marginBottom: '15px',
-              padding: '10px',
-              backgroundColor: 'rgba(255, 0, 0, 0.1)',
-              borderRadius: '5px',
-              fontWeight: '600',
-              textAlign: 'center'
-            }}
-          >
-            {addChildError}
-          </div>
-        )}
         <AddChildForm onSubmit={handleAddChild} onCancel={handleCloseModal} />
       </Modal>
     </div>

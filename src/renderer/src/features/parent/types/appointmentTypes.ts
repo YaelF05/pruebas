@@ -8,7 +8,7 @@ export interface AppointmentData {
 export interface AppointmentResponse {
   appointmentId: number
   dentistId: number | null
-  fatherId: number | null // Agregado según el schema del backend
+  fatherId: number | null
   childId: number | null
   reason: string
   appointmentDatetime: string
@@ -22,7 +22,7 @@ export interface CreateAppointmentResult {
 }
 
 export interface DeactivateAppointmentData {
-  deactiveAppointmentId: number // Cambiado para coincidir con el backend (era appointmentId)
+  deactiveAppointmentId: number
   reason: string
   type: 'FINISHED' | 'CANCELLED' | 'RESCHEDULED'
 }

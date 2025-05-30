@@ -97,7 +97,7 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       },
       body: JSON.stringify(requestBody)
     })
@@ -146,7 +146,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          Authorization: `Bearer ${authToken}`
         }
       })
 
@@ -224,7 +224,6 @@ export async function updateChildService(
 
     console.log(`Actualizando niño ID ${childId}:`, childData)
 
-    // Convertir a camelCase para el backend (como está definido en el esquema)
     const requestBody: any = {}
 
     if (childData.name !== undefined) {
@@ -256,7 +255,7 @@ export async function updateChildService(
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       },
       body: JSON.stringify(requestBody)
     })

@@ -77,9 +77,7 @@ const DentistsDirectory: FC = () => {
           return distanceA - distanceB
         } else {
           // Ordenar alfabéticamente por nombre
-          return `${a.user.name} ${a.user.lastName}`.localeCompare(
-            `${b.user.name} ${b.user.lastName}`
-          )
+          return `${a.name} ${a.lastName}`.localeCompare(`${b.name} ${b.lastName}`)
         }
       })
 
@@ -119,7 +117,7 @@ const DentistsDirectory: FC = () => {
         {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 300000 // 5 minutos
+          maximumAge: 300000
         }
       )
     })
@@ -136,9 +134,7 @@ const DentistsDirectory: FC = () => {
         return distanceA - distanceB
       } else {
         // Cambiar a ordenar alfabéticamente por nombre
-        return `${a.user.name} ${a.user.lastName}`.localeCompare(
-          `${b.user.name} ${b.user.lastName}`
-        )
+        return `${a.name} ${a.lastName}`.localeCompare(`${b.name} ${b.lastName}`)
       }
     })
 
@@ -150,7 +146,7 @@ const DentistsDirectory: FC = () => {
     navigate(`/dentist/${userId}`)
   }
 
-  const hasDistanceInfo = dentists.some(d => d.distance !== undefined)
+  const hasDistanceInfo = dentists.some((d) => d.distance !== undefined)
 
   if (loading) {
     return (
@@ -210,13 +206,11 @@ const DentistsDirectory: FC = () => {
               onClick={() => handleDentistClick(dentist.userId)}
             >
               <div className={styles.dentistImage}>
-                <img 
-                  src={ProfileAvatar} 
-                  className={styles.profileImage} 
-                />
+                <img src={ProfileAvatar} className={styles.profileImage} />
               </div>
               <div className={styles.dentistInfo}>
                 <h3 className={styles.dentistName}>
+                  Dr. {dentist.name} {dentist.lastName}
                 </h3>
                 {dentist.distance !== undefined && (
                   <p className={styles.dentistDistance}>

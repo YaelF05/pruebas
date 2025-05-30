@@ -55,10 +55,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       } catch (error) {
         console.error('Error cargando dentistas:', error)
         // En caso de error, usar datos básicos
-        setDentists([
-          { userId: 1, name: 'Dr. María González' },
-          { userId: 2, name: 'Dr. Carlos Rodríguez' }
-        ])
+        setDentists([])
         setFormData((prev) => ({
           ...prev,
           dentistId: 1

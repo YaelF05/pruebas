@@ -10,7 +10,7 @@ export interface AppointmentData {
 export interface AppointmentResponse {
   appointmentId: number
   dentistId: number | null
-  fatherId: number | null // Agregado según el schema del backend
+  fatherId: number | null
   childId: number | null
   reason: string
   appointmentDatetime: string
@@ -24,7 +24,7 @@ export interface CreateAppointmentResult {
 }
 
 export interface DeactivateAppointmentData {
-  deactiveAppointmentId: number  // Cambiado para coincidir con el backend
+  deactiveAppointmentId: number
   reason: string
   type: 'FINISHED' | 'CANCELLED' | 'RESCHEDULED'
 }
@@ -67,7 +67,7 @@ export async function createAppointmentService(
     // Validar que la fecha sea futura
     const appointmentDate = new Date(appointmentData.appointmentDatetime)
     const now = new Date()
-    const minTime = new Date(now.getTime() + 30 * 60000) // 30 minutos en el futuro
+    const minTime = new Date(now.getTime() + 30 * 60000)
 
     if (appointmentDate <= minTime) {
       throw new Error('La cita debe ser al menos 30 minutos en el futuro')
@@ -100,7 +100,7 @@ export async function createAppointmentService(
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       },
       body: JSON.stringify(requestBody)
     })
@@ -191,7 +191,7 @@ export async function getAppointmentsService(
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       }
     })
 
@@ -230,12 +230,12 @@ export async function getAppointmentsService(
     return []
   } catch (error) {
     console.error('Error en getAppointmentsService:', error)
-    
+
     // Si es un error de autenticación o red, re-lanzarlo
     if (error instanceof Error) {
       throw error
     }
-    
+
     // Para errores desconocidos, retornar array vacío para no romper la UI
     console.warn('Error desconocido al obtener citas, retornando array vacío')
     return []
@@ -262,7 +262,7 @@ export async function getAppointmentByIdService(
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       }
     })
 
@@ -334,7 +334,7 @@ export async function deactivateAppointmentService(
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       },
       body: JSON.stringify(requestBody)
     })
@@ -359,7 +359,9 @@ export async function deactivateAppointmentService(
           throw new Error('Cita no encontrada')
         case 409:
           if (errorMessage.includes('24 hours')) {
-            throw new Error('Solo se pueden cancelar o reagendar citas con al menos 24 horas de anticipación')
+            throw new Error(
+              'Solo se pueden cancelar o reagendar citas con al menos 24 horas de anticipación'
+            )
           } else if (errorMessage.includes('already deactivated')) {
             throw new Error('La cita ya ha sido cancelada o modificada anteriormente')
           } else if (errorMessage.includes('Only future appointments')) {
