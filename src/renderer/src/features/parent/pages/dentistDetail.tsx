@@ -51,14 +51,16 @@ const DentistDetail: React.FC = () => {
 
   const handleAppointmentSubmit = (appointmentData: AppointmentData): void => {
     console.log('Cita agendada exitosamente:', appointmentData)
+  }
 
-    // Cerrar modal
+  const handleAppointmentSuccess = (): void => {
+    console.log('Usuario confirmó el éxito de la cita, cerrando modal y navegando...')
+
     setIsModalOpen(false)
 
-    // Navegar a la página de citas del padre después de un breve delay
     setTimeout(() => {
       navigate('/appointmentFather')
-    }, 1000)
+    }, 100)
   }
 
   const formatPhoneNumber = (phone: string): string => {
@@ -197,11 +199,12 @@ const DentistDetail: React.FC = () => {
         </div>
       )}
 
-      {/* Modal con dentistId correcto */}
+      {/* Modal de agendamiento de citas con callback de éxito */}
       <ScheduleAppointmentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAppointmentSubmit}
+        onSuccess={handleAppointmentSuccess}
         dentistId={dentist.userId}
       />
     </div>

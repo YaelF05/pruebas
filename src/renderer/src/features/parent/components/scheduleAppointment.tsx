@@ -13,6 +13,7 @@ interface ScheduleAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (appointmentData: AppointmentData) => void
+  onSuccess?: () => void // Nueva prop opcional para manejar el éxito
   dentistId: number
 }
 
@@ -20,6 +21,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  onSuccess,
   dentistId
 }) => {
   const [children, setChildren] = useState<ChildResponse[]>([])
@@ -320,13 +322,14 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
 
       await createAppointmentService(appointmentData)
 
-      console.log('Cita creada exitosamente')
+      console.log('Cita creada exitosamente - mostrando modal de éxito')
 
-      // Llamar al callback del padre
+      // Llamar al callback del padre ANTES de mostrar el éxito
       onSubmit(appointmentData)
 
-      // Mostrar pantalla de éxito
+      // Mostrar pantalla de éxito - esto debe ser lo último
       setShowSuccess(true)
+      console.log('Estado showSuccess establecido a true')
     } catch (error) {
       console.error('Error al crear la cita:', error)
       setError(error instanceof Error ? error.message : 'Error al agendar la cita')
@@ -336,9 +339,24 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   }
 
   const handleSuccessContinue = () => {
+    console.log('Usuario hizo clic en continuar desde el modal de éxito')
+
+    // Primero ocultar el modal de éxito
     setShowSuccess(false)
+
+    // Resetear el formulario
     resetForm()
-    onClose()
+
+    // Si existe el callback onSuccess (desde dentistDetail), llamarlo para navegar
+    if (onSuccess) {
+      // Pequeño delay para asegurar que el estado se actualiza correctamente
+      setTimeout(() => {
+        onSuccess()
+      }, 100)
+    } else {
+      // Si no hay callback de éxito, simplemente cerrar el modal
+      onClose()
+    }
   }
 
   const childOptions = children.map((child) => ({
@@ -353,7 +371,8 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
 
   // Si debe mostrar la pantalla de éxito
   if (showSuccess) {
-    return <AppointmentSuccess isOpen={isOpen} onContinue={handleSuccessContinue} />
+    console.log('Mostrando modal de éxito - showSuccess:', showSuccess)
+    return <AppointmentSuccess isOpen={true} onContinue={handleSuccessContinue} />
   }
 
   return (
