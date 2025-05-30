@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import Modal from './modal'
+import AppointmentSuccess from './appointmentSuccess'
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
 import TextareaInput from '@renderer/components/textareaInput'
 import { createAppointmentService, AppointmentData } from '../services/appointmentService'
 import { getChildrenService, ChildResponse } from '../services/childService'
+import { getDentistByIdService, DentistResponse } from '../services/dentistService'
 import styles from '../styles/scheduleAppointment.module.css'
 
 interface ScheduleAppointmentModalProps {
@@ -21,25 +23,30 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   dentistId
 }) => {
   const [children, setChildren] = useState<ChildResponse[]>([])
+  const [dentist, setDentist] = useState<DentistResponse | null>(null)
   const [selectedChildId, setSelectedChildId] = useState<number | null>(null)
   const [appointmentDate, setAppointmentDate] = useState<string>('')
   const [appointmentTime, setAppointmentTime] = useState<string>('')
   const [reason, setReason] = useState<string>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isLoadingChildren, setIsLoadingChildren] = useState<boolean>(false)
+  const [isLoadingDentist, setIsLoadingDentist] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const [showSuccess, setShowSuccess] = useState<boolean>(false)
 
-  // Cargar hijos cuando se abre el modal
+  // Cargar hijos y dentista cuando se abre el modal
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !showSuccess) {
       loadChildren()
+      loadDentist()
     }
-  }, [isOpen])
+  }, [isOpen, showSuccess, dentistId])
 
   // Limpiar formulario cuando se cierra el modal
   useEffect(() => {
     if (!isOpen) {
       resetForm()
+      setShowSuccess(false)
     }
   }, [isOpen])
 
@@ -49,6 +56,21 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     setAppointmentTime('')
     setReason('')
     setError(null)
+  }
+
+  const loadDentist = async () => {
+    try {
+      setIsLoadingDentist(true)
+      console.log('Cargando datos del dentista:', dentistId)
+      const dentistData = await getDentistByIdService(dentistId)
+      console.log('Dentista cargado:', dentistData)
+      setDentist(dentistData)
+    } catch (error) {
+      console.error('Error al cargar dentista:', error)
+      setError('Error al cargar información del dentista')
+    } finally {
+      setIsLoadingDentist(false)
+    }
   }
 
   const loadChildren = async () => {
@@ -75,6 +97,55 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     } finally {
       setIsLoadingChildren(false)
     }
+  }
+
+  // Función para convertir hora en formato HH:MM a minutos desde medianoche
+  const timeToMinutes = (timeString: string): number => {
+    const [hours, minutes] = timeString.split(':').map(Number)
+    return hours * 60 + minutes
+  }
+
+  // Función para validar si la hora está dentro del horario de servicio del dentista
+  const isTimeWithinServiceHours = (time: string): boolean => {
+    if (!dentist || !time) return false
+
+    const selectedMinutes = timeToMinutes(time)
+    const startMinutes = timeToMinutes(dentist.serviceStartTime)
+    const endMinutes = timeToMinutes(dentist.serviceEndTime)
+
+    return selectedMinutes >= startMinutes && selectedMinutes <= endMinutes
+  }
+
+  // Función para formatear hora para mostrar al usuario
+  const formatTimeForDisplay = (timeString: string): string => {
+    if (!timeString) return ''
+    try {
+      const [hours, minutes] = timeString.split(':')
+      const hour24 = parseInt(hours)
+      const period = hour24 >= 12 ? 'PM' : 'AM'
+      const hour12 = hour24 % 12 || 12
+      return `${hour12}:${minutes} ${period}`
+    } catch {
+      return timeString
+    }
+  }
+  const isDateTimeFuture = (date: string, time: string): boolean => {
+    if (!date || !time) return false
+
+    const selectedDateTime = new Date(`${date}T${time}:00`)
+    const now = new Date()
+
+    //Agregar 30 minutos de margen mínimo
+    const minAllowedTime = new Date(now.getTime() + 30 * 60000)
+
+    return selectedDateTime > minAllowedTime
+  }
+
+  // Función para validar si es día de trabajo (lunes a viernes)
+  const isWorkingDay = (date: string): boolean => {
+    const selectedDate = new Date(date)
+    const dayOfWeek = selectedDate.getDay()
+    return dayOfWeek >= 0 && dayOfWeek <= 4
   }
 
   const validateForm = (): string | null => {
@@ -112,40 +183,90 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return 'La fecha y hora seleccionadas no son válidas'
     }
 
+    // Validar que sea día de trabajo
+    if (!isWorkingDay(appointmentDate)) {
+      return 'Las citas solo se pueden agendar de lunes a viernes'
+    }
+
+    // Validar que la fecha y hora sean futuras
+    if (!isDateTimeFuture(appointmentDate, appointmentTime)) {
+      return 'La cita debe ser agendada con al menos 30 minutos de anticipación'
+    }
+
+    // Validar que no sea más de 6 meses en el futuro
+    const now = new Date()
+    const maxTime = new Date(now.getTime() + 6 * 30 * 24 * 60 * 60 * 1000) // ~6 meses
+    if (appointmentDateTime > maxTime) {
+      return 'No se pueden agendar citas con más de 6 meses de anticipación'
+    }
+
+    // Validar que la hora esté dentro del horario de servicio del dentista
+    if (!isTimeWithinServiceHours(appointmentTime)) {
+      if (dentist) {
+        return `La hora debe estar dentro del horario de servicio del dentista: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
+      } else {
+        return 'No se pudo validar el horario de servicio del dentista'
+      }
+    }
+
     // Validar motivo
     if (!reason.trim()) {
       return 'Por favor ingrese el motivo de la cita'
     }
 
-    if (reason.trim().length < 10) {
-      return 'El motivo debe tener al menos 10 caracteres'
+    if (reason.trim().length < 5) {
+      return 'El motivo debe tener al menos 5 caracteres'
     }
 
     if (reason.trim().length > 255) {
       return 'El motivo no puede tener más de 255 caracteres'
     }
 
-    // Validar que la fecha y hora sean futuras (más permisivo)
-    const now = new Date()
-    const minTime = new Date(now.getTime() + 10 * 60000) // 10 minutos en el futuro
-
-    if (appointmentDateTime <= minTime) {
-      return 'La cita debe ser al menos 10 minutos en el futuro'
-    }
-
-    // Validar que no sea más de 6 meses en el futuro
-    const maxTime = new Date(now.getTime() + 6 * 30 * 24 * 60 * 60 * 1000) // ~6 meses
-    if (appointmentDateTime > maxTime) {
-      return 'No se pueden agendar citas con más de 6 meses de anticipación'
-    }
-
-    // Validar horario de trabajo más flexible (7:00 AM - 7:00 PM)
-    const hour = appointmentDateTime.getHours()
-    if (hour < 7 || hour >= 19) {
-      return 'Las citas solo se pueden agendar entre 7:00 AM y 7:00 PM'
-    }
-
     return null
+  }
+
+  // Función para manejar cambio de fecha
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value
+    setAppointmentDate(newDate)
+
+    // Si ya hay una hora seleccionada, validar la combinación
+    if (appointmentTime && newDate) {
+      if (!isDateTimeFuture(newDate, appointmentTime)) {
+        setError('La fecha y hora seleccionadas deben ser futuras')
+      } else if (!isWorkingDay(newDate)) {
+        setError('Las citas solo se pueden agendar de lunes a viernes')
+      } else if (!isTimeWithinServiceHours(appointmentTime)) {
+        setError(
+          dentist
+            ? `La hora debe estar dentro del horario de servicio: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
+            : 'Horario fuera del servicio del dentista'
+        )
+      } else {
+        setError(null)
+      }
+    }
+  }
+
+  // Función para manejar cambio de hora
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTime = e.target.value
+    setAppointmentTime(newTime)
+
+    // Si ya hay una fecha seleccionada, validar la combinación
+    if (appointmentDate && newTime) {
+      if (!isDateTimeFuture(appointmentDate, newTime)) {
+        setError('La fecha y hora seleccionadas deben ser futuras')
+      } else if (!isTimeWithinServiceHours(newTime)) {
+        setError(
+          dentist
+            ? `La hora debe estar dentro del horario de servicio: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
+            : 'Horario fuera del servicio del dentista'
+        )
+      } else {
+        setError(null)
+      }
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,6 +301,12 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return
     }
 
+    // Validación final de tiempo futuro antes de enviar
+    if (!isDateTimeFuture(appointmentDate, appointmentTime)) {
+      setError('La cita debe ser agendada con al menos 30 minutos de anticipación')
+      return
+    }
+
     const appointmentData: AppointmentData = {
       dentistId: dentistId,
       childId: selectedChildId,
@@ -198,17 +325,20 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       // Llamar al callback del padre
       onSubmit(appointmentData)
 
-      // Cerrar modal y limpiar formulario
-      handleCancel()
-
-      // Mostrar mensaje de éxito
-      alert('¡Cita agendada con éxito!')
+      // Mostrar pantalla de éxito
+      setShowSuccess(true)
     } catch (error) {
       console.error('Error al crear la cita:', error)
       setError(error instanceof Error ? error.message : 'Error al agendar la cita')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleSuccessContinue = () => {
+    setShowSuccess(false)
+    resetForm()
+    onClose()
   }
 
   const childOptions = children.map((child) => ({
@@ -221,13 +351,21 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     onClose()
   }
 
+  // Si debe mostrar la pantalla de éxito
+  if (showSuccess) {
+    return <AppointmentSuccess isOpen={isOpen} onContinue={handleSuccessContinue} />
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={handleCancel} title="Agenda tu cita">
       <form onSubmit={handleSubmit} className={styles.modalContent}>
         {error && <div className={styles.errorMessage}>{error}</div>}
 
-        {isLoadingChildren ? (
-          <div className={styles.loading}>Cargando hijos...</div>
+        {isLoadingChildren || isLoadingDentist ? (
+          <div className={styles.loading}>
+            {isLoadingChildren && 'Cargando hijos...'}
+            {isLoadingDentist && 'Cargando información del dentista...'}
+          </div>
         ) : children.length === 0 ? (
           <div className={styles.errorMessage}>
             No tienes hijos registrados. Por favor, agrega un hijo primero desde la pantalla
@@ -248,7 +386,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.label}>Fecha y horario para la cita</label>
               <div className={styles.dateTimeGroup}>
                 <div style={{ flex: 1 }}>
                   <InputForm
@@ -257,18 +394,22 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                     type="date"
                     value={appointmentDate}
                     placeholder="DD/MM/AAAA"
-                    onChange={(e) => setAppointmentDate(e.target.value)}
+                    onChange={handleDateChange}
                     required
                   />
                 </div>
                 <div style={{ flex: 1 }}>
                   <InputForm
-                    label="Hora de la cita"
+                    label={
+                      dentist
+                        ? `Hora de la cita (${formatTimeForDisplay(dentist.serviceStartTime)} - ${formatTimeForDisplay(dentist.serviceEndTime)})`
+                        : 'Hora de la cita'
+                    }
                     name="appointmentTime"
                     type="time"
                     value={appointmentTime}
                     placeholder="HH:MM"
-                    onChange={(e) => setAppointmentTime(e.target.value)}
+                    onChange={handleTimeChange}
                     required
                   />
                 </div>
@@ -280,7 +421,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
                 label="Motivo de la cita"
                 name="reason"
                 value={reason}
-                placeholder="Describa el motivo de la cita (ej: Limpieza dental, Revisión general, Dolor en muela, etc.)"
+                placeholder="Describa el motivo de la cita "
                 onChange={(e) => setReason(e.target.value)}
                 required
               />
@@ -298,7 +439,13 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
               <button
                 type="submit"
                 className={styles.scheduleButton}
-                disabled={isLoading || isLoadingChildren || children.length === 0}
+                disabled={
+                  isLoading ||
+                  isLoadingChildren ||
+                  isLoadingDentist ||
+                  children.length === 0 ||
+                  !dentist
+                }
               >
                 {isLoading ? 'Agendando...' : 'Agendar cita'}
               </button>
