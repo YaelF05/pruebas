@@ -84,13 +84,32 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
 
     // Validar fecha
-    if (!appointmentDate) {
+    if (!appointmentDate || appointmentDate === '') {
       return 'Por favor seleccione una fecha'
     }
 
     // Validar hora
-    if (!appointmentTime) {
+    if (!appointmentTime || appointmentTime === '') {
       return 'Por favor seleccione una hora'
+    }
+
+    // Validar formato de fecha
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/
+    if (!dateRegex.test(appointmentDate)) {
+      return 'Formato de fecha inválido'
+    }
+
+    // Validar formato de hora
+    const timeRegex = /^\d{2}:\d{2}$/
+    if (!timeRegex.test(appointmentTime)) {
+      return 'Formato de hora inválido'
+    }
+
+    // Validar que la fecha sea válida
+    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}:00`)
+
+    if (isNaN(appointmentDateTime.getTime())) {
+      return 'La fecha y hora seleccionadas no son válidas'
     }
 
     // Validar motivo
@@ -106,19 +125,12 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return 'El motivo no puede tener más de 255 caracteres'
     }
 
-    // Validar que la fecha sea válida
-    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}:00`)
-    
-    if (isNaN(appointmentDateTime.getTime())) {
-      return 'La fecha y hora seleccionadas no son válidas'
-    }
-
-    // Validar que la fecha y hora sean futuras
+    // Validar que la fecha y hora sean futuras (más permisivo)
     const now = new Date()
-    const minTime = new Date(now.getTime() + 30 * 60000) // 30 minutos en el futuro
+    const minTime = new Date(now.getTime() + 10 * 60000) // 10 minutos en el futuro
 
     if (appointmentDateTime <= minTime) {
-      return 'La cita debe ser al menos 30 minutos en el futuro'
+      return 'La cita debe ser al menos 10 minutos en el futuro'
     }
 
     // Validar que no sea más de 6 meses en el futuro
@@ -127,16 +139,10 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return 'No se pueden agendar citas con más de 6 meses de anticipación'
     }
 
-    // Validar horario de trabajo (8:00 AM - 6:00 PM)
+    // Validar horario de trabajo más flexible (7:00 AM - 7:00 PM)
     const hour = appointmentDateTime.getHours()
-    if (hour < 8 || hour >= 18) {
-      return 'Las citas solo se pueden agendar entre 8:00 AM y 6:00 PM'
-    }
-
-    // Validar que no sea domingo
-    const dayOfWeek = appointmentDateTime.getDay()
-    if (dayOfWeek === 0) {
-      return 'No se pueden agendar citas los domingos'
+    if (hour < 7 || hour >= 19) {
+      return 'Las citas solo se pueden agendar entre 7:00 AM y 7:00 PM'
     }
 
     return null
@@ -158,9 +164,22 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return
     }
 
-    // Preparar datos de la cita
+    // Validar que tenemos fecha y hora válidas
+    if (!appointmentDate || !appointmentTime) {
+      setError('Por favor selecciona una fecha y hora válidas')
+      return
+    }
+
+    // Preparar datos de la cita - crear objeto Date para validar
     const appointmentDateTime = `${appointmentDate}T${appointmentTime}:00`
-    
+
+    // Validar que la fecha construida sea válida
+    const testDate = new Date(appointmentDateTime)
+    if (isNaN(testDate.getTime())) {
+      setError('La fecha y hora seleccionadas no son válidas')
+      return
+    }
+
     const appointmentData: AppointmentData = {
       dentistId: dentistId,
       childId: selectedChildId,
@@ -201,22 +220,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     resetForm()
     onClose()
   }
-
-  // Obtener fecha mínima (mañana)
-  const getMinDate = (): string => {
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    return tomorrow.toISOString().split('T')[0]
-  }
-
-  // Obtener fecha máxima (6 meses en el futuro)
-  const getMaxDate = (): string => {
-    const maxDate = new Date()
-    maxDate.setMonth(maxDate.getMonth() + 6)
-    return maxDate.toISOString().split('T')[0]
-  }
-
-  // Generar opciones de hora (8:00 AM - 5:30 PM, cada 30 minutos)
 
   return (
     <Modal isOpen={isOpen} onClose={handleCancel} title="Agenda tu cita">

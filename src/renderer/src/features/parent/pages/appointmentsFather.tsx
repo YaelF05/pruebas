@@ -2,7 +2,12 @@ import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
-import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
+import {
+  getAppointmentsService,
+  AppointmentResponse,
+  cancelAppointmentService,
+  rescheduleAppointmentService
+} from '../services/appointmentService'
 import { getChildrenService } from '../services/childService'
 import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/appointmentsFather.module.css'
@@ -50,7 +55,7 @@ const AppointmentsPage: FC = () => {
 
       // Cargar datos en paralelo
       const [appointmentsResult, childrenResult, dentistsResult] = await Promise.allSettled([
-        getAppointmentsService(),
+        getAppointmentsService(1, 100), // Obtener más citas
         getChildrenService(),
         getDentistsForSelectService()
       ])
@@ -127,55 +132,52 @@ const AppointmentsPage: FC = () => {
       return
     }
 
-    const newDateTime = prompt(
-      'Ingrese nueva fecha y hora (YYYY-MM-DD HH:MM)',
-      appointment.appointmentDatetime.slice(0, 16)
-    )
-    const reason = prompt('Motivo del reagendamiento')
+    try {
+      // Solicitar nueva fecha y hora
+      const newDateTime = prompt(
+        'Ingrese nueva fecha y hora (YYYY-MM-DD HH:MM)',
+        appointment.appointmentDatetime.slice(0, 16).replace('T', ' ')
+      )
 
-    if (newDateTime && reason) {
-      try {
-        // Implementar API para reagendar cuando esté disponible
-        alert('Función de reagendar pendiente de implementación en backend')
+      if (!newDateTime) return
 
-        const updatedAppointments = allAppointments.map((app) => {
-          if (app.appointmentId.toString() === appointmentId) {
-            return {
-              ...app,
-              appointmentDatetime: `${newDateTime}:00`,
-              lastModificationDate: new Date().toISOString()
-            }
-          }
-          return app
-        })
-        setAllAppointments(updatedAppointments)
+      const reason = prompt('Motivo del reagendamiento')
+      if (!reason) return
 
-        console.log('Cita reagendada (pendiente API):', { appointmentId, newDateTime, reason })
-      } catch (error) {
-        console.error('Error al reagendar la cita:', error)
-        alert('Error al reagendar la cita. Por favor, inténtelo de nuevo.')
-      }
+      // Llamar al servicio de reagendamiento
+      await rescheduleAppointmentService(parseInt(appointmentId), reason)
+
+      // Recargar las citas
+      await fetchAllData()
+
+      alert('Cita reagendada exitosamente')
+    } catch (error) {
+      console.error('Error al reagendar la cita:', error)
+      alert(
+        `Error al reagendar la cita: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      )
     }
   }
 
   const handleCancel = async (appointmentId: string): Promise<void> => {
-    const reason = prompt('Motivo de la cancelación')
+    try {
+      const reason = prompt('Motivo de la cancelación')
+      if (!reason) return
 
-    if (reason && confirm('¿Está seguro de cancelar esta cita?')) {
-      try {
-        // Implementar API para cancelar cuando esté disponible
-        alert('Función de cancelar pendiente de implementación en backend')
+      if (!confirm('¿Está seguro de cancelar esta cita?')) return
 
-        const updatedAppointments = allAppointments.filter(
-          (app) => app.appointmentId.toString() !== appointmentId
-        )
-        setAllAppointments(updatedAppointments)
+      // Llamar al servicio de cancelación
+      await cancelAppointmentService(parseInt(appointmentId), reason)
 
-        console.log('Cita cancelada (pendiente API):', { appointmentId, reason })
-      } catch (error) {
-        console.error('Error al cancelar la cita:', error)
-        alert('Error al cancelar la cita. Por favor, inténtelo de nuevo.')
-      }
+      // Recargar las citas
+      await fetchAllData()
+
+      alert('Cita cancelada exitosamente')
+    } catch (error) {
+      console.error('Error al cancelar la cita:', error)
+      alert(
+        `Error al cancelar la cita: ${error instanceof Error ? error.message : 'Error desconocido'}`
+      )
     }
   }
 

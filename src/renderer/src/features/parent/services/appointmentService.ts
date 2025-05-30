@@ -17,6 +17,9 @@ export interface AppointmentResponse {
   creationDate: string
   lastModificationDate: string | null
   isActive: boolean
+  // Campos adicionales que pueden venir del JOIN con Child
+  childName?: string
+  childLastname?: string
 }
 
 export interface CreateAppointmentResult {
@@ -64,34 +67,61 @@ export async function createAppointmentService(
       throw new Error('El motivo debe tener al menos 10 caracteres')
     }
 
-    // Validar que la fecha sea futura
+    // Convertir formato de fecha del frontend al formato esperado por el backend
+    // Frontend: "2024-12-25T14:30:00" -> Backend: "2024-12-25 14:30:00"
+    let formattedDateTime = appointmentData.appointmentDatetime
+
+    // Validar que la fecha sea válida antes de procesar
+    const testDate = new Date(formattedDateTime)
+    if (isNaN(testDate.getTime())) {
+      throw new Error('Formato de fecha inválido. Por favor selecciona una fecha y hora válidas.')
+    }
+
+    // Convertir al formato esperado por el backend
+    if (formattedDateTime.includes('T')) {
+      formattedDateTime = formattedDateTime.replace('T', ' ')
+    }
+
+    // Asegurar que tenga segundos
+    if (!/\d{2}:\d{2}:\d{2}$/.test(formattedDateTime)) {
+      if (formattedDateTime.match(/\d{2}:\d{2}$/)) {
+        formattedDateTime = formattedDateTime + ':00'
+      } else {
+        // Si no tiene el formato correcto, reconstruir desde el objeto Date
+        const date = new Date(appointmentData.appointmentDatetime)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        const hours = String(date.getHours()).padStart(2, '0')
+        const minutes = String(date.getMinutes()).padStart(2, '0')
+        formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:00`
+      }
+    }
+
+    console.log('Fecha original:', appointmentData.appointmentDatetime)
+    console.log('Fecha formateada para backend:', formattedDateTime)
+
+    // Validar que la fecha sea futura (más permisivo que antes)
     const appointmentDate = new Date(appointmentData.appointmentDatetime)
     const now = new Date()
-    const minTime = new Date(now.getTime() + 30 * 60000)
+    const minTime = new Date(now.getTime() + 10 * 60000) // 10 minutos en el futuro
 
     if (appointmentDate <= minTime) {
-      throw new Error('La cita debe ser al menos 30 minutos en el futuro')
+      throw new Error('La cita debe ser al menos 10 minutos en el futuro')
     }
 
-    // Validar horario de trabajo (8:00 AM - 6:00 PM)
+    // Validar horario de trabajo más flexible (7:00 AM - 7:00 PM)
     const hour = appointmentDate.getHours()
-    if (hour < 8 || hour >= 18) {
-      throw new Error('Las citas solo se pueden agendar entre 8:00 AM y 6:00 PM')
+    if (hour < 7 || hour >= 19) {
+      throw new Error('Las citas solo se pueden agendar entre 7:00 AM y 7:00 PM')
     }
 
-    // Validar que no sea domingo
-    const dayOfWeek = appointmentDate.getDay()
-    if (dayOfWeek === 0) {
-      throw new Error('No se pueden agendar citas los domingos')
-    }
-
-    // Preparar los datos para el backend exactamente como los espera
-    // Según el backend, espera: dentistId, childId, reason, appointmentDatetime
+    // Preparar los datos exactamente como los espera el backend
     const requestBody = {
       dentistId: appointmentData.dentistId,
       childId: appointmentData.childId,
       reason: appointmentData.reason.trim(),
-      appointmentDatetime: appointmentData.appointmentDatetime
+      appointmentDatetime: formattedDateTime // Formato corregido
     }
 
     console.log('Enviando datos de cita al backend:', requestBody)
@@ -109,13 +139,19 @@ export async function createAppointmentService(
       let errorMessage = `Error al crear la cita: ${response.status}`
 
       try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
+        const errorData = await response.text()
         console.error('Error del servidor:', errorData)
+
+        // Intentar parsear como JSON
+        try {
+          const parsedError = JSON.parse(errorData)
+          errorMessage = parsedError.message || errorMessage
+        } catch {
+          // Si no es JSON válido, usar el texto tal como está
+          errorMessage = errorData || errorMessage
+        }
       } catch (e) {
-        console.error('Error al parsear respuesta de error:', e)
-        const responseText = await response.text()
-        console.error('Respuesta del servidor:', responseText)
+        console.error('Error al leer respuesta de error:', e)
       }
 
       // Mensajes específicos según el código de error
@@ -127,16 +163,16 @@ export async function createAppointmentService(
         case 401:
           throw new Error('No tienes autorización. Por favor, inicia sesión nuevamente.')
         case 409:
-          if (errorMessage.includes('Datetime occupied')) {
+          if (errorMessage.includes('Datetime occupied') || errorMessage.includes('occupied')) {
             throw new Error(
               'Ya existe una cita en ese horario. Por favor, selecciona otro horario.'
             )
-          } else if (errorMessage.includes('Invalid datetime')) {
+          } else if (errorMessage.includes('Invalid datetime') || errorMessage.includes('format')) {
             throw new Error('El formato de fecha y hora no es válido.')
-          } else if (errorMessage.includes('future date')) {
+          } else if (errorMessage.includes('future date') || errorMessage.includes('future')) {
             throw new Error('Las citas solo se pueden agendar para fechas futuras.')
           } else {
-            throw new Error('Conflicto al agendar la cita. ' + errorMessage)
+            throw new Error('Conflicto al agendar la cita: ' + errorMessage)
           }
         case 404:
           throw new Error('No se encontró el dentista o el niño especificado.')
@@ -164,13 +200,13 @@ export async function createAppointmentService(
 /**
  * Service to get appointments for the current user
  * @param page - Page number for pagination (default: 1)
- * @param limit - Number of items per page (default: 10)
- * @returns A promise that resolves to the paginated list of appointments
+ * @param limit - Number of items per page (default: 50)
+ * @returns A promise that resolves to the list of appointments
  * @throws An error if the fetch fails
  */
 export async function getAppointmentsService(
   page: number = 1,
-  limit: number = 10
+  limit: number = 50
 ): Promise<AppointmentResponse[]> {
   try {
     const authToken = localStorage.getItem('authToken')
@@ -181,7 +217,7 @@ export async function getAppointmentsService(
 
     console.log('Obteniendo citas del usuario...')
 
-    // Agregar parámetros de paginación según el backend
+    // Agregar parámetros de paginación
     const queryParams = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString()
@@ -196,26 +232,26 @@ export async function getAppointmentsService(
     })
 
     if (!response.ok) {
-      let errorMessage = `Error al obtener citas: ${response.status}`
-
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
-        console.error('Error al obtener citas:', errorData)
-      } catch (e) {
-        console.error('Error al parsear respuesta:', e)
-      }
-
       if (response.status === 404) {
         // No hay citas, retornar array vacío
+        console.log('No se encontraron citas para el usuario')
         return []
+      }
+
+      let errorMessage = `Error al obtener citas: ${response.status}`
+      try {
+        const errorData = await response.text()
+        console.error('Error al obtener citas:', errorData)
+        errorMessage = errorData || errorMessage
+      } catch (e) {
+        console.error('Error al parsear respuesta:', e)
       }
 
       throw new Error(errorMessage)
     }
 
     const data = await response.json()
-    console.log('Citas recibidas:', data)
+    console.log('Citas recibidas del backend:', data)
 
     // El backend devuelve datos paginados con la estructura: { page, limit, totalPages, items }
     if (data && typeof data === 'object') {
@@ -231,13 +267,13 @@ export async function getAppointmentsService(
   } catch (error) {
     console.error('Error en getAppointmentsService:', error)
 
-    // Si es un error de autenticación o red, re-lanzarlo
-    if (error instanceof Error) {
+    // Si es un error de autenticación, re-lanzarlo
+    if (error instanceof Error && error.message.includes('token')) {
       throw error
     }
 
-    // Para errores desconocidos, retornar array vacío para no romper la UI
-    console.warn('Error desconocido al obtener citas, retornando array vacío')
+    // Para errores de red, retornar array vacío para no romper la UI
+    console.warn('Error de red al obtener citas, retornando array vacío')
     return []
   }
 }
@@ -270,8 +306,8 @@ export async function getAppointmentByIdService(
       let errorMessage = `Error al obtener la cita: ${response.status}`
 
       try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
+        const errorData = await response.text()
+        errorMessage = errorData || errorMessage
       } catch (e) {
         console.error('Error al parsear respuesta:', e)
       }
@@ -343,8 +379,8 @@ export async function deactivateAppointmentService(
       let errorMessage = `Error al ${deactivateData.type.toLowerCase()} la cita: ${response.status}`
 
       try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
+        const errorData = await response.text()
+        errorMessage = errorData || errorMessage
       } catch (e) {
         console.error('Error al parsear respuesta:', e)
       }
@@ -385,9 +421,6 @@ export async function deactivateAppointmentService(
 
 /**
  * Helper function to cancel an appointment
- * @param appointmentId - The ID of the appointment to cancel
- * @param reason - The reason for cancellation
- * @returns A promise that resolves to the cancellation result
  */
 export async function cancelAppointmentService(
   appointmentId: number,
@@ -402,9 +435,6 @@ export async function cancelAppointmentService(
 
 /**
  * Helper function to reschedule an appointment
- * @param appointmentId - The ID of the appointment to reschedule
- * @param reason - The reason for rescheduling
- * @returns A promise that resolves to the reschedule result
  */
 export async function rescheduleAppointmentService(
   appointmentId: number,
@@ -419,9 +449,6 @@ export async function rescheduleAppointmentService(
 
 /**
  * Helper function to mark an appointment as finished
- * @param appointmentId - The ID of the appointment to mark as finished
- * @param reason - The reason or notes for completion
- * @returns A promise that resolves to the completion result
  */
 export async function finishAppointmentService(
   appointmentId: number,
