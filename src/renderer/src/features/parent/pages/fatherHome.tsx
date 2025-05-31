@@ -283,7 +283,7 @@ const HomePage: FC = () => {
     if (tab === 'citas') {
       navigate('/appointmentFather')
     } else if (tab === 'hijos') {
-      navigate('')
+      navigate('/children')
     } else if (tab === 'inicio') {
       navigate('/homeFather')
     }
@@ -326,12 +326,12 @@ const HomePage: FC = () => {
     return childrenBrushingData[selectedChild.childId]
   }
 
-  const handleOpenModal = () => {
+  const handleOpenModal = (): void => {
     setAddChildError(null)
     setIsModalOpen(true)
   }
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (): void => {
     setAddChildError(null)
     setIsModalOpen(false)
   }

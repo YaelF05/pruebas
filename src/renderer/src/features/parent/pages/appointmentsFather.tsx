@@ -165,7 +165,7 @@ const AppointmentsPage: FC = () => {
     if (tab === 'inicio') {
       navigate('/homeFather')
     } else if (tab === 'hijos') {
-      navigate('')
+      navigate('/children')
     }
     setActiveTab(tab)
   }

@@ -13,6 +13,7 @@ import AppointmentDentist from '@renderer/features/dentist/pages/appoinmentsDent
 import Patients from '@renderer/features/dentist/pages/patients'
 import SettingsDentist from '@renderer/features/dentist/pages/settingsDentist'
 import ProfileDentist from '@renderer/features/dentist/pages/profile'
+import ChildrenPage from '../features/parent/pages/childrenPage'
 
 function AuthRoutes(): React.JSX.Element {
   return (
@@ -37,6 +38,7 @@ function AuthRoutes(): React.JSX.Element {
       <Route path="/appointmentFather" element={<AppointmentsFather />} />
       <Route path="/dentistDirectory" element={<DentisDirectory />} />
       <Route path="/dentist/:dentistId" element={<DentistDetail />} />
+      <Route path="/children" element={<ChildrenPage />} />
     </Routes>
   )
 }

@@ -18,7 +18,6 @@ export async function signupService(credentials: SignupCredentials): Promise<Sig
       },
       body: JSON.stringify(credentials)
     })
-
     if (!response.ok) {
       throw new Error(`Authentication failed: ${response.status}`)
     }

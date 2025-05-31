@@ -1,0 +1,328 @@
+.childrenPage {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 20px ;
+  background-color: var(--background-light);
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 20px;
+}
+
+.profileSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profileImageContainer {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--background-light);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.profileAvatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mainContent {
+  flex: 1;
+  overflow-y: auto;
+  margin-bottom: 80px;
+}
+
+.title {
+  font-size: var(--font-size-h2);
+  color: var(--neutral-darker);
+  font-weight: 700;
+  text-align: left;
+  margin-bottom: 20px;
+  padding: 10px 40px;
+  font-family: var(--Quicksand);
+}
+
+.childrenGrid {
+  display: flex;
+  gap: 15px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 10px 40px;
+}
+
+.childCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--primary-normal);
+  border-radius: 10px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 200px;
+  width: 200px;
+  height: 230px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.childCard:hover {
+  background-color: var(--primary-normal-hover);
+}
+
+.childImageContainer {
+  width: 100%;
+  height: 170px;
+  background-color: var(--primary-normal);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.childAvatar {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.childInfo {
+  background-color: var(--tertiary-normal);
+  width: 100%;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.childName {
+  font-size: var(--font-size-h3);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 0 0 5px 0;
+  font-family: var(--Quicksand);
+  line-height: 1.2;
+  word-wrap: break-word;
+}
+
+.childAge {
+  font-size: var(--font-size-title1);
+  color: var(--neutral-darker);
+  margin: 0;
+  font-family: var(--Quicksand);
+  font-weight: 400;
+}
+
+.noChildrenMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 25px;
+}
+
+.noChildrenMessage p {
+  font-size: var(--font-size-h3);
+  color: var(--neutral-normal);
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--Quicksand);
+}
+
+.addFirstChildButton {
+  padding: 15px 30px;
+  background-color: var(--primary-normal);
+  color: var(--background-light);
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-title1);
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: var(--Quicksand);
+}
+
+.addFirstChildButton:hover {
+  background-color: var(--primary-normal-hover);
+}
+
+.addFirstChildButton:active {
+  background-color: var(--primary-normal-active);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: var(--font-size-h3);
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+}
+
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  padding: 20px;
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 20px;
+  padding: 40px;
+  background-color: var(--background-light);
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.error p {
+  font-size: var(--font-size-title1);
+  color: var(--error-primary);
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--Quicksand);
+}
+
+.retryButton {
+  padding: 12px 24px;
+  background-color: var(--primary-normal);
+  color: var(--background-light);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--Quicksand);
+  font-weight: 600;
+  font-size: var(--font-size-body);
+  transition: background-color 0.2s;
+}
+
+.retryButton:hover {
+  background-color: var(--primary-normal-hover);
+}
+
+/* barra nav */
+  .bottomNav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content:center;
+    background-color: var(--background-light);
+    padding: 15px 0;
+  }
+  
+  /*icons barra nav*/
+  .navLink {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 0;
+    color: var(--neutral-normal);
+    min-width: 60px;
+    margin: 0 20px;
+  }
+  
+  /*texto debajo de los icons*/
+  .navLink span {
+    font-size: 14px; 
+    font-weight: 300;
+    transition: color 0.3s, font-weight 0.3s;
+  
+  }
+  
+  .active span {
+    color: var(--primary-normal);
+    font-weight: 600;
+  }
+  
+  .active {
+    color: var(--primary-normal);
+  }
+  
+  .navIcon {
+    margin-bottom: 5px; 
+    width: 24px; 
+    height: 24px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  
+  .navImage {
+    width: 35px; 
+    height: 35px; 
+    object-fit: contain;
+  }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .childrenGrid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 15px;
+  }
+
+  .childCard {
+    min-width: 160px;
+    padding: 20px 15px;
+  }
+
+  .childImageContainer {
+    width: 70px;
+    height: 70px;
+  }
+
+  .title {
+    font-size: var(--font-size-h2);
+    margin-bottom: 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .childrenGrid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+
+  .childCard {
+    min-width: 140px;
+    padding: 18px 12px;
+  }
+
+  .childImageContainer {
+    width: 60px;
+    height: 60px;
+  }
+
+  .childName {
+    font-size: var(--font-size-body);
+  }
+
+  .childAge {
+    font-size: var(--font-size-caption);
+  }
+}
