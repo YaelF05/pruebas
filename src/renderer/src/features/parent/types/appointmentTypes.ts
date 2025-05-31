@@ -31,7 +31,6 @@ export interface DeactivateAppointmentResult {
   message: string
 }
 
-// Tipos de paginación para las respuestas del backend
 export interface PaginatedAppointmentResponse {
   page: number
   limit: number

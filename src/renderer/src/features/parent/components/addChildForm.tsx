@@ -36,17 +36,22 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
   const [errors, setErrors] = useState<FormErrors>({})
   const [dentists, setDentists] = useState<{ userId: number; name: string }[]>([])
   const [loadingDentists, setLoadingDentists] = useState(true)
+  const [dentistLoadError, setDentistLoadError] = useState<string | null>(null)
 
   // Cargar dentistas al montar el componente
   useEffect(() => {
     const loadDentists = async () => {
       try {
         setLoadingDentists(true)
+        setDentistLoadError(null)
         const dentistsList = await getDentistsForSelectService()
-        setDentists(dentistsList)
-
-        // Seleccionar el primer dentista por defecto si existe
-        if (dentistsList.length > 0) {
+        
+        if (dentistsList.length === 0) {
+          setDentistLoadError('No hay dentistas disponibles. Contacte al administrador.')
+          setDentists([])
+        } else {
+          setDentists(dentistsList)
+          // Seleccionar el primer dentista por defecto
           setFormData((prev) => ({
             ...prev,
             dentistId: dentistsList[0].userId
@@ -54,12 +59,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         }
       } catch (error) {
         console.error('Error cargando dentistas:', error)
-        // En caso de error, usar datos básicos
+        setDentistLoadError('Error al cargar la lista de dentistas. Inténtelo más tarde.')
         setDentists([])
-        setFormData((prev) => ({
-          ...prev,
-          dentistId: 1
-        }))
       } finally {
         setLoadingDentists(false)
       }
@@ -96,8 +97,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     if (name.trim().length < 2) {
       return 'El nombre debe tener al menos 2 caracteres'
     }
-    if (name.trim().length > 50) {
-      return 'El nombre no puede tener más de 50 caracteres'
+    if (name.trim().length > 255) {
+      return 'El nombre no puede tener más de 255 caracteres'
     }
     const nameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/
     if (!nameRegex.test(name.trim())) {
@@ -114,8 +115,8 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     if (lastName.trim().length < 2) {
       return 'El apellido debe tener al menos 2 caracteres'
     }
-    if (lastName.trim().length > 50) {
-      return 'El apellido no puede tener más de 50 caracteres'
+    if (lastName.trim().length > 255) {
+      return 'El apellido no puede tener más de 255 caracteres'
     }
     const lastNameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/
     if (!lastNameRegex.test(lastName.trim())) {
@@ -175,10 +176,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  // Función para validar dentista
+  // Función para validar dentista (requerido según el controller del backend)
   const validateDentist = (dentistId: number): string | undefined => {
     if (!dentistId || dentistId === 0) {
       return 'Debe seleccionar un dentista'
+    }
+    // Si hay dentistas disponibles, validar que el ID esté en la lista
+    if (dentists.length > 0 && !dentists.find(d => d.userId === dentistId)) {
+      return 'El dentista seleccionado no es válido'
     }
     return undefined
   }
@@ -219,6 +224,12 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
 
+    // Si no hay dentistas disponibles, no permitir el envío
+    if (dentists.length === 0) {
+      setErrors({ dentistId: 'No hay dentistas disponibles. No se puede crear el niño.' })
+      return
+    }
+
     // Validar todos los campos
     const nameError = validateName(formData.name)
     const lastNameError = validateLastName(formData.lastName)
@@ -251,9 +262,20 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       return
     }
 
-    // Si no hay errores, enviar el formulario
-    console.log('Enviando datos del formulario:', formData)
-    onSubmit(formData)
+    // Preparar datos para enviar (coincidir exactamente con el backend)
+    const submitData: ChildData = {
+      name: formData.name.trim(),
+      lastName: formData.lastName.trim(),
+      gender: formData.gender,
+      birthDate: formData.birthDate,
+      dentistId: formData.dentistId, // Requerido según el controller
+      morningBrushingTime: formData.morningBrushingTime,
+      afternoonBrushingTime: formData.afternoonBrushingTime,
+      nightBrushingTime: formData.nightBrushingTime
+    }
+
+    console.log('Enviando datos del formulario:', submitData)
+    onSubmit(submitData)
   }
 
   // Opciones para el género
@@ -271,13 +293,19 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
   if (loadingDentists) {
     return (
       <div className={styles.loading}>
-        <p>Cargando dentistas...</p>
+        <p>Cargando dentistas disponibles...</p>
       </div>
     )
   }
 
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
+      {dentistLoadError && (
+        <div className={styles.errorMessage} style={{ marginBottom: '15px', textAlign: 'center' }}>
+          {dentistLoadError}
+        </div>
+      )}
+
       <div className={styles.formField}>
         <InputForm
           label="Nombre(s)"
@@ -339,7 +367,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
           label="Dentista"
           name="dentistId"
           value={formData.dentistId.toString()}
-          placeholder="Seleccione un dentista"
+          placeholder={dentists.length > 0 ? "Seleccione un dentista" : "No hay dentistas disponibles"}
           onChange={handleInputChange}
           required
         />
@@ -398,8 +426,12 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         <button type="button" className={styles.cancelButton} onClick={onCancel} disabled={false}>
           Cancelar
         </button>
-        <button type="submit" className={styles.submitButton}>
-          Agregar Niño
+        <button 
+          type="submit" 
+          className={styles.submitButton}
+          disabled={dentists.length === 0}
+        >
+          {dentists.length === 0 ? 'Sin dentistas disponibles' : 'Agregar Niño'}
         </button>
       </div>
     </form>

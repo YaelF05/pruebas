@@ -284,26 +284,31 @@ const HomePage: FC = () => {
     return childrenBrushingData[selectedChild.childId]
   }
 
-  const handleAddChild = async (data: ChildData) => {
+  const handleAddChild = async (data: ChildData): Promise<void> => {
     try {
-      setIsLoading(true)
       setAddChildError(null)
+      console.log('Iniciando proceso de creación de niño:', data)
 
+      // Llamar al servicio de creación
       const result = await createChildService(data)
       console.log('Niño creado exitosamente:', result)
 
+      // Recargar la lista de hijos
       const updatedChildren = await getChildrenService()
       setChildren(updatedChildren)
 
+      // Si es el primer hijo, seleccionarlo automáticamente
       if (updatedChildren.length === 1) {
         setSelectedChild(updatedChildren[0])
       }
 
+      // Buscar el nuevo hijo en la lista actualizada
       const newChild = updatedChildren.find(
         (child) => child.name === data.name && child.lastName === data.lastName
       )
 
       if (newChild) {
+        // Cargar datos de cepillado para el nuevo hijo
         const todayRecords = await getTodayBrushRecordsService(newChild.childId)
         const weeklyRecords = await getWeeklyBrushRecordsService(newChild.childId)
 
@@ -318,18 +323,22 @@ const HomePage: FC = () => {
           [newChild.childId]: newBrushingData
         })
 
+        // Seleccionar el nuevo hijo
         setSelectedChild(newChild)
       }
 
+      // Cerrar el modal
       setIsModalOpen(false)
 
+      // Mostrar mensaje de éxito
       alert('¡Hijo agregado exitosamente!')
     } catch (error) {
       console.error('Error al agregar hijo:', error)
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       setAddChildError(`Error al agregar el hijo: ${errorMessage}`)
-    } finally {
-      setIsLoading(false)
+
+      // NO cerrar el modal en caso de error para que el usuario pueda ver el error y corregir
+      throw error // Re-lanzar el error para que el formulario lo maneje
     }
   }
 
@@ -389,6 +398,14 @@ const HomePage: FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Mostrar error de agregar hijo si existe */}
+        {addChildError && (
+          <div className={styles.error}>
+            <p>{addChildError}</p>
+            <button onClick={() => setAddChildError(null)}>Cerrar</button>
+          </div>
+        )}
 
         {selectedChild && (
           <>

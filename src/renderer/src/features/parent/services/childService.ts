@@ -5,7 +5,7 @@ export interface ChildData {
   lastName: string
   gender: 'M' | 'F'
   birthDate: string
-  dentistId: number // Agregar dentistId
+  dentistId: number
   morningBrushingTime: string
   afternoonBrushingTime: string
   nightBrushingTime: string
@@ -14,7 +14,7 @@ export interface ChildData {
 export interface ChildResponse {
   childId: number
   fatherId: number
-  dentistId?: number // Agregar dentistId opcional
+  dentistId?: number
   name: string
   lastName: string
   gender: 'M' | 'F'
@@ -79,11 +79,12 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       throw new Error('Todos los horarios de cepillado son requeridos')
     }
 
-    // Preparar el body de la request exactamente como lo espera el backend
+    // Preparar el body exactamente como lo espera el backend
+    // El backend espera el schema con underscores y sin fatherId (se añade en el servicio)
     const requestBody = {
       name: childData.name.trim(),
       lastName: childData.lastName.trim(),
-      gender: childData.gender.toUpperCase(),
+      gender: childData.gender.toUpperCase() as 'M' | 'F',
       birthDate: childData.birthDate,
       dentistId: childData.dentistId,
       morningBrushingTime: childData.morningBrushingTime,
@@ -105,15 +106,39 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
     if (!response.ok) {
       let errorMessage = `Error al crear el niño: ${response.status}`
       try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
+        const errorData = await response.text()
         console.error('Error del servidor:', errorData)
+        
+        // Intentar parsear como JSON, si no es posible usar el texto completo
+        try {
+          const parsedError = JSON.parse(errorData)
+          errorMessage = parsedError.message || errorData
+        } catch {
+          errorMessage = errorData || errorMessage
+        }
       } catch (e) {
-        console.error('Error al parsear respuesta de error:', e)
-        const responseText = await response.text()
-        console.error('Respuesta del servidor:', responseText)
+        console.error('Error al leer respuesta de error:', e)
       }
-      throw new Error(errorMessage)
+      
+      // Mensajes más específicos según el código de estado
+      switch (response.status) {
+        case 400:
+          throw new Error('Datos del niño inválidos. Verifica que todos los campos estén completos.')
+        case 401:
+          throw new Error('No tienes autorización. Por favor, inicia sesión nuevamente.')
+        case 409:
+          if (errorMessage.includes('UNIQUE') || errorMessage.includes('unique')) {
+            throw new Error('Ya existe un niño con esos datos.')
+          } else if (errorMessage.includes('FOREIGN KEY') || errorMessage.includes('foreign')) {
+            throw new Error('El dentista seleccionado no es válido.')
+          } else {
+            throw new Error('Conflicto al crear el niño: ' + errorMessage)
+          }
+        case 404:
+          throw new Error('No se encontró el dentista especificado.')
+        default:
+          throw new Error(errorMessage)
+      }
     }
 
     const data = await response.json()

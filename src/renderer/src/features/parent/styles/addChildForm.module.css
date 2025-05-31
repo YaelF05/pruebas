@@ -32,9 +32,15 @@
   transition: background-color 0.2s;
 }
 
-.cancelButton:hover {
+.cancelButton:hover:not(:disabled) {
   background-color: var(--neutral-light);
 }
+
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .submitButton {
   padding: 12px 0;
   border-radius: 10px;
@@ -44,21 +50,24 @@
   width: 48%;
   height: 46px;
   font-family: var(--Quicksand);
-}
-
-.submitButton {
   background-color: var(--primary-normal);
   border: none;
   color: var(--primary-light);
   transition: background-color 0.2s;
 }
 
-.submitButton:hover {
+.submitButton:hover:not(:disabled) {
   background-color: var(--primary-normal-hover);
 }
 
-.submitButton:active {
+.submitButton:active:not(:disabled) {
   background-color: var(--primary-normal-active);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--neutral-normal);
 }
 
 .errorMessage {
@@ -68,6 +77,16 @@
   margin-top: 4px;
   padding-left: 10px;
   font-family: var(--Quicksand);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-title1);
 }
 
 /* Estilo para campos con error */

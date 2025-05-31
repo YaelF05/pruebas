@@ -3,9 +3,9 @@ import { ReactNode } from 'react'
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/dentist'
 
 export interface DentistResponse {
-  name: ReactNode
-  lastName: ReactNode
   userId: number
+  name: string
+  lastName: string
   email: string
   professionalLicense: string
   university?: string
@@ -46,11 +46,6 @@ export async function getDentistsService(): Promise<DentistResponse[]> {
     })
 
     if (!response.ok) {
-      // Si la ruta no existe, usar datos mock
-      if (response.status === 404) {
-        console.warn('API de dentists no implementada, usando datos mock')
-      }
-
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.message || `Failed to fetch dentists: ${response.status}`)
     }
@@ -63,16 +58,11 @@ export async function getDentistsService(): Promise<DentistResponse[]> {
     } else if (data.items && Array.isArray(data.items)) {
       return data.items as DentistResponse[]
     } else {
-      console.warn('Formato inesperado de dentists, usando mock data')
+      console.warn('Formato inesperado de dentists:', data)
+      return []
     }
   } catch (error) {
     console.error('Get dentists service error:', error)
-
-    // Si es error de red, usar datos mock
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.warn('Error de conexión en getDentists, usando datos mock')
-    }
-
     throw error
   }
 }
@@ -100,9 +90,7 @@ export async function getDentistByIdService(dentistId: number): Promise<DentistR
     })
 
     if (!response.ok) {
-      // Si la ruta no existe, usar datos mock
       if (response.status === 404) {
-        console.warn(`API de dentist/${dentistId} no implementada, usando datos mock`)
         throw new Error('Dentist not found')
       }
 
@@ -114,12 +102,6 @@ export async function getDentistByIdService(dentistId: number): Promise<DentistR
     return data as DentistResponse
   } catch (error) {
     console.error('Get dentist by ID service error:', error)
-
-    // Si es error de red, usar datos mock
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.warn('Error de conexión en getDentistById, usando datos mock')
-    }
-
     throw error
   }
 }
@@ -159,11 +141,6 @@ export async function getNearbyDentistsService(
     })
 
     if (!response.ok) {
-      // Si la ruta no existe, usar datos mock con distancias calculadas
-      if (response.status === 404) {
-        console.warn('API de nearby dentists no implementada, usando datos mock')
-      }
-
       const errorData = await response.json().catch(() => ({}))
       throw new Error(errorData.message || `Failed to fetch nearby dentists: ${response.status}`)
     }
@@ -172,12 +149,6 @@ export async function getNearbyDentistsService(
     return data as DentistResponse[]
   } catch (error) {
     console.error('Get nearby dentists service error:', error)
-
-    // Si es error de red, usar datos mock
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      console.warn('Error de conexión en getNearbyDentists, usando datos mock')
-    }
-
     throw error
   }
 }
@@ -197,5 +168,9 @@ export async function getDentistsForSelectService(): Promise<DentistListItem[]> 
     }))
   } catch (error) {
     console.error('Get dentists for select service error:', error)
+    
+    // En caso de error, retornar array vacío para que el formulario pueda continuar
+    console.warn('No se pudieron cargar los dentistas, retornando array vacío')
+    return []
   }
 }
