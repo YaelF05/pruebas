@@ -44,71 +44,166 @@ interface ChildBrushingData {
   todayRecords: BrushRecord[]
 }
 
+/**
+ * Página principal del padre - Completamente alineada con el backend
+ * Maneja la creación de hijos usando los servicios alineados con el backend
+ */
 const HomePage: FC = () => {
   const navigate = useNavigate()
 
+  // Estado principal
   const [children, setChildren] = useState<ChildResponse[]>([])
   const [selectedChild, setSelectedChild] = useState<ChildResponse | null>(null)
   const [activeTab, setActiveTab] = useState<string>('inicio')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [addChildError, setAddChildError] = useState<string | null>(null)
+  const [isCreatingChild, setIsCreatingChild] = useState(false)
 
+  // Estado de cepillado
   const [childrenBrushingData, setChildrenBrushingData] = useState<{
     [key: number]: ChildBrushingData
   }>({})
 
+  // Estado del modal
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  // Cargar datos iniciales
   useEffect(() => {
-    const fetchData = async (): Promise<void> => {
-      try {
-        setIsLoading(true)
-        setError(null)
+    fetchInitialData()
+  }, [])
 
-        console.log('Cargando hijos del usuario...')
-        // Cargar hijos
-        const childrenData = await getChildrenService()
-        console.log('Hijos cargados:', childrenData)
-        setChildren(childrenData)
+  /**
+   * Cargar datos iniciales - alineado con el backend
+   */
+  const fetchInitialData = async (): Promise<void> => {
+    try {
+      setIsLoading(true)
+      setError(null)
 
-        if (childrenData.length > 0) {
-          setSelectedChild(childrenData[0])
+      console.log('Cargando hijos del usuario...')
+      
+      // Usar el servicio alineado con el backend
+      const childrenData = await getChildrenService()
+      console.log('Hijos cargados:', childrenData)
+      
+      setChildren(childrenData)
+
+      if (childrenData.length > 0) {
+        setSelectedChild(childrenData[0])
+        
+        // Cargar datos de cepillado para cada hijo
+        await loadBrushingDataForChildren(childrenData)
+      }
+    } catch (error) {
+      console.error('Error al cargar datos iniciales:', error)
+      setError(error instanceof Error ? error.message : 'Error al cargar los datos')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  /**
+   * Cargar datos de cepillado para todos los hijos
+   */
+  const loadBrushingDataForChildren = async (childrenList: ChildResponse[]) => {
+    try {
+      const brushingDataPromises = childrenList.map(async (child) => {
+        const todayRecords = await getTodayBrushRecordsService(child.childId)
+        const weeklyRecords = await getWeeklyBrushRecordsService(child.childId)
+
+        return {
+          childId: child.childId,
+          data: {
+            todayBrushing: getBrushingStatusFromRecords(todayRecords),
+            weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+            todayRecords: todayRecords
+          }
+        }
+      })
+
+      const brushingResults = await Promise.all(brushingDataPromises)
+      const brushingData: { [key: number]: ChildBrushingData } = {}
+
+      brushingResults.forEach((result) => {
+        brushingData[result.childId] = result.data
+      })
+
+      setChildrenBrushingData(brushingData)
+    } catch (error) {
+      console.error('Error al cargar datos de cepillado:', error)
+    }
+  }
+
+  /**
+   * Manejar la creación de un nuevo hijo - alineado con el backend
+   */
+  const handleAddChild = async (data: ChildData): Promise<void> => {
+    try {
+      setIsCreatingChild(true)
+      setAddChildError(null)
+      
+      console.log('Iniciando creación de hijo con datos alineados:', data)
+
+      // Usar el servicio completamente alineado con el backend
+      const result = await createChildService(data)
+      console.log('Hijo creado exitosamente:', result)
+
+      // Recargar la lista de hijos para obtener el nuevo hijo
+      console.log('Recargando lista de hijos...')
+      const updatedChildren = await getChildrenService()
+      setChildren(updatedChildren)
+
+      // Buscar el nuevo hijo en la lista actualizada
+      const newChild = updatedChildren.find(
+        (child) => child.name === data.name && child.lastName === data.lastName
+      )
+
+      if (newChild) {
+        console.log('Nuevo hijo encontrado en la lista:', newChild)
+        
+        // Cargar datos de cepillado para el nuevo hijo
+        const todayRecords = await getTodayBrushRecordsService(newChild.childId)
+        const weeklyRecords = await getWeeklyBrushRecordsService(newChild.childId)
+
+        const newBrushingData: ChildBrushingData = {
+          todayBrushing: getBrushingStatusFromRecords(todayRecords),
+          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+          todayRecords: todayRecords
         }
 
-        // Cargar datos de cepillado de cada hijo
-        const brushingDataPromises = childrenData.map(async (child) => {
-          const todayRecords = await getTodayBrushRecordsService(child.childId)
-          const weeklyRecords = await getWeeklyBrushRecordsService(child.childId)
-
-          return {
-            childId: child.childId,
-            data: {
-              todayBrushing: getBrushingStatusFromRecords(todayRecords),
-              weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
-              todayRecords: todayRecords
-            }
-          }
+        setChildrenBrushingData({
+          ...childrenBrushingData,
+          [newChild.childId]: newBrushingData
         })
 
-        const brushingResults = await Promise.all(brushingDataPromises)
-        const brushingData: { [key: number]: ChildBrushingData } = {}
-
-        brushingResults.forEach((result) => {
-          brushingData[result.childId] = result.data
-        })
-
-        setChildrenBrushingData(brushingData)
-      } catch (error) {
-        console.error('Error al cargar datos:', error)
-        setError(error instanceof Error ? error.message : 'Error al cargar los datos')
-      } finally {
-        setIsLoading(false)
+        // Seleccionar el nuevo hijo
+        setSelectedChild(newChild)
+      } else {
+        console.warn('No se encontró el nuevo hijo en la lista actualizada')
+        // Si no se encuentra, al menos seleccionar el primer hijo disponible
+        if (updatedChildren.length > 0) {
+          setSelectedChild(updatedChildren[0])
+        }
       }
-    }
 
-    fetchData()
-  }, [])
+      // Cerrar el modal
+      setIsModalOpen(false)
+
+      // Mostrar mensaje de éxito
+      console.log('Proceso de creación completado exitosamente')
+      
+    } catch (error) {
+      console.error('Error al agregar hijo:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      setAddChildError(`Error al agregar el hijo: ${errorMessage}`)
+      
+      // NO cerrar el modal para que el usuario vea el error
+      throw error
+    } finally {
+      setIsCreatingChild(false)
+    }
+  }
 
   // Función para obtener el estado de cepillado desde los registros
   const getBrushingStatusFromRecords = (records: BrushRecord[]): BrushingStatus => {
@@ -151,7 +246,6 @@ const HomePage: FC = () => {
 
       const dayRecords = records.filter((record) => record.brushDatetime.startsWith(dayStr))
 
-      // Estado de cepillado para cada periodo
       const morningCompleted = dayRecords.some((record) => {
         const hour = new Date(record.brushDatetime).getHours()
         return hour >= 6 && hour < 12
@@ -191,7 +285,6 @@ const HomePage: FC = () => {
 
     try {
       if (newStatus === 'completed') {
-        // Crear nuevo registro de cepillado
         const brushDatetime = new Date()
         if (time === 'morning') {
           brushDatetime.setHours(8, 0, 0)
@@ -203,7 +296,6 @@ const HomePage: FC = () => {
 
         await createBrushRecordService(selectedChild.childId, brushDatetime.toISOString())
       } else {
-        // Eliminar registro existente del tiempo específico
         const recordToDelete = currentData.todayRecords.find((record) => {
           const hour = new Date(record.brushDatetime).getHours()
           if (time === 'morning') return hour >= 6 && hour < 12
@@ -284,64 +376,6 @@ const HomePage: FC = () => {
     return childrenBrushingData[selectedChild.childId]
   }
 
-  const handleAddChild = async (data: ChildData): Promise<void> => {
-    try {
-      setAddChildError(null)
-      console.log('Iniciando proceso de creación de niño:', data)
-
-      // Llamar al servicio de creación
-      const result = await createChildService(data)
-      console.log('Niño creado exitosamente:', result)
-
-      // Recargar la lista de hijos
-      const updatedChildren = await getChildrenService()
-      setChildren(updatedChildren)
-
-      // Si es el primer hijo, seleccionarlo automáticamente
-      if (updatedChildren.length === 1) {
-        setSelectedChild(updatedChildren[0])
-      }
-
-      // Buscar el nuevo hijo en la lista actualizada
-      const newChild = updatedChildren.find(
-        (child) => child.name === data.name && child.lastName === data.lastName
-      )
-
-      if (newChild) {
-        // Cargar datos de cepillado para el nuevo hijo
-        const todayRecords = await getTodayBrushRecordsService(newChild.childId)
-        const weeklyRecords = await getWeeklyBrushRecordsService(newChild.childId)
-
-        const newBrushingData: ChildBrushingData = {
-          todayBrushing: getBrushingStatusFromRecords(todayRecords),
-          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
-          todayRecords: todayRecords
-        }
-
-        setChildrenBrushingData({
-          ...childrenBrushingData,
-          [newChild.childId]: newBrushingData
-        })
-
-        // Seleccionar el nuevo hijo
-        setSelectedChild(newChild)
-      }
-
-      // Cerrar el modal
-      setIsModalOpen(false)
-
-      // Mostrar mensaje de éxito
-      alert('¡Hijo agregado exitosamente!')
-    } catch (error) {
-      console.error('Error al agregar hijo:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      setAddChildError(`Error al agregar el hijo: ${errorMessage}`)
-
-      // NO cerrar el modal en caso de error para que el usuario pueda ver el error y corregir
-      throw error // Re-lanzar el error para que el formulario lo maneje
-    }
-  }
-
   const handleOpenModal = () => {
     setAddChildError(null)
     setIsModalOpen(true)
@@ -392,9 +426,13 @@ const HomePage: FC = () => {
               />
             ))}
 
-            <button className={styles.addChildButton} onClick={handleOpenModal}>
+            <button 
+              className={styles.addChildButton} 
+              onClick={handleOpenModal}
+              disabled={isCreatingChild}
+            >
               <span className={styles.plusIcon}>+</span>
-              <span>Agregar Hijo</span>
+              <span>{isCreatingChild ? 'Agregando...' : 'Agregar Hijo'}</span>
             </button>
           </div>
         </div>
@@ -494,7 +532,10 @@ const HomePage: FC = () => {
         onClose={handleCloseModal}
         title="Danos a conocer un poco más sobre tu hijo"
       >
-        <AddChildForm onSubmit={handleAddChild} onCancel={handleCloseModal} />
+        <AddChildForm 
+          onSubmit={handleAddChild} 
+          onCancel={handleCloseModal}
+        />
       </Modal>
     </div>
   )

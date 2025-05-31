@@ -5,6 +5,7 @@ import { ChildData } from '../services/childService'
 import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/addChildForm.module.css'
 
+// Tipos de errores que coinciden exactamente con las validaciones del backend
 interface FormErrors {
   name?: string
   lastName?: string
@@ -21,14 +22,20 @@ interface AddChildFormProps {
   onCancel: () => void
 }
 
+/**
+ * Formulario para agregar un hijo - Alineado exactamente con el backend
+ * Backend validation: src/modules/child/child.controller.ts (isValidData method)
+ * Backend schema: src/config/db/schema.ts (childTable)
+ */
 const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
+  // Estado inicial que coincide con el schema del backend
   const [formData, setFormData] = useState<ChildData>({
     name: '',
     lastName: '',
-    gender: 'M',
+    gender: 'M', // Valor por defecto válido según enum ['M', 'F']
     birthDate: '',
-    dentistId: 0,
-    morningBrushingTime: '08:00',
+    dentistId: 0, // Se establecerá cuando se carguen los dentistas
+    morningBrushingTime: '08:00', // Formato HH:MM según schema text(8)
     afternoonBrushingTime: '14:00',
     nightBrushingTime: '20:00'
   })
@@ -44,6 +51,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       try {
         setLoadingDentists(true)
         setDentistLoadError(null)
+        
         const dentistsList = await getDentistsForSelectService()
         
         if (dentistsList.length === 0) {
@@ -51,7 +59,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
           setDentists([])
         } else {
           setDentists(dentistsList)
-          // Seleccionar el primer dentista por defecto
+          // Seleccionar el primer dentista por defecto (requerido por el backend)
           setFormData((prev) => ({
             ...prev,
             dentistId: dentistsList[0].userId
@@ -59,7 +67,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         }
       } catch (error) {
         console.error('Error cargando dentistas:', error)
-        setDentistLoadError('Error al cargar la lista de dentistas. Inténtelo más tarde.')
+        setDentistLoadError('Error al cargar la lista de dentistas.')
         setDentists([])
       } finally {
         setLoadingDentists(false)
@@ -74,7 +82,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
   ) => {
     const { name, value } = e.target
 
-    // Actualizar el estado
     setFormData((prevData) => ({
       ...prevData,
       [name]: name === 'dentistId' ? parseInt(value) || 0 : value
@@ -89,9 +96,13 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     }
   }
 
-  // Función para validar el nombre
+  // Validaciones que coinciden exactamente con el backend controller y schema
+  
+  /**
+   * Validación de nombre - Backend: schema text(255).notNull()
+   */
   const validateName = (name: string): string | undefined => {
-    if (!name.trim()) {
+    if (!name || !name.trim()) {
       return 'El nombre es requerido'
     }
     if (name.trim().length < 2) {
@@ -107,9 +118,11 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  // Función para validar el apellido
+  /**
+   * Validación de apellido - Backend: schema text(255).notNull()
+   */
   const validateLastName = (lastName: string): string | undefined => {
-    if (!lastName.trim()) {
+    if (!lastName || !lastName.trim()) {
       return 'El apellido es requerido'
     }
     if (lastName.trim().length < 2) {
@@ -125,8 +138,24 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  // Función para validar la edad
-  const validateAge = (birthDate: string): string | undefined => {
+  /**
+   * Validación de género - Backend: schema text(1, enum: ['M', 'F']).notNull()
+   * Controller: líneas 40-42
+   */
+  const validateGender = (gender: string): string | undefined => {
+    if (!gender) {
+      return 'El género es requerido'
+    }
+    if (gender !== 'M' && gender !== 'F') {
+      return 'El género debe ser M (Masculino) o F (Femenino)'
+    }
+    return undefined
+  }
+
+  /**
+   * Validación de fecha de nacimiento - Backend: schema text(26).notNull()
+   */
+  const validateBirthDate = (birthDate: string): string | undefined => {
     if (!birthDate) {
       return 'La fecha de nacimiento es requerida'
     }
@@ -134,17 +163,15 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     const birth = new Date(birthDate)
     const today = new Date()
 
-    // Validar que la fecha no sea futura
-    if (birth > today) {
-      return 'La fecha de nacimiento no puede ser futura'
-    }
-
-    // Validar que sea una fecha válida
     if (isNaN(birth.getTime())) {
       return 'La fecha de nacimiento no es válida'
     }
 
-    // Validar que la fecha esté dentro del rango permitido
+    if (birth > today) {
+      return 'La fecha de nacimiento no puede ser futura'
+    }
+
+    // Validar rango de edad (4-13 años según reglas de negocio)
     const maxAllowedDate = new Date(today.getFullYear() - 4, today.getMonth(), today.getDate())
     const minAllowedDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
 
@@ -156,39 +183,26 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       return 'El niño no puede tener más de 13 años'
     }
 
-    // Calcular la edad exacta
-    let age = today.getFullYear() - birth.getFullYear()
-    const monthDiff = today.getMonth() - birth.getMonth()
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--
-    }
-
-    // Validación adicional por si acaso
-    if (age < 4) {
-      return 'El niño debe tener al menos 4 años cumplidos'
-    }
-
-    if (age > 13) {
-      return 'El niño no puede tener más de 13 años'
-    }
-
     return undefined
   }
 
-  // Función para validar dentista (requerido según el controller del backend)
+  /**
+   * Validación de dentista - Backend: int().references(dentistTable.userId)
+   * Controller: requiredFields incluye 'dentistId'
+   */
   const validateDentist = (dentistId: number): string | undefined => {
     if (!dentistId || dentistId === 0) {
       return 'Debe seleccionar un dentista'
     }
-    // Si hay dentistas disponibles, validar que el ID esté en la lista
     if (dentists.length > 0 && !dentists.find(d => d.userId === dentistId)) {
       return 'El dentista seleccionado no es válido'
     }
     return undefined
   }
 
-  // Función para validar horarios
+  /**
+   * Validación de horarios - Backend: schema text(8).notNull()
+   */
   const validateTime = (time: string, label: string): string | undefined => {
     if (!time) {
       return `La hora de ${label} es requerida`
@@ -196,13 +210,15 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
 
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
     if (!timeRegex.test(time)) {
-      return `La hora de ${label} no tiene un formato válido`
+      return `La hora de ${label} debe tener formato HH:MM válido`
     }
 
     return undefined
   }
 
-  // Función para validar que los horarios no se sobrepongan
+  /**
+   * Validación de conflictos de horarios (regla de negocio)
+   */
   const validateTimeConflicts = (): string | undefined => {
     const times = [
       { time: formData.morningBrushingTime, label: 'matutino' },
@@ -213,7 +229,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     for (let i = 0; i < times.length; i++) {
       for (let j = i + 1; j < times.length; j++) {
         if (times[i].time === times[j].time) {
-          return `Los horarios de cepillado ${times[i].label} y ${times[j].label} no pueden ser iguales`
+          return `Los horarios ${times[i].label} y ${times[j].label} no pueden ser iguales`
         }
       }
     }
@@ -221,75 +237,82 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
+  /**
+   * Manejo del envío del formulario
+   * Validaciones que coinciden con backend controller isValidData method
+   */
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
 
-    // Si no hay dentistas disponibles, no permitir el envío
+    // Verificar que hay dentistas disponibles
     if (dentists.length === 0) {
       setErrors({ dentistId: 'No hay dentistas disponibles. No se puede crear el niño.' })
       return
     }
 
-    // Validar todos los campos
+    // Ejecutar todas las validaciones
     const nameError = validateName(formData.name)
     const lastNameError = validateLastName(formData.lastName)
-    const birthDateError = validateAge(formData.birthDate)
+    const genderError = validateGender(formData.gender)
+    const birthDateError = validateBirthDate(formData.birthDate)
     const dentistError = validateDentist(formData.dentistId)
     const morningTimeError = validateTime(formData.morningBrushingTime, 'cepillado matutino')
     const afternoonTimeError = validateTime(formData.afternoonBrushingTime, 'cepillado vespertino')
     const nightTimeError = validateTime(formData.nightBrushingTime, 'cepillado nocturno')
     const timeConflictError = validateTimeConflicts()
 
+    // Recopilar errores
     const newErrors: FormErrors = {}
-
     if (nameError) newErrors.name = nameError
     if (lastNameError) newErrors.lastName = lastNameError
+    if (genderError) newErrors.gender = genderError
     if (birthDateError) newErrors.birthDate = birthDateError
     if (dentistError) newErrors.dentistId = dentistError
     if (morningTimeError) newErrors.morningBrushingTime = morningTimeError
     if (afternoonTimeError) newErrors.afternoonBrushingTime = afternoonTimeError
     if (nightTimeError) newErrors.nightBrushingTime = nightTimeError
 
-    // Si hay conflicto de horarios, agregarlo al primer horario con error
-    if (timeConflictError) {
-      if (!newErrors.morningBrushingTime) newErrors.morningBrushingTime = timeConflictError
+    // Agregar error de conflicto de horarios al primer campo disponible
+    if (timeConflictError && !newErrors.morningBrushingTime) {
+      newErrors.morningBrushingTime = timeConflictError
     }
 
-    // Si hay errores, actualizar el estado y no enviar
+    // Si hay errores, mostrarlos y no enviar
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
-      console.warn('Errores en el formulario:', newErrors)
+      console.warn('Errores de validación:', newErrors)
       return
     }
 
-    // Preparar datos para enviar (coincidir exactamente con el backend)
+    // Preparar datos exactamente como los espera el backend
     const submitData: ChildData = {
       name: formData.name.trim(),
       lastName: formData.lastName.trim(),
-      gender: formData.gender,
+      gender: formData.gender as 'M' | 'F',
       birthDate: formData.birthDate,
-      dentistId: formData.dentistId, // Requerido según el controller
+      dentistId: formData.dentistId,
       morningBrushingTime: formData.morningBrushingTime,
       afternoonBrushingTime: formData.afternoonBrushingTime,
       nightBrushingTime: formData.nightBrushingTime
     }
 
-    console.log('Enviando datos del formulario:', submitData)
+    console.log('Datos validados para envío:', submitData)
     onSubmit(submitData)
   }
 
-  // Opciones para el género
+  // Opciones para el selector de género (según schema enum)
   const genderOptions = [
     { label: 'Masculino', value: 'M' },
     { label: 'Femenino', value: 'F' }
   ]
 
-  // Opciones para dentistas
+  // Opciones para el selector de dentistas
   const dentistOptions = dentists.map((dentist) => ({
     label: dentist.name,
     value: dentist.userId.toString()
   }))
 
+  // Mostrar loading mientras se cargan los dentistas
   if (loadingDentists) {
     return (
       <div className={styles.loading}>
@@ -300,12 +323,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>
+      {/* Error de carga de dentistas */}
       {dentistLoadError && (
         <div className={styles.errorMessage} style={{ marginBottom: '15px', textAlign: 'center' }}>
           {dentistLoadError}
         </div>
       )}
 
+      {/* Campo: Nombre */}
       <div className={styles.formField}>
         <InputForm
           label="Nombre(s)"
@@ -320,6 +345,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         {errors.name && <div className={styles.errorMessage}>{errors.name}</div>}
       </div>
 
+      {/* Campo: Apellido */}
       <div className={styles.formField}>
         <InputForm
           label="Apellidos"
@@ -334,6 +360,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         {errors.lastName && <div className={styles.errorMessage}>{errors.lastName}</div>}
       </div>
 
+      {/* Campo: Género */}
       <div className={styles.formField}>
         <InputList
           options={genderOptions}
@@ -347,6 +374,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         {errors.gender && <div className={styles.errorMessage}>{errors.gender}</div>}
       </div>
 
+      {/* Campo: Fecha de nacimiento */}
       <div className={styles.formField}>
         <InputForm
           label="Fecha de nacimiento (4-13 años)"
@@ -361,6 +389,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         {errors.birthDate && <div className={styles.errorMessage}>{errors.birthDate}</div>}
       </div>
 
+      {/* Campo: Dentista */}
       <div className={styles.formField}>
         <InputList
           options={dentistOptions}
@@ -374,13 +403,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         {errors.dentistId && <div className={styles.errorMessage}>{errors.dentistId}</div>}
       </div>
 
+      {/* Campo: Hora cepillado matutino */}
       <div className={styles.formField}>
         <InputForm
           label="Hora de cepillado matutino"
           name="morningBrushingTime"
           type="time"
           value={formData.morningBrushingTime}
-          placeholder="Hora de cepillado matutino"
+          placeholder="HH:MM"
           onChange={handleInputChange}
           required
           classname={styles.formInput}
@@ -390,13 +420,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         )}
       </div>
 
+      {/* Campo: Hora cepillado vespertino */}
       <div className={styles.formField}>
         <InputForm
           label="Hora de cepillado vespertino"
           name="afternoonBrushingTime"
           type="time"
           value={formData.afternoonBrushingTime}
-          placeholder="Hora de cepillado vespertino"
+          placeholder="HH:MM"
           onChange={handleInputChange}
           required
           classname={styles.formInput}
@@ -406,13 +437,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         )}
       </div>
 
+      {/* Campo: Hora cepillado nocturno */}
       <div className={styles.formField}>
         <InputForm
           label="Hora de cepillado nocturno"
           name="nightBrushingTime"
           type="time"
           value={formData.nightBrushingTime}
-          placeholder="Hora de cepillado nocturno"
+          placeholder="HH:MM"
           onChange={handleInputChange}
           required
           classname={styles.formInput}
@@ -422,8 +454,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         )}
       </div>
 
+      {/* Botones de acción */}
       <div className={styles.formActions}>
-        <button type="button" className={styles.cancelButton} onClick={onCancel} disabled={false}>
+        <button 
+          type="button" 
+          className={styles.cancelButton} 
+          onClick={onCancel}
+          disabled={false}
+        >
           Cancelar
         </button>
         <button 

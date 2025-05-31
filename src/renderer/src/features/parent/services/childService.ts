@@ -1,5 +1,7 @@
+// src/renderer/src/features/parent/services/childService.ts
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/child'
 
+// Tipos que coinciden exactamente con el backend
 export interface ChildData {
   name: string
   lastName: string
@@ -34,14 +36,14 @@ export interface CreateChildResult {
 }
 
 /**
- * Service to create a new child
- * @param childData - The child data
- * @returns A promise that resolves to the child creation result
- * @throws An error if the creation fails
+ * Service to create a new child - Alineado exactamente con el backend
+ * Backend controller: src/modules/child/child.controller.ts
+ * Backend service: src/modules/child/child.service.ts
+ * Backend DAO: src/modules/child/child.dao.ts
+ * Backend schema: src/config/db/schema.ts (childTable)
  */
 export async function createChildService(childData: ChildData): Promise<CreateChildResult> {
   try {
-    // Obtener el token de autenticación
     const authToken = localStorage.getItem('authToken')
 
     if (!authToken) {
@@ -50,41 +52,32 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       )
     }
 
-    // Validar datos antes de enviar
-    if (!childData.name.trim()) {
-      throw new Error('El nombre del niño es requerido')
+    // Validaciones que coinciden con el backend controller (isValidData method)
+    // Basado en: src/modules/child/child.controller.ts líneas 29-35
+    const requiredFields = [
+      'name', 'lastName', 'dentistId', 'gender', 'birthDate', 
+      'morningBrushingTime', 'afternoonBrushingTime', 'nightBrushingTime'
+    ]
+
+    for (const field of requiredFields) {
+      if (!childData[field as keyof ChildData]) {
+        throw new Error(`El campo ${field} es requerido`)
+      }
     }
 
-    if (!childData.lastName.trim()) {
-      throw new Error('El apellido del niño es requerido')
-    }
-
-    if (!childData.gender || (childData.gender !== 'M' && childData.gender !== 'F')) {
+    // Validación específica de género (según controller líneas 40-42)
+    const gender = childData.gender.toUpperCase()
+    if (gender !== 'M' && gender !== 'F') {
       throw new Error('El género debe ser M o F')
     }
 
-    if (!childData.birthDate) {
-      throw new Error('La fecha de nacimiento es requerida')
-    }
-
-    if (!childData.dentistId || childData.dentistId === 0) {
-      throw new Error('Debe seleccionar un dentista')
-    }
-
-    if (
-      !childData.morningBrushingTime ||
-      !childData.afternoonBrushingTime ||
-      !childData.nightBrushingTime
-    ) {
-      throw new Error('Todos los horarios de cepillado son requeridos')
-    }
-
     // Preparar el body exactamente como lo espera el backend
-    // El backend espera el schema con underscores y sin fatherId (se añade en el servicio)
+    // Según el schema: childTable en src/config/db/schema.ts
+    // El backend service añade fatherId del JWT (línea 25): fatherId: this.jwtPayload.userId
     const requestBody = {
       name: childData.name.trim(),
       lastName: childData.lastName.trim(),
-      gender: childData.gender.toUpperCase() as 'M' | 'F',
+      gender: gender as 'M' | 'F',
       birthDate: childData.birthDate,
       dentistId: childData.dentistId,
       morningBrushingTime: childData.morningBrushingTime,
@@ -92,10 +85,10 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       nightBrushingTime: childData.nightBrushingTime
     }
 
-    console.log('Enviando datos del niño:', requestBody)
+    console.log('Enviando datos del niño (alineado con backend):', requestBody)
 
     const response = await fetch(API_BASE_URL, {
-      method: 'PUT',
+      method: 'PUT', // Según la ruta: childRouter.put('/', ...)
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`
@@ -105,11 +98,11 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
 
     if (!response.ok) {
       let errorMessage = `Error al crear el niño: ${response.status}`
+      
       try {
         const errorData = await response.text()
         console.error('Error del servidor:', errorData)
         
-        // Intentar parsear como JSON, si no es posible usar el texto completo
         try {
           const parsedError = JSON.parse(errorData)
           errorMessage = parsedError.message || errorData
@@ -120,7 +113,7 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
         console.error('Error al leer respuesta de error:', e)
       }
       
-      // Mensajes más específicos según el código de estado
+      // Manejo de errores específicos según el backend
       switch (response.status) {
         case 400:
           throw new Error('Datos del niño inválidos. Verifica que todos los campos estén completos.')
@@ -152,89 +145,119 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
 
 /**
  * Service to get children for the current user
- * @returns A promise that resolves to the list of children
- * @throws An error if the fetch fails
+ * Endpoint: GET /api/child
+ * Backend: src/modules/child/child.controller.ts - fetchChilds method
  */
 export async function getChildrenService(): Promise<ChildResponse[]> {
   try {
-    console.log('Intentando obtener lista de hijos...')
+    console.log('Obteniendo lista de hijos...')
 
     const authToken = localStorage.getItem('authToken')
-
     if (!authToken) {
-      console.warn('No se encontró token de autenticación, retornando array vacío')
+      console.warn('No se encontró token de autenticación')
       return []
     }
 
-    try {
-      const response = await fetch(API_BASE_URL, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${authToken}`
-        }
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Hijos recibidos del backend:', data)
-
-        let childrenArray: any[] = []
-
-        if (data.items && Array.isArray(data.items)) {
-          childrenArray = data.items
-        } else if (Array.isArray(data)) {
-          childrenArray = data
-        } else {
-          console.warn('Formato inesperado de respuesta de children:', data)
-          return []
-        }
-
-        const mappedChildren = childrenArray.map((child: any) => ({
-          childId: child.childId || child.child_id,
-          fatherId: child.fatherId || child.father_id,
-          dentistId: child.dentistId || child.dentist_id,
-          name: child.name,
-          lastName: child.lastName || child.last_name,
-          gender: child.gender,
-          birthDate: child.birthDate || child.birth_date,
-          morningBrushingTime: child.morningBrushingTime || child.morning_brushing_time,
-          afternoonBrushingTime: child.afternoonBrushingTime || child.afternoon_brushing_time,
-          nightBrushingTime: child.nightBrushingTime || child.night_brushing_time,
-          creationDate: child.creationDate || child.creation_date,
-          lastModificationDate: child.lastModificationDate || child.last_modification_date,
-          isActive: child.isActive !== undefined ? child.isActive : child.is_active,
-          nextAppointment: child.nextAppointment || child.next_appointment || null
-        }))
-
-        return mappedChildren as ChildResponse[]
-      } else if (response.status === 404) {
-        // Si es 404, significa que el endpoint no existe o no hay hijos
-        console.log(
-          'Endpoint de children no existe o no hay hijos registrados, retornando array vacío'
-        )
-        return []
-      } else {
-        throw new Error(`HTTP Error: ${response.status}`)
+    const response = await fetch(API_BASE_URL, {
+      method: 'GET', // Según la ruta: childRouter.get('/', ...)
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`
       }
-    } catch (networkError) {
-      console.error('Error de red al obtener hijos:', networkError)
-      // Si hay error de red, retornar array vacío para no bloquear la app
+    })
+
+    if (response.ok) {
+      const data = await response.json()
+      console.log('Respuesta del backend:', data)
+
+      // El backend devuelve datos paginados: { page, limit, totalPages, items }
+      // Según: src/utils/pagination.ts
+      let childrenArray: any[] = []
+
+      if (data.items && Array.isArray(data.items)) {
+        childrenArray = data.items
+      } else if (Array.isArray(data)) {
+        childrenArray = data
+      } else {
+        console.warn('Formato inesperado de respuesta:', data)
+        return []
+      }
+
+      // Mapear los datos del backend al formato del frontend
+      // Manejar tanto snake_case como camelCase por si acaso
+      const mappedChildren = childrenArray.map((child: any) => ({
+        childId: child.childId || child.child_id,
+        fatherId: child.fatherId || child.father_id,
+        dentistId: child.dentistId || child.dentist_id,
+        name: child.name,
+        lastName: child.lastName || child.last_name,
+        gender: child.gender,
+        birthDate: child.birthDate || child.birth_date,
+        morningBrushingTime: child.morningBrushingTime || child.morning_brushing_time,
+        afternoonBrushingTime: child.afternoonBrushingTime || child.afternoon_brushing_time,
+        nightBrushingTime: child.nightBrushingTime || child.night_brushing_time,
+        creationDate: child.creationDate || child.creation_date,
+        lastModificationDate: child.lastModificationDate || child.last_modification_date,
+        isActive: child.isActive !== undefined ? child.isActive : child.is_active,
+        nextAppointment: child.nextAppointment || child.next_appointment || null
+      }))
+
+      return mappedChildren as ChildResponse[]
+      
+    } else if (response.status === 404) {
+      // El backend devuelve 404 cuando no hay hijos (controller línea 54)
+      console.log('No hay hijos registrados')
+      return []
+    } else {
+      console.error(`Error HTTP: ${response.status}`)
       return []
     }
   } catch (error) {
-    console.error('Error general en getChildrenService:', error)
-    // En caso de cualquier error, retornar array vacío para no bloquear la aplicación
+    console.error('Error en getChildrenService:', error)
     return []
   }
 }
 
 /**
- * Service to update a child
- * @param childId - The ID of the child to update
- * @param childData - The updated child data
- * @returns A promise that resolves to the update result
- * @throws An error if the update fails
+ * Service to get a specific child by ID
+ * Endpoint: GET /api/child/:id
+ * Backend: src/modules/child/child.controller.ts - fetchChildById method
+ */
+export async function getChildByIdService(childId: number): Promise<ChildResponse> {
+  try {
+    const authToken = localStorage.getItem('authToken')
+    if (!authToken) {
+      throw new Error('No se encontró el token de autenticación')
+    }
+
+    const response = await fetch(`${API_BASE_URL}/${childId}`, {
+      method: 'GET', // Según la ruta: childRouter.get('/:id', ...)
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`
+      }
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error('Niño no encontrado')
+      }
+      if (response.status === 401) {
+        throw new Error('El niño no te pertenece o no tienes autorización')
+      }
+      throw new Error(`Error al obtener el niño: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data as ChildResponse
+  } catch (error) {
+    console.error('Error en getChildByIdService:', error)
+    throw error
+  }
+}
+
+/**
+ * Service to update a child (si existe endpoint en el backend)
  */
 export async function updateChildService(
   childId: number,
@@ -242,39 +265,11 @@ export async function updateChildService(
 ): Promise<{ message: string }> {
   try {
     const authToken = localStorage.getItem('authToken')
-
     if (!authToken) {
       throw new Error('No se encontró el token de autenticación')
     }
 
     console.log(`Actualizando niño ID ${childId}:`, childData)
-
-    const requestBody: any = {}
-
-    if (childData.name !== undefined) {
-      requestBody.name = childData.name
-    }
-    if (childData.lastName !== undefined) {
-      requestBody.lastName = childData.lastName
-    }
-    if (childData.gender !== undefined) {
-      requestBody.gender = childData.gender
-    }
-    if (childData.birthDate !== undefined) {
-      requestBody.birthDate = childData.birthDate
-    }
-    if (childData.dentistId !== undefined) {
-      requestBody.dentistId = childData.dentistId
-    }
-    if (childData.morningBrushingTime !== undefined) {
-      requestBody.morningBrushingTime = childData.morningBrushingTime
-    }
-    if (childData.afternoonBrushingTime !== undefined) {
-      requestBody.afternoonBrushingTime = childData.afternoonBrushingTime
-    }
-    if (childData.nightBrushingTime !== undefined) {
-      requestBody.nightBrushingTime = childData.nightBrushingTime
-    }
 
     const response = await fetch(`${API_BASE_URL}/${childId}`, {
       method: 'PUT',
@@ -282,18 +277,11 @@ export async function updateChildService(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(childData)
     })
 
     if (!response.ok) {
-      let errorMessage = `Error al actualizar el niño: ${response.status}`
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
-      } catch (e) {
-        console.error('Error al parsear respuesta:', e)
-      }
-      throw new Error(errorMessage)
+      throw new Error(`Error al actualizar el niño: ${response.status}`)
     }
 
     const data = await response.json()
