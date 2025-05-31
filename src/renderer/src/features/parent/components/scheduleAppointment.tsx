@@ -13,7 +13,7 @@ interface ScheduleAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (appointmentData: AppointmentData) => void
-  onSuccess?: () => void // Nueva prop opcional para manejar el éxito
+  onSuccess?: () => void
   dentistId: number
 }
 

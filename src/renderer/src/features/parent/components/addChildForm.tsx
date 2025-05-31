@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
-import { ChildData } from '../services/childService'
+import { ChildData } from '../types/childTypes'
 import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/addChildForm.module.css'
 

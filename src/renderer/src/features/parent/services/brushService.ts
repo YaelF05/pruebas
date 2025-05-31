@@ -1,15 +1,6 @@
+import { BrushRecord, CreateBrushResult } from '../types/brushTypes'
+
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
-
-export interface BrushRecord {
-  brushId: number
-  childId: number
-  brushDatetime: string
-}
-
-export interface CreateBrushResult {
-  message: string
-  brushId?: number
-}
 
 /**
  * Service to create a brush record
@@ -194,3 +185,4 @@ export async function getWeeklyBrushRecordsService(childId: number): Promise<Bru
     return []
   }
 }
+export type { BrushRecord }

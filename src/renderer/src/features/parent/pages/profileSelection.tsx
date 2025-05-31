@@ -1,4 +1,3 @@
-// src/renderer/src/features/parent/pages/profileSelection.tsx
 import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getChildrenService, ChildResponse } from '../services/childService'

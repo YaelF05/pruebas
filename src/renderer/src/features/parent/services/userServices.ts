@@ -1,16 +1,6 @@
-const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
+import { UserProfileResponse } from '../types/userTypes'
 
-export interface UserProfileResponse {
-  userId: number
-  name: string
-  lastName: string
-  birthDate: string
-  email: string
-  type: 'FATHER' | 'DENTIST'
-  creationDate: string
-  lastModificationDate?: string
-  isActive: boolean
-}
+const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
 
 /**
  * Service to get the current user's profile information
@@ -70,10 +60,10 @@ function extractUserFromToken(): UserProfileResponse {
     const payload = JSON.parse(atob(parts[1]))
 
     return {
-      userId: payload.userId || payload.user_id || 1,
+      userId: payload.userId || 1,
       name: payload.name || 'Usuario',
-      lastName: payload.lastName || payload.last_name || 'Padre',
-      birthDate: payload.birthDate || payload.birth_date || '1990-01-01',
+      lastName: payload.lastName || 'Padre',
+      birthDate: payload.birthDate || '1990-01-01',
       email: payload.email || 'usuario@email.com',
       type: (payload.type || 'FATHER') as 'FATHER' | 'DENTIST',
       creationDate: payload.creationDate || new Date().toISOString(),
@@ -134,3 +124,4 @@ export async function updateUserProfileService(
     throw error
   }
 }
+export type { UserProfileResponse }

@@ -1,37 +1,6 @@
+import { ChildData, ChildResponse, CreateChildResult } from '../types/childTypes'
+
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/child'
-
-export interface ChildData {
-  name: string
-  lastName: string
-  gender: 'M' | 'F'
-  birthDate: string
-  dentistId: number
-  morningBrushingTime: string
-  afternoonBrushingTime: string
-  nightBrushingTime: string
-}
-
-export interface ChildResponse {
-  childId: number
-  fatherId: number
-  dentistId?: number
-  name: string
-  lastName: string
-  gender: 'M' | 'F'
-  birthDate: string
-  morningBrushingTime: string
-  afternoonBrushingTime: string
-  nightBrushingTime: string
-  creationDate: string
-  lastModificationDate?: string
-  isActive: boolean
-  nextAppointment?: string | null
-}
-
-export interface CreateChildResult {
-  message: string
-  childId?: number
-}
 
 export async function createChildService(childData: ChildData): Promise<CreateChildResult> {
   try {
@@ -163,22 +132,24 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
         return []
       }
 
-      const mappedChildren = childrenArray.map((child: any) => ({
-        childId: child.childId || child.child_id,
-        fatherId: child.fatherId || child.father_id,
-        dentistId: child.dentistId || child.dentist_id,
-        name: child.name,
-        lastName: child.lastName || child.last_name,
-        gender: child.gender,
-        birthDate: child.birthDate || child.birth_date,
-        morningBrushingTime: child.morningBrushingTime || child.morning_brushing_time,
-        afternoonBrushingTime: child.afternoonBrushingTime || child.afternoon_brushing_time,
-        nightBrushingTime: child.nightBrushingTime || child.night_brushing_time,
-        creationDate: child.creationDate || child.creation_date,
-        lastModificationDate: child.lastModificationDate || child.last_modification_date,
-        isActive: child.isActive !== undefined ? child.isActive : child.is_active,
-        nextAppointment: child.nextAppointment || child.next_appointment || null
-      }))
+      const mappedChildren = childrenArray.map(
+        (child: ChildResponse): ChildResponse => ({
+          childId: child.childId,
+          fatherId: child.fatherId,
+          dentistId: child.dentistId,
+          name: child.name,
+          lastName: child.lastName,
+          gender: child.gender,
+          birthDate: child.birthDate,
+          morningBrushingTime: child.morningBrushingTime,
+          afternoonBrushingTime: child.afternoonBrushingTime,
+          nightBrushingTime: child.nightBrushingTime,
+          creationDate: child.creationDate,
+          lastModificationDate: child.lastModificationDate,
+          isActive: child.isActive,
+          nextAppointment: child.nextAppointment || null
+        })
+      )
 
       return mappedChildren as ChildResponse[]
     } else if (response.status === 404) {
@@ -257,3 +228,5 @@ export async function updateChildService(
     throw error
   }
 }
+export type { ChildResponse }
+export type { ChildData }

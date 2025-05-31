@@ -1,35 +1,11 @@
+import {
+  AppointmentData,
+  AppointmentResponse,
+  CreateAppointmentResult,
+  DeactivateAppointmentData
+} from '../types/appointmentTypes'
+
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
-
-export interface AppointmentData {
-  dentistId: number
-  childId: number
-  reason: string
-  appointmentDatetime: string
-}
-
-export interface AppointmentResponse {
-  appointmentId: number
-  dentistId: number | null
-  fatherId: number | null
-  childId: number | null
-  reason: string
-  appointmentDatetime: string
-  creationDate: string
-  lastModificationDate: string | null
-  isActive: boolean
-  childName?: string
-  childLastname?: string
-}
-
-export interface CreateAppointmentResult {
-  message: string
-}
-
-export interface DeactivateAppointmentData {
-  deactiveAppointmentId: number
-  reason: string
-  type: 'FINISHED' | 'CANCELLED' | 'RESCHEDULED'
-}
 
 /**
  * Service to create a new appointment
@@ -420,3 +396,4 @@ export async function finishAppointmentService(
     type: 'FINISHED'
   })
 }
+export type { AppointmentData, AppointmentResponse }
