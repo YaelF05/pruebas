@@ -1,4 +1,5 @@
 import { ChildData, ChildResponse, CreateChildResult } from '../types/childTypes'
+import { validateName, validateLastName } from '@renderer/utils/validators'
 
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/child'
 
@@ -27,6 +28,16 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       if (!childData[field as keyof ChildData]) {
         throw new Error(`El campo ${field} es requerido`)
       }
+    }
+
+    const nameValidation = validateName(childData.name)
+    if (nameValidation) {
+      throw new Error(nameValidation)
+    }
+
+    const lastNameValidation = validateLastName(childData.lastName)
+    if (lastNameValidation) {
+      throw new Error(lastNameValidation)
     }
 
     const gender = childData.gender.toUpperCase()
@@ -71,7 +82,6 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
         console.error('Error al leer respuesta de error:', e)
       }
 
-      // Manejo de errores específicos según el backend
       switch (response.status) {
         case 400:
           throw new Error(
@@ -205,6 +215,22 @@ export async function updateChildService(
     const authToken = localStorage.getItem('authToken')
     if (!authToken) {
       throw new Error('No se encontró el token de autenticación')
+    }
+
+    if (childData.name !== undefined) {
+      const nameValidation = validateName(childData.name)
+      if (nameValidation) {
+        throw new Error(nameValidation)
+      }
+      childData.name = childData.name.trim()
+    }
+
+    if (childData.lastName !== undefined) {
+      const lastNameValidation = validateLastName(childData.lastName)
+      if (lastNameValidation) {
+        throw new Error(lastNameValidation)
+      }
+      childData.lastName = childData.lastName.trim()
     }
 
     const response = await fetch(`${API_BASE_URL}/${childId}`, {

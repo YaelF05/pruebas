@@ -230,7 +230,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     const newTime = e.target.value
     setAppointmentTime(newTime)
 
-    // Si ya hay una fecha seleccionada, validar la combinación
     if (appointmentDate && newTime) {
       if (!isDateTimeFuture(appointmentDate, newTime)) {
         setError('La fecha y hora seleccionadas deben ser futuras')

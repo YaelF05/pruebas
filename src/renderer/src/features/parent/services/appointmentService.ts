@@ -25,7 +25,6 @@ export async function createAppointmentService(
       )
     }
 
-    // Validar datos antes de enviar
     if (!appointmentData.dentistId || appointmentData.dentistId <= 0) {
       throw new Error('ID de dentista inválido')
     }
@@ -34,12 +33,17 @@ export async function createAppointmentService(
       throw new Error('ID de hijo inválido')
     }
 
-    if (!appointmentData.reason.trim()) {
+    const reasonTrimmed = appointmentData.reason.trim()
+    if (!reasonTrimmed) {
       throw new Error('El motivo de la cita es requerido')
     }
 
-    if (appointmentData.reason.trim().length < 10) {
+    if (reasonTrimmed.length < 10) {
       throw new Error('El motivo debe tener al menos 10 caracteres')
+    }
+
+    if (reasonTrimmed.length > 255) {
+      throw new Error('El motivo no puede tener más de 255 caracteres')
     }
 
     let formattedDateTime = appointmentData.appointmentDatetime
@@ -57,7 +61,6 @@ export async function createAppointmentService(
       if (formattedDateTime.match(/\d{2}:\d{2}$/)) {
         formattedDateTime = formattedDateTime + ':00'
       } else {
-        // Si no tiene el formato correcto, reconstruir desde el objeto Date
         const date = new Date(appointmentData.appointmentDatetime)
         const year = date.getFullYear()
         const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -84,7 +87,7 @@ export async function createAppointmentService(
     const requestBody = {
       dentistId: appointmentData.dentistId,
       childId: appointmentData.childId,
-      reason: appointmentData.reason.trim(),
+      reason: reasonTrimmed,
       appointmentDatetime: formattedDateTime
     }
 
@@ -114,7 +117,6 @@ export async function createAppointmentService(
         console.error('Error al leer respuesta de error:', e)
       }
 
-      // Mensajes específicos según el código de error
       switch (response.status) {
         case 400:
           throw new Error(
@@ -300,17 +302,24 @@ export async function deactivateAppointmentService(
       throw new Error('Tipo de desactivación inválido')
     }
 
-    if (!deactivateData.reason.trim()) {
+    const reasonTrimmed = deactivateData.reason.trim()
+    if (!reasonTrimmed) {
       throw new Error('El motivo es requerido')
+    }
+
+    if (reasonTrimmed.length < 5) {
+      throw new Error('El motivo debe tener al menos 5 caracteres')
+    }
+
+    if (reasonTrimmed.length > 255) {
+      throw new Error('El motivo no puede tener más de 255 caracteres')
     }
 
     const requestBody = {
       deactiveAppointmentId: deactivateData.deactiveAppointmentId,
-      reason: deactivateData.reason.trim(),
+      reason: reasonTrimmed,
       type: deactivateData.type
     }
-
-    console.log('Desactivando cita:', requestBody)
 
     const response = await fetch(`${API_BASE_URL}/appointment/deactivate`, {
       method: 'PUT',
@@ -356,7 +365,6 @@ export async function deactivateAppointmentService(
     }
 
     const data = await response.json()
-    console.log('Cita desactivada exitosamente:', data)
     return data
   } catch (error) {
     console.error('Error en deactivateAppointmentService:', error)

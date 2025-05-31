@@ -3,6 +3,7 @@ import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
 import { ChildData } from '../types/childTypes'
 import { getDentistsForSelectService } from '../services/dentistService'
+import { validateName, validateLastName, validateBirthDate } from '@renderer/utils/validators'
 import styles from '../styles/addChildForm.module.css'
 
 // Tipos de errores que coinciden exactamente con las validaciones del backend
@@ -87,41 +88,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     }
   }
 
-  const validateName = (name: string): string | undefined => {
-    if (!name || !name.trim()) {
-      return 'El nombre es requerido'
-    }
-    if (name.trim().length < 2) {
-      return 'El nombre debe tener al menos 2 caracteres'
-    }
-    if (name.trim().length > 255) {
-      return 'El nombre no puede tener más de 255 caracteres'
-    }
-    // Validar solo letras, espacios, acentos y ñ
-    const nameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/
-    if (!nameRegex.test(name.trim())) {
-      return 'El nombre solo puede contener letras y espacios'
-    }
-    return undefined
-  }
-
-  const validateLastName = (lastName: string): string | undefined => {
-    if (!lastName || !lastName.trim()) {
-      return 'El apellido es requerido'
-    }
-    if (lastName.trim().length < 2) {
-      return 'El apellido debe tener al menos 2 caracteres'
-    }
-    if (lastName.trim().length > 255) {
-      return 'El apellido no puede tener más de 255 caracteres'
-    }
-    const lastNameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/
-    if (!lastNameRegex.test(lastName.trim())) {
-      return 'El apellido solo puede contener letras y espacios'
-    }
-    return undefined
-  }
-
   const validateGender = (gender: string): string | undefined => {
     if (!gender) {
       return 'El género es requerido'
@@ -132,17 +98,16 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  const validateBirthDate = (birthDate: string): string | undefined => {
-    if (!birthDate) {
-      return 'La fecha de nacimiento es requerida'
+  const validateChildBirthDate = (birthDate: string): string | undefined => {
+    // Usar el validador base de utils
+    const baseValidation = validateBirthDate(birthDate)
+    if (baseValidation) {
+      return baseValidation
     }
 
+    // Validaciones específicas para niños
     const birth = new Date(birthDate)
     const today = new Date()
-
-    if (isNaN(birth.getTime())) {
-      return 'La fecha de nacimiento no es válida'
-    }
 
     if (birth > today) {
       return 'La fecha de nacimiento no puede ser futura'
@@ -211,10 +176,11 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       return
     }
 
+    // Usar validadores de utils donde es posible
     const nameError = validateName(formData.name)
     const lastNameError = validateLastName(formData.lastName)
     const genderError = validateGender(formData.gender)
-    const birthDateError = validateBirthDate(formData.birthDate)
+    const birthDateError = validateChildBirthDate(formData.birthDate)
     const dentistError = validateDentist(formData.dentistId)
     const morningTimeError = validateTime(formData.morningBrushingTime, 'cepillado matutino')
     const afternoonTimeError = validateTime(formData.afternoonBrushingTime, 'cepillado vespertino')
