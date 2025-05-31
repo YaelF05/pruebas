@@ -82,7 +82,7 @@ const HomePage: FC = () => {
     }
   }
 
-  const loadBrushingDataForChildren = async (childrenList: ChildResponse[]) => {
+  const loadBrushingDataForChildren = async (childrenList: ChildResponse[]): Promise<void> => {
     try {
       const brushingDataPromises = childrenList.map(async (child) => {
         const todayRecords = await getTodayBrushRecordsService(child.childId)
@@ -224,7 +224,7 @@ const HomePage: FC = () => {
     return days
   }
 
-  const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night') => {
+  const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night'): Promise<void> => {
     if (!selectedChild) return
 
     const currentData = childrenBrushingData[selectedChild.childId]

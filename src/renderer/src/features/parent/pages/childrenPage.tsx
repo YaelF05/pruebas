@@ -21,7 +21,7 @@ const ChildrenPage: FC = () => {
     loadChildren()
   }, [])
 
-  const loadChildren = async () => {
+  const loadChildren = async (): Promise<void> => {
     try {
       setIsLoading(true)
       setError(null)

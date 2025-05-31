@@ -22,7 +22,7 @@ const ProfileSelection: FC = () => {
     fetchProfiles()
   }, [])
 
-  const extractUserInfoFromToken = () => {
+  const extractUserInfoFromToken = (): { userId: number; email: string; type: string } | null => {
     const authToken = localStorage.getItem('authToken')
     if (!authToken) return null
 
@@ -39,7 +39,7 @@ const ProfileSelection: FC = () => {
     }
   }
 
-  const fetchProfiles = async () => {
+  const fetchProfiles = async (): Promise<void> => {
     try {
       setLoading(true)
       setError(null)

@@ -45,12 +45,16 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) {
-      resetForm()
+      setSelectedChildId(children.length > 0 ? children[0].childId : null)
+      setAppointmentDate('')
+      setAppointmentTime('')
+      setReason('')
+      setError(null)
       setShowSuccess(false)
     }
-  }, [isOpen])
+  }, [isOpen, children])
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setSelectedChildId(children.length > 0 ? children[0].childId : null)
     setAppointmentDate('')
     setAppointmentTime('')
@@ -58,7 +62,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     setError(null)
   }
 
-  const loadDentist = async () => {
+  const loadDentist = async (): Promise<void> => {
     try {
       setIsLoadingDentist(true)
       const dentistData = await getDentistByIdService(dentistId)
@@ -71,7 +75,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  const loadChildren = async () => {
+  const loadChildren = async (): Promise<void> => {
     try {
       setIsLoadingChildren(true)
       setError(null)
@@ -205,7 +209,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     return null
   }
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newDate = e.target.value
     setAppointmentDate(newDate)
 
@@ -226,7 +230,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newTime = e.target.value
     setAppointmentTime(newTime)
 
@@ -245,7 +249,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     setError(null)
 
@@ -301,7 +305,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  const handleSuccessContinue = () => {
+  const handleSuccessContinue = (): void => {
     setShowSuccess(false)
 
     resetForm()

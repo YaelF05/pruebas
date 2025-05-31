@@ -57,7 +57,7 @@ const DentistsDirectory: FC = () => {
     })
   }
 
-  const loadDentists = async () => {
+  const loadDentists = async (): Promise<void> => {
     try {
       setLoading(true)
       setError(null)
@@ -126,7 +126,7 @@ const DentistsDirectory: FC = () => {
     }
   }
 
-  const handleToggleDistanceSort = () => {
+  const handleToggleDistanceSort = (): void => {
     const newSortByDistance = !sortByDistance
     setSortByDistance(newSortByDistance)
 

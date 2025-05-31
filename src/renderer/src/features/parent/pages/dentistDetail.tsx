@@ -26,7 +26,7 @@ const DentistDetail: React.FC = () => {
     }
   }, [dentistId])
 
-  const loadDentistData = async (id: number) => {
+  const loadDentistData = async (id: number): Promise<void> => {
     try {
       setLoading(true)
       setError(null)

@@ -41,7 +41,7 @@ const AppointmentsPage: FC = () => {
     fetchAllData()
   }, [])
 
-  const fetchAllData = async () => {
+  const fetchAllData = async (): Promise<void> => {
     try {
       setLoading(true)
       setError(null)
@@ -139,13 +139,12 @@ const AppointmentsPage: FC = () => {
     }
   }
 
-  const handleCancel = async (appointmentId: string): Promise<void> => {
+  const handleCancel = async (): Promise<void> => {
     try {
       const reason = prompt('Motivo de la cancelación')
       if (!reason) return
 
       if (!confirm('¿Está seguro de cancelar esta cita?')) return
-
       await fetchAllData()
 
       alert('Cita cancelada exitosamente')
