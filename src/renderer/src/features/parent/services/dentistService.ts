@@ -1,5 +1,3 @@
-import { ReactNode } from 'react'
-
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/dentist'
 
 export interface DentistResponse {
@@ -52,7 +50,6 @@ export async function getDentistsService(): Promise<DentistResponse[]> {
 
     const data = await response.json()
 
-    // Manejar diferentes formatos de respuesta
     if (Array.isArray(data)) {
       return data as DentistResponse[]
     } else if (data.items && Array.isArray(data.items)) {
@@ -168,9 +165,8 @@ export async function getDentistsForSelectService(): Promise<DentistListItem[]> 
     }))
   } catch (error) {
     console.error('Get dentists for select service error:', error)
-    
-    // En caso de error, retornar array vacío para que el formulario pueda continuar
-    console.warn('No se pudieron cargar los dentistas, retornando array vacío')
+
+    console.warn('No se pudieron cargar los dentistas')
     return []
   }
 }

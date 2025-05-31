@@ -1,4 +1,3 @@
-// src/renderer/src/features/parent/services/userServices.ts
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
 
 export interface UserProfileResponse {
@@ -27,9 +26,6 @@ export async function getUserProfileService(): Promise<UserProfileResponse> {
       return extractUserFromToken()
     }
 
-    console.log('Intentando obtener perfil del usuario desde API...')
-
-    // Intentar obtener desde la API
     try {
       const response = await fetch(`${API_BASE_URL}/user/profile`, {
         method: 'GET',
@@ -41,7 +37,6 @@ export async function getUserProfileService(): Promise<UserProfileResponse> {
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Perfil de usuario recibido desde API:', data)
         return data as UserProfileResponse
       } else {
         console.warn(
@@ -55,14 +50,10 @@ export async function getUserProfileService(): Promise<UserProfileResponse> {
     }
   } catch (error) {
     console.error('Error general en getUserProfileService:', error)
-    // Como último recurso, extraer del token
     return extractUserFromToken()
   }
 }
 
-/**
- * Extraer información del usuario desde el token JWT
- */
 function extractUserFromToken(): UserProfileResponse {
   try {
     const authToken = localStorage.getItem('authToken')
@@ -70,8 +61,6 @@ function extractUserFromToken(): UserProfileResponse {
       console.warn('No token found, usando perfil por defecto')
       return getDefaultProfile()
     }
-
-    // Decodificar el payload del JWT
     const parts = authToken.split('.')
     if (parts.length !== 3) {
       console.warn('Token JWT inválido, usando perfil por defecto')
@@ -79,9 +68,7 @@ function extractUserFromToken(): UserProfileResponse {
     }
 
     const payload = JSON.parse(atob(parts[1]))
-    console.log('Extrayendo información desde JWT payload:', payload)
 
-    // Crear un perfil básico basado en el token
     return {
       userId: payload.userId || payload.user_id || 1,
       name: payload.name || 'Usuario',
@@ -98,9 +85,6 @@ function extractUserFromToken(): UserProfileResponse {
   }
 }
 
-/**
- * Obtener perfil por defecto cuando no hay otra opción
- */
 function getDefaultProfile(): UserProfileResponse {
   return {
     userId: 1,
@@ -130,13 +114,11 @@ export async function updateUserProfileService(
       throw new Error('No authentication token found')
     }
 
-    console.log('Actualizando perfil del usuario:', updateData)
-
     const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       },
       body: JSON.stringify(updateData)
     })
@@ -146,7 +128,6 @@ export async function updateUserProfileService(
     }
 
     const data = await response.json()
-    console.log('Perfil actualizado exitosamente:', data)
     return data
   } catch (error) {
     console.error('Error en updateUserProfileService:', error)

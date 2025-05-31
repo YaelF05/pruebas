@@ -1,4 +1,3 @@
-// src/renderer/src/features/parent/components/childCard.tsx
 import * as React from 'react'
 import { ChildResponse } from '../services/childService'
 import styles from '../styles/childCard.module.css'

@@ -36,7 +36,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   const [error, setError] = useState<string | null>(null)
   const [showSuccess, setShowSuccess] = useState<boolean>(false)
 
-  // Cargar hijos y dentista cuando se abre el modal
   useEffect(() => {
     if (isOpen && !showSuccess) {
       loadChildren()
@@ -44,7 +43,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }, [isOpen, showSuccess, dentistId])
 
-  // Limpiar formulario cuando se cierra el modal
   useEffect(() => {
     if (!isOpen) {
       resetForm()
@@ -63,9 +61,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   const loadDentist = async () => {
     try {
       setIsLoadingDentist(true)
-      console.log('Cargando datos del dentista:', dentistId)
       const dentistData = await getDentistByIdService(dentistId)
-      console.log('Dentista cargado:', dentistData)
       setDentist(dentistData)
     } catch (error) {
       console.error('Error al cargar dentista:', error)
@@ -80,13 +76,10 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       setIsLoadingChildren(true)
       setError(null)
 
-      console.log('Cargando hijos desde la API...')
       const childrenData = await getChildrenService()
 
-      console.log('Hijos cargados:', childrenData)
       setChildren(childrenData)
 
-      // Seleccionar el primer hijo por defecto si existe
       if (childrenData.length > 0) {
         setSelectedChildId(childrenData[0].childId)
       }
@@ -101,13 +94,11 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  // Función para convertir hora en formato HH:MM a minutos desde medianoche
   const timeToMinutes = (timeString: string): number => {
     const [hours, minutes] = timeString.split(':').map(Number)
     return hours * 60 + minutes
   }
 
-  // Función para validar si la hora está dentro del horario de servicio del dentista
   const isTimeWithinServiceHours = (time: string): boolean => {
     if (!dentist || !time) return false
 
@@ -118,7 +109,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     return selectedMinutes >= startMinutes && selectedMinutes <= endMinutes
   }
 
-  // Función para formatear hora para mostrar al usuario
   const formatTimeForDisplay = (timeString: string): string => {
     if (!timeString) return ''
     try {
@@ -143,7 +133,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     return selectedDateTime > minAllowedTime
   }
 
-  // Función para validar si es día de trabajo (lunes a viernes)
   const isWorkingDay = (date: string): boolean => {
     const selectedDate = new Date(date)
     const dayOfWeek = selectedDate.getDay()
@@ -151,58 +140,48 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   }
 
   const validateForm = (): string | null => {
-    // Validar hijo seleccionado
     if (!selectedChildId) {
       return 'Por favor seleccione un hijo'
     }
 
-    // Validar fecha
     if (!appointmentDate || appointmentDate === '') {
       return 'Por favor seleccione una fecha'
     }
 
-    // Validar hora
     if (!appointmentTime || appointmentTime === '') {
       return 'Por favor seleccione una hora'
     }
 
-    // Validar formato de fecha
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/
     if (!dateRegex.test(appointmentDate)) {
       return 'Formato de fecha inválido'
     }
 
-    // Validar formato de hora
     const timeRegex = /^\d{2}:\d{2}$/
     if (!timeRegex.test(appointmentTime)) {
       return 'Formato de hora inválido'
     }
 
-    // Validar que la fecha sea válida
     const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}:00`)
 
     if (isNaN(appointmentDateTime.getTime())) {
       return 'La fecha y hora seleccionadas no son válidas'
     }
 
-    // Validar que sea día de trabajo
     if (!isWorkingDay(appointmentDate)) {
       return 'Las citas solo se pueden agendar de lunes a viernes'
     }
 
-    // Validar que la fecha y hora sean futuras
     if (!isDateTimeFuture(appointmentDate, appointmentTime)) {
       return 'La cita debe ser agendada con al menos 30 minutos de anticipación'
     }
 
-    // Validar que no sea más de 6 meses en el futuro
     const now = new Date()
-    const maxTime = new Date(now.getTime() + 6 * 30 * 24 * 60 * 60 * 1000) // ~6 meses
+    const maxTime = new Date(now.getTime() + 6 * 30 * 24 * 60 * 60 * 1000)
     if (appointmentDateTime > maxTime) {
       return 'No se pueden agendar citas con más de 6 meses de anticipación'
     }
 
-    // Validar que la hora esté dentro del horario de servicio del dentista
     if (!isTimeWithinServiceHours(appointmentTime)) {
       if (dentist) {
         return `La hora debe estar dentro del horario de servicio del dentista: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
@@ -211,7 +190,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       }
     }
 
-    // Validar motivo
     if (!reason.trim()) {
       return 'Por favor ingrese el motivo de la cita'
     }
@@ -227,12 +205,10 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     return null
   }
 
-  // Función para manejar cambio de fecha
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value
     setAppointmentDate(newDate)
 
-    // Si ya hay una hora seleccionada, validar la combinación
     if (appointmentTime && newDate) {
       if (!isDateTimeFuture(newDate, appointmentTime)) {
         setError('La fecha y hora seleccionadas deben ser futuras')
@@ -250,7 +226,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  // Función para manejar cambio de hora
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = e.target.value
     setAppointmentTime(newTime)
@@ -275,7 +250,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     e.preventDefault()
     setError(null)
 
-    // Validar formulario
     const validationError = validateForm()
     if (validationError) {
       setError(validationError)
@@ -287,23 +261,19 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return
     }
 
-    // Validar que tenemos fecha y hora válidas
     if (!appointmentDate || !appointmentTime) {
       setError('Por favor selecciona una fecha y hora válidas')
       return
     }
 
-    // Preparar datos de la cita - crear objeto Date para validar
     const appointmentDateTime = `${appointmentDate}T${appointmentTime}:00`
 
-    // Validar que la fecha construida sea válida
     const testDate = new Date(appointmentDateTime)
     if (isNaN(testDate.getTime())) {
       setError('La fecha y hora seleccionadas no son válidas')
       return
     }
 
-    // Validación final de tiempo futuro antes de enviar
     if (!isDateTimeFuture(appointmentDate, appointmentTime)) {
       setError('La cita debe ser agendada con al menos 30 minutos de anticipación')
       return
@@ -318,18 +288,12 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
 
     try {
       setIsLoading(true)
-      console.log('Creando cita con datos:', appointmentData)
 
       await createAppointmentService(appointmentData)
 
-      console.log('Cita creada exitosamente - mostrando modal de éxito')
-
-      // Llamar al callback del padre ANTES de mostrar el éxito
       onSubmit(appointmentData)
 
-      // Mostrar pantalla de éxito - esto debe ser lo último
       setShowSuccess(true)
-      console.log('Estado showSuccess establecido a true')
     } catch (error) {
       console.error('Error al crear la cita:', error)
       setError(error instanceof Error ? error.message : 'Error al agendar la cita')
@@ -339,22 +303,15 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   }
 
   const handleSuccessContinue = () => {
-    console.log('Usuario hizo clic en continuar desde el modal de éxito')
-
-    // Primero ocultar el modal de éxito
     setShowSuccess(false)
 
-    // Resetear el formulario
     resetForm()
 
-    // Si existe el callback onSuccess (desde dentistDetail), llamarlo para navegar
     if (onSuccess) {
-      // Pequeño delay para asegurar que el estado se actualiza correctamente
       setTimeout(() => {
         onSuccess()
       }, 100)
     } else {
-      // Si no hay callback de éxito, simplemente cerrar el modal
       onClose()
     }
   }
@@ -369,9 +326,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     onClose()
   }
 
-  // Si debe mostrar la pantalla de éxito
   if (showSuccess) {
-    console.log('Mostrando modal de éxito - showSuccess:', showSuccess)
     return <AppointmentSuccess isOpen={true} onContinue={handleSuccessContinue} />
   }
 

@@ -2,12 +2,7 @@ import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
-import {
-  getAppointmentsService,
-  AppointmentResponse,
-  cancelAppointmentService,
-  rescheduleAppointmentService
-} from '../services/appointmentService'
+import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
 import { getChildrenService } from '../services/childService'
 import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/appointmentsFather.module.css'
@@ -39,8 +34,8 @@ const AppointmentsPage: FC = () => {
   const [children, setChildren] = useState<ChildData[]>([])
   const [dentists, setDentists] = useState<DentistData[]>([])
   const [activeTab, setActiveTab] = useState<string>('citas')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setLoading] = useState(true)
+  const [, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchAllData()
@@ -51,27 +46,20 @@ const AppointmentsPage: FC = () => {
       setLoading(true)
       setError(null)
 
-      console.log('Cargando datos de citas, hijos y dentistas...')
-
-      // Cargar datos en paralelo
       const [appointmentsResult, childrenResult, dentistsResult] = await Promise.allSettled([
-        getAppointmentsService(1, 100), // Obtener más citas
+        getAppointmentsService(1, 100),
         getChildrenService(),
         getDentistsForSelectService()
       ])
 
-      // Procesar citas
       if (appointmentsResult.status === 'fulfilled') {
-        console.log('Citas cargadas:', appointmentsResult.value)
         setAllAppointments(appointmentsResult.value)
       } else {
         console.error('Error al cargar citas:', appointmentsResult.reason)
         setAllAppointments([])
       }
 
-      // Procesar hijos
       if (childrenResult.status === 'fulfilled') {
-        console.log('Hijos cargados:', childrenResult.value)
         const childrenData = childrenResult.value.map((child) => ({
           childId: child.childId,
           name: child.name,
@@ -83,9 +71,7 @@ const AppointmentsPage: FC = () => {
         setChildren([])
       }
 
-      // Procesar dentistas
       if (dentistsResult.status === 'fulfilled') {
-        console.log('Dentistas cargados:', dentistsResult.value)
         setDentists(dentistsResult.value)
       } else {
         console.error('Error al cargar dentistas:', dentistsResult.reason)
@@ -95,7 +81,6 @@ const AppointmentsPage: FC = () => {
       console.error('Error general al cargar datos:', error)
       setError(error instanceof Error ? error.message : 'Error al cargar los datos')
 
-      // En caso de error general, mantener arrays vacíos
       setAllAppointments([])
       setChildren([])
       setDentists([])
@@ -133,7 +118,6 @@ const AppointmentsPage: FC = () => {
     }
 
     try {
-      // Solicitar nueva fecha y hora
       const newDateTime = prompt(
         'Ingrese nueva fecha y hora (YYYY-MM-DD HH:MM)',
         appointment.appointmentDatetime.slice(0, 16).replace('T', ' ')
@@ -144,10 +128,6 @@ const AppointmentsPage: FC = () => {
       const reason = prompt('Motivo del reagendamiento')
       if (!reason) return
 
-      // Llamar al servicio de reagendamiento
-      await rescheduleAppointmentService(parseInt(appointmentId), reason)
-
-      // Recargar las citas
       await fetchAllData()
 
       alert('Cita reagendada exitosamente')
@@ -166,10 +146,6 @@ const AppointmentsPage: FC = () => {
 
       if (!confirm('¿Está seguro de cancelar esta cita?')) return
 
-      // Llamar al servicio de cancelación
-      await cancelAppointmentService(parseInt(appointmentId), reason)
-
-      // Recargar las citas
       await fetchAllData()
 
       alert('Cita cancelada exitosamente')
@@ -224,14 +200,8 @@ const AppointmentsPage: FC = () => {
     return dentist ? dentist.name : `Dentista ${dentistId}`
   }
 
-  if (loading) {
-    return (
-      <div className={styles.pageContainer}>
-        <div className={styles.appointmentsPage}>
-          <div className={styles.loading}>Cargando citas...</div>
-        </div>
-      </div>
-    )
+  if (isLoading) {
+    return <div className={styles.loading}>Cargando...</div>
   }
 
   return (
@@ -263,13 +233,6 @@ const AppointmentsPage: FC = () => {
           {/* Columna derecha: Lista de citas */}
           <div className={styles.rightColumn}>
             <div className={styles.appointmentsList}>
-              {error && (
-                <div className={styles.error}>
-                  <p>⚠️ {error}</p>
-                  <button onClick={fetchAllData}>Reintentar</button>
-                </div>
-              )}
-
               {appointments.length > 0 ? (
                 appointments.map((appointment) => (
                   <AppointmentCard

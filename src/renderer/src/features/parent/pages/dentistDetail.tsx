@@ -7,7 +7,6 @@ import ScheduleAppointmentModal from '../components/scheduleAppointment'
 import styles from '../styles/dentistDetail.module.css'
 import Phone from '@renderer/assets/icons/phone.png'
 import Mail from '@renderer/assets/icons/mail.png'
-//import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 const DentistDetail: React.FC = () => {
   const { dentistId } = useParams<{ dentistId: string }>()
@@ -15,7 +14,7 @@ const DentistDetail: React.FC = () => {
 
   const [dentist, setDentist] = useState<DentistResponse | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -32,10 +31,8 @@ const DentistDetail: React.FC = () => {
       setLoading(true)
       setError(null)
 
-      console.log(`Cargando datos del dentista ID: ${id}`)
       const dentistData = await getDentistByIdService(id)
 
-      console.log('Datos del dentista cargados:', dentistData)
       setDentist(dentistData)
     } catch (error) {
       console.error('Error al cargar dentista:', error)
@@ -54,8 +51,6 @@ const DentistDetail: React.FC = () => {
   }
 
   const handleAppointmentSuccess = (): void => {
-    console.log('Usuario confirmó el éxito de la cita, cerrando modal y navegando...')
-
     setIsModalOpen(false)
 
     setTimeout(() => {
@@ -78,6 +73,10 @@ const DentistDetail: React.FC = () => {
     return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`
   }
 
+  if (isLoading) {
+    return <div className={styles.loading}>Cargando...</div>
+  }
+
   if (!dentistId) {
     return (
       <div className={styles.container}>
@@ -85,17 +84,6 @@ const DentistDetail: React.FC = () => {
           <BackButton />
         </div>
         <div className={styles.error}>ID de dentista no proporcionado.</div>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <BackButton />
-        </div>
-        <div className={styles.loading}>Cargando información del dentista...</div>
       </div>
     )
   }

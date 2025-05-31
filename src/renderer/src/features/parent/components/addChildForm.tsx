@@ -23,24 +23,22 @@ interface AddChildFormProps {
 }
 
 const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
-  // Estado inicial que coincide EXACTAMENTE con el schema del backend
   const [formData, setFormData] = useState<ChildData>({
     name: '',
     lastName: '',
-    gender: 'M', // Valor por defecto válido según enum ['M', 'F'] del backend
+    gender: 'M',
     birthDate: '',
-    dentistId: 0, // Se establecerá cuando se carguen los dentistas
-    morningBrushingTime: '08:00', // Formato HH:MM según schema text(8) del backend
+    dentistId: 0,
+    morningBrushingTime: '08:00',
     afternoonBrushingTime: '14:00',
     nightBrushingTime: '20:00'
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
   const [dentists, setDentists] = useState<{ userId: number; name: string }[]>([])
-  const [loadingDentists, setLoadingDentists] = useState(true)
+  const [, setLoadingDentists] = useState(true)
   const [dentistLoadError, setDentistLoadError] = useState<string | null>(null)
 
-  // Cargar dentistas al montar el componente
   useEffect(() => {
     const loadDentists = async () => {
       try {
@@ -50,11 +48,10 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
         const dentistsList = await getDentistsForSelectService()
 
         if (dentistsList.length === 0) {
-          setDentistLoadError('No hay dentistas disponibles. Contacte al administrador.')
+          setDentistLoadError('No hay dentistas disponibles.')
           setDentists([])
         } else {
           setDentists(dentistsList)
-          // Seleccionar el primer dentista por defecto (requerido por el backend)
           setFormData((prev) => ({
             ...prev,
             dentistId: dentistsList[0].userId
@@ -82,7 +79,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       [name]: name === 'dentistId' ? parseInt(value) || 0 : value
     }))
 
-    // Limpiar errores cuando el usuario modifica el campo
     if (errors[name as keyof FormErrors]) {
       setErrors({
         ...errors,
@@ -91,12 +87,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     }
   }
 
-  // Validaciones que coinciden EXACTAMENTE con el backend
-
-  /**
-   * Validación de nombre - Backend: schema text(255).notNull()
-   * Controller requiere: 'name' en requiredFields (línea 31)
-   */
   const validateName = (name: string): string | undefined => {
     if (!name || !name.trim()) {
       return 'El nombre es requerido'
@@ -115,10 +105,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  /**
-   * Validación de apellido - Backend: schema text(255).notNull()
-   * Controller requiere: 'lastName' en requiredFields (línea 31)
-   */
   const validateLastName = (lastName: string): string | undefined => {
     if (!lastName || !lastName.trim()) {
       return 'El apellido es requerido'
@@ -176,11 +162,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  /**
-   * Validación de dentista - Backend: int().references(dentistTable.userId)
-   * Controller requiere: 'dentistId' en requiredFields (línea 31)
-   * Service: se usa el dentistId directamente sin validación adicional
-   */
   const validateDentist = (dentistId: number): string | undefined => {
     if (!dentistId || dentistId === 0) {
       return 'Debe seleccionar un dentista'
@@ -191,16 +172,11 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  /**
-   * Validación de horarios - Backend: schema text(8).notNull()
-   * Controller requiere: 'morningBrushingTime', 'afternoonBrushingTime', 'nightBrushingTime' (línea 32-34)
-   */
   const validateTime = (time: string, label: string): string | undefined => {
     if (!time) {
       return `La hora de ${label} es requerida`
     }
 
-    // Validar formato HH:MM (texto de 8 caracteres máximo según schema)
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
     if (!timeRegex.test(time)) {
       return `La hora de ${label} debe tener formato HH:MM válido (ej: 08:00)`
@@ -227,14 +203,9 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  /**
-   * Manejo del envío del formulario
-   * Validaciones que coinciden con backend controller isValidData method (líneas 29-35)
-   */
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
 
-    // Verificar que hay dentistas disponibles
     if (dentists.length === 0) {
       setErrors({ dentistId: 'No hay dentistas disponibles. No se puede crear el niño.' })
       return
@@ -261,12 +232,10 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     if (afternoonTimeError) newErrors.afternoonBrushingTime = afternoonTimeError
     if (nightTimeError) newErrors.nightBrushingTime = nightTimeError
 
-    // Agregar error de conflicto de horarios al primer campo disponible
     if (timeConflictError && !newErrors.morningBrushingTime) {
       newErrors.morningBrushingTime = timeConflictError
     }
 
-    // Si hay errores, mostrarlos y no enviar
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       console.warn('Errores de validación:', newErrors)
@@ -284,30 +253,18 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       nightBrushingTime: formData.nightBrushingTime
     }
 
-    console.log('Datos validados para envío al backend:', submitData)
     onSubmit(submitData)
   }
 
-  // Opciones para el selector de género (según schema enum)
   const genderOptions = [
     { label: 'Masculino', value: 'M' },
     { label: 'Femenino', value: 'F' }
   ]
 
-  // Opciones para el selector de dentistas
   const dentistOptions = dentists.map((dentist) => ({
     label: dentist.name,
     value: dentist.userId.toString()
   }))
-
-  // Mostrar loading mientras se cargan los dentistas
-  if (loadingDentists) {
-    return (
-      <div className={styles.loading}>
-        <p>Cargando dentistas disponibles...</p>
-      </div>
-    )
-  }
 
   return (
     <form onSubmit={handleSubmit} className={styles.addChildForm}>

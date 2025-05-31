@@ -1,7 +1,5 @@
-// src/renderer/src/features/parent/services/childService.ts
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api/child'
 
-// Tipos que coinciden exactamente con el backend
 export interface ChildData {
   name: string
   lastName: string
@@ -35,13 +33,6 @@ export interface CreateChildResult {
   childId?: number
 }
 
-/**
- * Service to create a new child - Alineado exactamente con el backend
- * Backend controller: src/modules/child/child.controller.ts
- * Backend service: src/modules/child/child.service.ts
- * Backend DAO: src/modules/child/child.dao.ts
- * Backend schema: src/config/db/schema.ts (childTable)
- */
 export async function createChildService(childData: ChildData): Promise<CreateChildResult> {
   try {
     const authToken = localStorage.getItem('authToken')
@@ -52,11 +43,15 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       )
     }
 
-    // Validaciones que coinciden con el backend controller (isValidData method)
-    // Basado en: src/modules/child/child.controller.ts líneas 29-35
     const requiredFields = [
-      'name', 'lastName', 'dentistId', 'gender', 'birthDate', 
-      'morningBrushingTime', 'afternoonBrushingTime', 'nightBrushingTime'
+      'name',
+      'lastName',
+      'dentistId',
+      'gender',
+      'birthDate',
+      'morningBrushingTime',
+      'afternoonBrushingTime',
+      'nightBrushingTime'
     ]
 
     for (const field of requiredFields) {
@@ -65,15 +60,11 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       }
     }
 
-    // Validación específica de género (según controller líneas 40-42)
     const gender = childData.gender.toUpperCase()
     if (gender !== 'M' && gender !== 'F') {
       throw new Error('El género debe ser M o F')
     }
 
-    // Preparar el body exactamente como lo espera el backend
-    // Según el schema: childTable en src/config/db/schema.ts
-    // El backend service añade fatherId del JWT (línea 25): fatherId: this.jwtPayload.userId
     const requestBody = {
       name: childData.name.trim(),
       lastName: childData.lastName.trim(),
@@ -85,10 +76,8 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       nightBrushingTime: childData.nightBrushingTime
     }
 
-    console.log('Enviando datos del niño (alineado con backend):', requestBody)
-
     const response = await fetch(API_BASE_URL, {
-      method: 'PUT', // Según la ruta: childRouter.put('/', ...)
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`
@@ -98,11 +87,11 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
 
     if (!response.ok) {
       let errorMessage = `Error al crear el niño: ${response.status}`
-      
+
       try {
         const errorData = await response.text()
         console.error('Error del servidor:', errorData)
-        
+
         try {
           const parsedError = JSON.parse(errorData)
           errorMessage = parsedError.message || errorData
@@ -112,11 +101,13 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
       } catch (e) {
         console.error('Error al leer respuesta de error:', e)
       }
-      
+
       // Manejo de errores específicos según el backend
       switch (response.status) {
         case 400:
-          throw new Error('Datos del niño inválidos. Verifica que todos los campos estén completos.')
+          throw new Error(
+            'Datos del niño inválidos. Verifica que todos los campos estén completos.'
+          )
         case 401:
           throw new Error('No tienes autorización. Por favor, inicia sesión nuevamente.')
         case 409:
@@ -135,7 +126,6 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
     }
 
     const data = await response.json()
-    console.log('Niño creado exitosamente:', data)
     return data as CreateChildResult
   } catch (error) {
     console.error('Error en createChildService:', error)
@@ -143,15 +133,8 @@ export async function createChildService(childData: ChildData): Promise<CreateCh
   }
 }
 
-/**
- * Service to get children for the current user
- * Endpoint: GET /api/child
- * Backend: src/modules/child/child.controller.ts - fetchChilds method
- */
 export async function getChildrenService(): Promise<ChildResponse[]> {
   try {
-    console.log('Obteniendo lista de hijos...')
-
     const authToken = localStorage.getItem('authToken')
     if (!authToken) {
       console.warn('No se encontró token de autenticación')
@@ -159,7 +142,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     }
 
     const response = await fetch(API_BASE_URL, {
-      method: 'GET', // Según la ruta: childRouter.get('/', ...)
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`
@@ -168,10 +151,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
 
     if (response.ok) {
       const data = await response.json()
-      console.log('Respuesta del backend:', data)
 
-      // El backend devuelve datos paginados: { page, limit, totalPages, items }
-      // Según: src/utils/pagination.ts
       let childrenArray: any[] = []
 
       if (data.items && Array.isArray(data.items)) {
@@ -183,8 +163,6 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
         return []
       }
 
-      // Mapear los datos del backend al formato del frontend
-      // Manejar tanto snake_case como camelCase por si acaso
       const mappedChildren = childrenArray.map((child: any) => ({
         childId: child.childId || child.child_id,
         fatherId: child.fatherId || child.father_id,
@@ -203,10 +181,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
       }))
 
       return mappedChildren as ChildResponse[]
-      
     } else if (response.status === 404) {
-      // El backend devuelve 404 cuando no hay hijos (controller línea 54)
-      console.log('No hay hijos registrados')
       return []
     } else {
       console.error(`Error HTTP: ${response.status}`)
@@ -218,11 +193,6 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
   }
 }
 
-/**
- * Service to get a specific child by ID
- * Endpoint: GET /api/child/:id
- * Backend: src/modules/child/child.controller.ts - fetchChildById method
- */
 export async function getChildByIdService(childId: number): Promise<ChildResponse> {
   try {
     const authToken = localStorage.getItem('authToken')
@@ -231,7 +201,7 @@ export async function getChildByIdService(childId: number): Promise<ChildRespons
     }
 
     const response = await fetch(`${API_BASE_URL}/${childId}`, {
-      method: 'GET', // Según la ruta: childRouter.get('/:id', ...)
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`
@@ -256,9 +226,6 @@ export async function getChildByIdService(childId: number): Promise<ChildRespons
   }
 }
 
-/**
- * Service to update a child (si existe endpoint en el backend)
- */
 export async function updateChildService(
   childId: number,
   childData: Partial<ChildData>
@@ -268,8 +235,6 @@ export async function updateChildService(
     if (!authToken) {
       throw new Error('No se encontró el token de autenticación')
     }
-
-    console.log(`Actualizando niño ID ${childId}:`, childData)
 
     const response = await fetch(`${API_BASE_URL}/${childId}`, {
       method: 'PUT',

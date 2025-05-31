@@ -34,7 +34,7 @@ export async function createBrushRecordService(
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       },
       body: JSON.stringify({
         childId,
@@ -46,13 +46,11 @@ export async function createBrushRecordService(
       const data = await response.json()
       return data as CreateBrushResult
     } else {
-      // Si la API no existe o falla, simular respuesta exitosa
       console.warn('API de brush no disponible, simulando respuesta exitosa')
       return { message: 'Brush record created (simulated)', brushId: Date.now() }
     }
   } catch (error) {
     console.warn('Error en brush service, simulando respuesta exitosa:', error)
-    // Si es error de red, simular respuesta exitosa para no bloquear la UI
     return { message: 'Brush record created (offline)', brushId: Date.now() }
   }
 }
@@ -93,14 +91,12 @@ export async function getBrushRecordsService(
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       }
     })
 
     if (response.ok) {
       const data = await response.json()
-      
-      // Manejar diferentes formatos de respuesta
       if (Array.isArray(data)) {
         return data as BrushRecord[]
       } else if (data.items && Array.isArray(data.items)) {
@@ -109,13 +105,11 @@ export async function getBrushRecordsService(
         return []
       }
     } else {
-      // Si la API no existe o no hay datos, retornar array vacío
-      console.warn('API de brush no implementada o no hay datos, retornando array vacío')
+      console.warn('API de brush no implementada o no hay datos')
       return []
     }
   } catch (error) {
-    console.warn('Error de conexión en getBrushRecords, retornando array vacío:', error)
-    // Si es error de red, retornar array vacío para no bloquear la UI
+    console.warn('Error de conexión en getBrushRecords:', error)
     return []
   }
 }
@@ -139,7 +133,7 @@ export async function deleteBrushRecordService(brushId: number): Promise<{ messa
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`
+        Authorization: `Bearer ${authToken}`
       }
     })
 

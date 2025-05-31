@@ -11,7 +11,7 @@ const DentistsDirectory: FC = () => {
   const navigate = useNavigate()
 
   const [dentists, setDentists] = useState<DentistResponse[]>([])
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [sortByDistance, setSortByDistance] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -25,33 +25,24 @@ const DentistsDirectory: FC = () => {
       setLoading(true)
       setError(null)
 
-      console.log('Cargando dentistas desde la API...')
-
-      // Obtener ubicación del usuario si es posible
       try {
         const position = await getCurrentLocation()
         setUserLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude
         })
-        console.log('Ubicación obtenida:', position.coords)
       } catch (locationError) {
         console.warn('No se pudo obtener ubicación del usuario:', locationError)
-        // Continuar sin ubicación - no es crítico
         setUserLocation(null)
       }
 
-      // Cargar dentistas desde la API
       const dentistsData = await getDentistsService()
-      console.log('Dentistas cargados desde API:', dentistsData)
 
       if (!dentistsData || dentistsData.length === 0) {
-        console.log('No se encontraron dentistas en la API')
         setDentists([])
         return
       }
 
-      // Calcular distancias si tenemos ubicación del usuario
       let dentistsWithDistance = dentistsData
 
       if (userLocation) {
@@ -69,14 +60,12 @@ const DentistsDirectory: FC = () => {
         }))
       }
 
-      // Ordenar por distancia por defecto si hay ubicación, sino por nombre
       const sortedDentists = [...dentistsWithDistance].sort((a, b) => {
         if (userLocation && sortByDistance) {
           const distanceA = a.distance || 999
           const distanceB = b.distance || 999
           return distanceA - distanceB
         } else {
-          // Ordenar alfabéticamente por nombre
           return `${a.name} ${a.lastName}`.localeCompare(`${b.name} ${b.lastName}`)
         }
       })
@@ -128,12 +117,10 @@ const DentistsDirectory: FC = () => {
 
     const sortedDentists = [...dentists].sort((a, b) => {
       if (!sortByDistance) {
-        // Cambiar a ordenar por distancia (ascendente)
         const distanceA = a.distance || 999
         const distanceB = b.distance || 999
         return distanceA - distanceB
       } else {
-        // Cambiar a ordenar alfabéticamente por nombre
         return `${a.name} ${a.lastName}`.localeCompare(`${b.name} ${b.lastName}`)
       }
     })
@@ -142,23 +129,13 @@ const DentistsDirectory: FC = () => {
   }
 
   const handleDentistClick = (userId: number): void => {
-    console.log('Navegando a dentista con ID:', userId)
     navigate(`/dentist/${userId}`)
   }
 
   const hasDistanceInfo = dentists.some((d) => d.distance !== undefined)
 
-  if (loading) {
-    return (
-      <div className={styles.pageContainer}>
-        <div className={styles.header}>
-          <BackButton />
-        </div>
-        <div className={styles.loading}>
-          <p>Cargando dentistas disponibles...</p>
-        </div>
-      </div>
-    )
+  if (isLoading) {
+    return <div className={styles.loading}>Cargando...</div>
   }
 
   if (error) {
@@ -168,7 +145,7 @@ const DentistsDirectory: FC = () => {
           <BackButton />
         </div>
         <div className={styles.error}>
-          <p>⚠️ {error}</p>
+          <p>{error}</p>
           <button onClick={loadDentists} className={styles.retryButton}>
             Reintentar
           </button>
