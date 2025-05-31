@@ -17,7 +17,6 @@ export interface AppointmentResponse {
   creationDate: string
   lastModificationDate: string | null
   isActive: boolean
-  // Campos adicionales que pueden venir del JOIN con Child
   childName?: string
   childLastname?: string
 }

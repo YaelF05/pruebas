@@ -22,20 +22,15 @@ interface AddChildFormProps {
   onCancel: () => void
 }
 
-/**
- * Formulario para agregar un hijo - Alineado exactamente con el backend
- * Backend validation: src/modules/child/child.controller.ts (isValidData method)
- * Backend schema: src/config/db/schema.ts (childTable)
- */
 const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
-  // Estado inicial que coincide con el schema del backend
+  // Estado inicial que coincide EXACTAMENTE con el schema del backend
   const [formData, setFormData] = useState<ChildData>({
     name: '',
     lastName: '',
-    gender: 'M', // Valor por defecto válido según enum ['M', 'F']
+    gender: 'M', // Valor por defecto válido según enum ['M', 'F'] del backend
     birthDate: '',
     dentistId: 0, // Se establecerá cuando se carguen los dentistas
-    morningBrushingTime: '08:00', // Formato HH:MM según schema text(8)
+    morningBrushingTime: '08:00', // Formato HH:MM según schema text(8) del backend
     afternoonBrushingTime: '14:00',
     nightBrushingTime: '20:00'
   })
@@ -51,9 +46,9 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       try {
         setLoadingDentists(true)
         setDentistLoadError(null)
-        
+
         const dentistsList = await getDentistsForSelectService()
-        
+
         if (dentistsList.length === 0) {
           setDentistLoadError('No hay dentistas disponibles. Contacte al administrador.')
           setDentists([])
@@ -96,10 +91,11 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     }
   }
 
-  // Validaciones que coinciden exactamente con el backend controller y schema
-  
+  // Validaciones que coinciden EXACTAMENTE con el backend
+
   /**
    * Validación de nombre - Backend: schema text(255).notNull()
+   * Controller requiere: 'name' en requiredFields (línea 31)
    */
   const validateName = (name: string): string | undefined => {
     if (!name || !name.trim()) {
@@ -111,6 +107,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     if (name.trim().length > 255) {
       return 'El nombre no puede tener más de 255 caracteres'
     }
+    // Validar solo letras, espacios, acentos y ñ
     const nameRegex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s]+$/
     if (!nameRegex.test(name.trim())) {
       return 'El nombre solo puede contener letras y espacios'
@@ -120,6 +117,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
 
   /**
    * Validación de apellido - Backend: schema text(255).notNull()
+   * Controller requiere: 'lastName' en requiredFields (línea 31)
    */
   const validateLastName = (lastName: string): string | undefined => {
     if (!lastName || !lastName.trim()) {
@@ -138,10 +136,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  /**
-   * Validación de género - Backend: schema text(1, enum: ['M', 'F']).notNull()
-   * Controller: líneas 40-42
-   */
   const validateGender = (gender: string): string | undefined => {
     if (!gender) {
       return 'El género es requerido'
@@ -152,9 +146,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
     return undefined
   }
 
-  /**
-   * Validación de fecha de nacimiento - Backend: schema text(26).notNull()
-   */
   const validateBirthDate = (birthDate: string): string | undefined => {
     if (!birthDate) {
       return 'La fecha de nacimiento es requerida'
@@ -171,7 +162,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       return 'La fecha de nacimiento no puede ser futura'
     }
 
-    // Validar rango de edad (4-13 años según reglas de negocio)
     const maxAllowedDate = new Date(today.getFullYear() - 4, today.getMonth(), today.getDate())
     const minAllowedDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
 
@@ -188,13 +178,14 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
 
   /**
    * Validación de dentista - Backend: int().references(dentistTable.userId)
-   * Controller: requiredFields incluye 'dentistId'
+   * Controller requiere: 'dentistId' en requiredFields (línea 31)
+   * Service: se usa el dentistId directamente sin validación adicional
    */
   const validateDentist = (dentistId: number): string | undefined => {
     if (!dentistId || dentistId === 0) {
       return 'Debe seleccionar un dentista'
     }
-    if (dentists.length > 0 && !dentists.find(d => d.userId === dentistId)) {
+    if (dentists.length > 0 && !dentists.find((d) => d.userId === dentistId)) {
       return 'El dentista seleccionado no es válido'
     }
     return undefined
@@ -202,23 +193,22 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
 
   /**
    * Validación de horarios - Backend: schema text(8).notNull()
+   * Controller requiere: 'morningBrushingTime', 'afternoonBrushingTime', 'nightBrushingTime' (línea 32-34)
    */
   const validateTime = (time: string, label: string): string | undefined => {
     if (!time) {
       return `La hora de ${label} es requerida`
     }
 
+    // Validar formato HH:MM (texto de 8 caracteres máximo según schema)
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
     if (!timeRegex.test(time)) {
-      return `La hora de ${label} debe tener formato HH:MM válido`
+      return `La hora de ${label} debe tener formato HH:MM válido (ej: 08:00)`
     }
 
     return undefined
   }
 
-  /**
-   * Validación de conflictos de horarios (regla de negocio)
-   */
   const validateTimeConflicts = (): string | undefined => {
     const times = [
       { time: formData.morningBrushingTime, label: 'matutino' },
@@ -239,7 +229,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
 
   /**
    * Manejo del envío del formulario
-   * Validaciones que coinciden con backend controller isValidData method
+   * Validaciones que coinciden con backend controller isValidData method (líneas 29-35)
    */
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
@@ -250,7 +240,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       return
     }
 
-    // Ejecutar todas las validaciones
     const nameError = validateName(formData.name)
     const lastNameError = validateLastName(formData.lastName)
     const genderError = validateGender(formData.gender)
@@ -284,7 +273,6 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       return
     }
 
-    // Preparar datos exactamente como los espera el backend
     const submitData: ChildData = {
       name: formData.name.trim(),
       lastName: formData.lastName.trim(),
@@ -296,7 +284,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       nightBrushingTime: formData.nightBrushingTime
     }
 
-    console.log('Datos validados para envío:', submitData)
+    console.log('Datos validados para envío al backend:', submitData)
     onSubmit(submitData)
   }
 
@@ -377,7 +365,7 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
       {/* Campo: Fecha de nacimiento */}
       <div className={styles.formField}>
         <InputForm
-          label="Fecha de nacimiento (4-13 años)"
+          label="Fecha de nacimiento"
           name="birthDate"
           type="date"
           value={formData.birthDate}
@@ -396,7 +384,9 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
           label="Dentista"
           name="dentistId"
           value={formData.dentistId.toString()}
-          placeholder={dentists.length > 0 ? "Seleccione un dentista" : "No hay dentistas disponibles"}
+          placeholder={
+            dentists.length > 0 ? 'Seleccione un dentista' : 'No hay dentistas disponibles'
+          }
           onChange={handleInputChange}
           required
         />
@@ -456,19 +446,10 @@ const AddChildForm: React.FC<AddChildFormProps> = ({ onSubmit, onCancel }) => {
 
       {/* Botones de acción */}
       <div className={styles.formActions}>
-        <button 
-          type="button" 
-          className={styles.cancelButton} 
-          onClick={onCancel}
-          disabled={false}
-        >
+        <button type="button" className={styles.cancelButton} onClick={onCancel} disabled={false}>
           Cancelar
         </button>
-        <button 
-          type="submit" 
-          className={styles.submitButton}
-          disabled={dentists.length === 0}
-        >
+        <button type="submit" className={styles.submitButton} disabled={dentists.length === 0}>
           {dentists.length === 0 ? 'Sin dentistas disponibles' : 'Agregar Niño'}
         </button>
       </div>

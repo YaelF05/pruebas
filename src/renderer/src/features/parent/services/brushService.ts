@@ -197,6 +197,6 @@ export async function getWeeklyBrushRecordsService(childId: number): Promise<Bru
     return await getBrushRecordsService(childId, startDate, endDate)
   } catch (error) {
     console.warn('Get weekly brush records service error, retornando array vacío:', error)
-    return [] // Retornar array vacío si hay error
+    return []
   }
 }
