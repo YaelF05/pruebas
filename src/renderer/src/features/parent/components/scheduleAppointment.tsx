@@ -39,6 +39,20 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
   useEffect(() => {
     if (isOpen && !showSuccess) {
       loadChildren()
+
+      const loadDentist = async (): Promise<void> => {
+        try {
+          setIsLoadingDentist(true)
+          const dentistData = await getDentistByIdService(dentistId)
+          setDentist(dentistData)
+        } catch (error) {
+          console.error('Error al cargar dentista:', error)
+          setError('Error al cargar información del dentista')
+        } finally {
+          setIsLoadingDentist(false)
+        }
+      }
+
       loadDentist()
     }
   }, [isOpen, showSuccess, dentistId])
@@ -60,19 +74,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     setAppointmentTime('')
     setReason('')
     setError(null)
-  }
-
-  const loadDentist = async (): Promise<void> => {
-    try {
-      setIsLoadingDentist(true)
-      const dentistData = await getDentistByIdService(dentistId)
-      setDentist(dentistData)
-    } catch (error) {
-      console.error('Error al cargar dentista:', error)
-      setError('Error al cargar información del dentista')
-    } finally {
-      setIsLoadingDentist(false)
-    }
   }
 
   const loadChildren = async (): Promise<void> => {

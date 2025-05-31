@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react'
+import { FC, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import BackButton from '@renderer/components/backButton'
 import { getDentistsService, DentistResponse } from '../services/dentistService'
@@ -21,11 +21,7 @@ const DentistsDirectory: FC = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLoading, setLocationLoading] = useState(true)
 
-  useEffect(() => {
-    loadDentists()
-  }, [])
-
-  const getCurrentLocation = (): Promise<GeolocationPosition> => {
+  const getCurrentLocation = useCallback((): Promise<GeolocationPosition> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         return reject(new Error('La geolocalización no está disponible en este navegador'))
@@ -55,9 +51,9 @@ const DentistsDirectory: FC = () => {
         }
       )
     })
-  }
+  }, [])
 
-  const loadDentists = async (): Promise<void> => {
+  const loadDentists = useCallback(async (): Promise<void> => {
     try {
       setLoading(true)
       setError(null)
@@ -124,7 +120,11 @@ const DentistsDirectory: FC = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [sortByDistance, getCurrentLocation])
+
+  useEffect(() => {
+    loadDentists()
+  }, [loadDentists])
 
   const handleToggleDistanceSort = (): void => {
     const newSortByDistance = !sortByDistance

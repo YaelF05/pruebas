@@ -6,7 +6,6 @@ import { getDentistsForSelectService } from '../services/dentistService'
 import { validateName, validateLastName, validateBirthDate } from '@renderer/utils/validators'
 import styles from '../styles/addChildForm.module.css'
 
-// Tipos de errores que coinciden exactamente con las validaciones del backend
 interface FormErrors {
   name?: string
   lastName?: string

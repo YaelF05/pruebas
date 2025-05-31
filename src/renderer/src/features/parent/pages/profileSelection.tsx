@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from 'react'
+import { FC, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getChildrenService, ChildResponse } from '../services/childService'
 import { getUserProfileService, UserProfileResponse } from '../services/userServices'
@@ -18,11 +18,11 @@ const ProfileSelection: FC = () => {
   const [isLoading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchProfiles()
-  }, [])
-
-  const extractUserInfoFromToken = (): { userId: number; email: string; type: string } | null => {
+  const extractUserInfoFromToken = useCallback((): {
+    userId: number
+    email: string
+    type: string
+  } | null => {
     const authToken = localStorage.getItem('authToken')
     if (!authToken) return null
 
@@ -37,9 +37,9 @@ const ProfileSelection: FC = () => {
       console.warn('No se pudo decodificar el token JWT:', error)
       return null
     }
-  }
+  }, [])
 
-  const fetchProfiles = async (): Promise<void> => {
+  const fetchProfiles = useCallback(async (): Promise<void> => {
     try {
       setLoading(true)
       setError(null)
@@ -104,7 +104,11 @@ const ProfileSelection: FC = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [extractUserInfoFromToken])
+
+  useEffect(() => {
+    fetchProfiles()
+  }, [fetchProfiles])
 
   const handleProfileSelect = (profile: Profile): void => {
     if (profile.type === 'FATHER') {

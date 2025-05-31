@@ -57,59 +57,55 @@ const HomePage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
-    fetchInitialData()
-  }, [])
+    const fetchInitialData = async (): Promise<void> => {
+      try {
+        setIsLoading(true)
+        setError(null)
 
-  const fetchInitialData = async (): Promise<void> => {
-    try {
-      setIsLoading(true)
-      setError(null)
+        const childrenData = await getChildrenService()
+        setChildren(childrenData)
 
-      const childrenData = await getChildrenService()
+        if (childrenData.length > 0) {
+          setSelectedChild(childrenData[0])
 
-      setChildren(childrenData)
+          // Cargar datos de cepillado para todos los hijos
+          try {
+            const brushingDataPromises = childrenData.map(async (child) => {
+              const todayRecords = await getTodayBrushRecordsService(child.childId)
+              const weeklyRecords = await getWeeklyBrushRecordsService(child.childId)
 
-      if (childrenData.length > 0) {
-        setSelectedChild(childrenData[0])
+              return {
+                childId: child.childId,
+                data: {
+                  todayBrushing: getBrushingStatusFromRecords(todayRecords),
+                  weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+                  todayRecords: todayRecords
+                }
+              }
+            })
 
-        await loadBrushingDataForChildren(childrenData)
-      }
-    } catch (error) {
-      console.error('Error al cargar datos iniciales:', error)
-      setError(error instanceof Error ? error.message : 'Error al cargar los datos')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+            const brushingResults = await Promise.all(brushingDataPromises)
+            const brushingData: { [key: number]: ChildBrushingData } = {}
 
-  const loadBrushingDataForChildren = async (childrenList: ChildResponse[]): Promise<void> => {
-    try {
-      const brushingDataPromises = childrenList.map(async (child) => {
-        const todayRecords = await getTodayBrushRecordsService(child.childId)
-        const weeklyRecords = await getWeeklyBrushRecordsService(child.childId)
+            brushingResults.forEach((result) => {
+              brushingData[result.childId] = result.data
+            })
 
-        return {
-          childId: child.childId,
-          data: {
-            todayBrushing: getBrushingStatusFromRecords(todayRecords),
-            weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
-            todayRecords: todayRecords
+            setChildrenBrushingData(brushingData)
+          } catch (error) {
+            console.error('Error al cargar datos de cepillado:', error)
           }
         }
-      })
-
-      const brushingResults = await Promise.all(brushingDataPromises)
-      const brushingData: { [key: number]: ChildBrushingData } = {}
-
-      brushingResults.forEach((result) => {
-        brushingData[result.childId] = result.data
-      })
-
-      setChildrenBrushingData(brushingData)
-    } catch (error) {
-      console.error('Error al cargar datos de cepillado:', error)
+      } catch (error) {
+        console.error('Error al cargar datos iniciales:', error)
+        setError(error instanceof Error ? error.message : 'Error al cargar los datos')
+      } finally {
+        setIsLoading(false)
+      }
     }
-  }
+
+    fetchInitialData()
+  }, [])
 
   const handleAddChild = async (data: ChildData): Promise<void> => {
     try {
