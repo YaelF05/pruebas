@@ -8,6 +8,161 @@ import {
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
 
 /**
+ * Valida el formato de fecha y hora de la cita
+ */
+function validateAppointmentDateTime(appointmentData: AppointmentData): void {
+  const testDate = new Date(appointmentData.appointmentDatetime)
+
+  if (isNaN(testDate.getTime())) {
+    throw new Error('Formato de fecha inválido. Por favor selecciona una fecha y hora válidas.')
+  }
+
+  const now = new Date()
+  const minTime = new Date(now.getTime() + 30 * 60000)
+
+  if (testDate <= minTime) {
+    throw new Error('La cita debe ser al menos 30 minutos en el futuro')
+  }
+
+  const hour = testDate.getHours()
+  if (hour < 7 || hour >= 19) {
+    throw new Error('Las citas solo se pueden agendar entre 7:00 AM y 7:00 PM')
+  }
+}
+
+/**
+ * Valida los datos básicos de la cita
+ */
+function validateAppointmentData(appointmentData: AppointmentData): void {
+  if (!appointmentData.dentistId || appointmentData.dentistId <= 0) {
+    throw new Error('ID de dentista inválido')
+  }
+
+  if (!appointmentData.childId || appointmentData.childId <= 0) {
+    throw new Error('ID de hijo inválido')
+  }
+
+  const reasonTrimmed = appointmentData.reason.trim()
+  if (!reasonTrimmed) {
+    throw new Error('El motivo de la cita es requerido')
+  }
+
+  if (reasonTrimmed.length < 10) {
+    throw new Error('El motivo debe tener al menos 10 caracteres')
+  }
+
+  if (reasonTrimmed.length > 255) {
+    throw new Error('El motivo no puede tener más de 255 caracteres')
+  }
+}
+
+/**
+ * Formatea la fecha y hora para el formato requerido por la API
+ */
+function formatAppointmentDateTime(appointmentDatetime: string): string {
+  let formattedDateTime = appointmentDatetime
+
+  if (formattedDateTime.includes('T')) {
+    formattedDateTime = formattedDateTime.replace('T', ' ')
+  }
+
+  if (!/\d{2}:\d{2}:\d{2}$/.test(formattedDateTime)) {
+    if (formattedDateTime.match(/\d{2}:\d{2}$/)) {
+      formattedDateTime = formattedDateTime + ':00'
+    } else {
+      const date = new Date(appointmentDatetime)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:00`
+    }
+  }
+
+  return formattedDateTime
+}
+
+/**
+ * Maneja errores específicos de la API
+ */
+function handleApiError(response: Response, errorMessage: string): Error {
+  switch (response.status) {
+    case 400:
+      return new Error('Datos de la cita inválidos. Verifica que todos los campos estén completos.')
+    case 401:
+      return new Error('No tienes autorización. Por favor, inicia sesión nuevamente.')
+    case 409:
+      if (errorMessage.includes('Datetime occupied') || errorMessage.includes('occupied')) {
+        return new Error('Ya existe una cita en ese horario. Por favor, selecciona otro horario.')
+      } else if (errorMessage.includes('Invalid datetime') || errorMessage.includes('format')) {
+        return new Error('El formato de fecha y hora no es válido.')
+      } else if (errorMessage.includes('future date') || errorMessage.includes('future')) {
+        return new Error('Las citas solo se pueden agendar para fechas futuras.')
+      } else {
+        return new Error('Conflicto al agendar la cita: ' + errorMessage)
+      }
+    case 404:
+      return new Error('No se encontró el dentista o el niño especificado.')
+    default:
+      return new Error(errorMessage)
+  }
+}
+
+/**
+ * Obtiene el mensaje de error de la respuesta de la API
+ */
+async function getErrorMessageFromResponse(response: Response): Promise<string> {
+  let errorMessage = `Error al crear la cita: ${response.status}`
+
+  try {
+    const errorData = await response.text()
+    console.error('Error del servidor:', errorData)
+
+    try {
+      const parsedError = JSON.parse(errorData)
+      errorMessage = parsedError.message || errorMessage
+    } catch {
+      errorMessage = errorData || errorMessage
+    }
+  } catch (e) {
+    console.error('Error al leer respuesta de error:', e)
+  }
+
+  return errorMessage
+}
+
+/**
+ * Valida el token de autenticación
+ */
+function validateAuthToken(): string {
+  const authToken = localStorage.getItem('authToken')
+
+  if (!authToken) {
+    throw new Error(
+      'No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.'
+    )
+  }
+  return authToken
+}
+
+/**
+ * Procesa la respuesta de datos de citas
+ */
+function processAppointmentsResponse(data: any): AppointmentResponse[] {
+  if (data && typeof data === 'object') {
+    if (data.items && Array.isArray(data.items)) {
+      return data.items as AppointmentResponse[]
+    } else if (Array.isArray(data)) {
+      return data as AppointmentResponse[]
+    }
+  }
+
+  console.warn('Formato inesperado de respuesta:', data)
+  return []
+}
+
+/**
  * Service to create a new appointment
  * @param appointmentData - The appointment data
  * @returns A promise that resolves to the appointment creation result
@@ -17,77 +172,17 @@ export async function createAppointmentService(
   appointmentData: AppointmentData
 ): Promise<CreateAppointmentResult> {
   try {
-    const authToken = localStorage.getItem('authToken')
+    const authToken = validateAuthToken()
 
-    if (!authToken) {
-      throw new Error(
-        'No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.'
-      )
-    }
+    validateAppointmentData(appointmentData)
+    validateAppointmentDateTime(appointmentData)
 
-    if (!appointmentData.dentistId || appointmentData.dentistId <= 0) {
-      throw new Error('ID de dentista inválido')
-    }
-
-    if (!appointmentData.childId || appointmentData.childId <= 0) {
-      throw new Error('ID de hijo inválido')
-    }
-
-    const reasonTrimmed = appointmentData.reason.trim()
-    if (!reasonTrimmed) {
-      throw new Error('El motivo de la cita es requerido')
-    }
-
-    if (reasonTrimmed.length < 10) {
-      throw new Error('El motivo debe tener al menos 10 caracteres')
-    }
-
-    if (reasonTrimmed.length > 255) {
-      throw new Error('El motivo no puede tener más de 255 caracteres')
-    }
-
-    let formattedDateTime = appointmentData.appointmentDatetime
-
-    const testDate = new Date(formattedDateTime)
-    if (isNaN(testDate.getTime())) {
-      throw new Error('Formato de fecha inválido. Por favor selecciona una fecha y hora válidas.')
-    }
-
-    if (formattedDateTime.includes('T')) {
-      formattedDateTime = formattedDateTime.replace('T', ' ')
-    }
-
-    if (!/\d{2}:\d{2}:\d{2}$/.test(formattedDateTime)) {
-      if (formattedDateTime.match(/\d{2}:\d{2}$/)) {
-        formattedDateTime = formattedDateTime + ':00'
-      } else {
-        const date = new Date(appointmentData.appointmentDatetime)
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        const hours = String(date.getHours()).padStart(2, '0')
-        const minutes = String(date.getMinutes()).padStart(2, '0')
-        formattedDateTime = `${year}-${month}-${day} ${hours}:${minutes}:00`
-      }
-    }
-
-    const appointmentDate = new Date(appointmentData.appointmentDatetime)
-    const now = new Date()
-    const minTime = new Date(now.getTime() + 30 * 60000)
-
-    if (appointmentDate <= minTime) {
-      throw new Error('La cita debe ser al menos 30 minutos en el futuro')
-    }
-
-    const hour = appointmentDate.getHours()
-    if (hour < 7 || hour >= 19) {
-      throw new Error('Las citas solo se pueden agendar entre 7:00 AM y 7:00 PM')
-    }
+    const formattedDateTime = formatAppointmentDateTime(appointmentData.appointmentDatetime)
 
     const requestBody = {
       dentistId: appointmentData.dentistId,
       childId: appointmentData.childId,
-      reason: reasonTrimmed,
+      reason: appointmentData.reason.trim(),
       appointmentDatetime: formattedDateTime
     }
 
@@ -101,46 +196,8 @@ export async function createAppointmentService(
     })
 
     if (!response.ok) {
-      let errorMessage = `Error al crear la cita: ${response.status}`
-
-      try {
-        const errorData = await response.text()
-        console.error('Error del servidor:', errorData)
-
-        try {
-          const parsedError = JSON.parse(errorData)
-          errorMessage = parsedError.message || errorMessage
-        } catch {
-          errorMessage = errorData || errorMessage
-        }
-      } catch (e) {
-        console.error('Error al leer respuesta de error:', e)
-      }
-
-      switch (response.status) {
-        case 400:
-          throw new Error(
-            'Datos de la cita inválidos. Verifica que todos los campos estén completos.'
-          )
-        case 401:
-          throw new Error('No tienes autorización. Por favor, inicia sesión nuevamente.')
-        case 409:
-          if (errorMessage.includes('Datetime occupied') || errorMessage.includes('occupied')) {
-            throw new Error(
-              'Ya existe una cita en ese horario. Por favor, selecciona otro horario.'
-            )
-          } else if (errorMessage.includes('Invalid datetime') || errorMessage.includes('format')) {
-            throw new Error('El formato de fecha y hora no es válido.')
-          } else if (errorMessage.includes('future date') || errorMessage.includes('future')) {
-            throw new Error('Las citas solo se pueden agendar para fechas futuras.')
-          } else {
-            throw new Error('Conflicto al agendar la cita: ' + errorMessage)
-          }
-        case 404:
-          throw new Error('No se encontró el dentista o el niño especificado.')
-        default:
-          throw new Error(errorMessage)
-      }
+      const errorMessage = await getErrorMessageFromResponse(response)
+      throw handleApiError(response, errorMessage)
     }
 
     const data = await response.json()
@@ -168,11 +225,7 @@ export async function getAppointmentsService(
   limit: number = 50
 ): Promise<AppointmentResponse[]> {
   try {
-    const authToken = localStorage.getItem('authToken')
-
-    if (!authToken) {
-      throw new Error('No se encontró el token de autenticación')
-    }
+    const authToken = validateAuthToken()
 
     const queryParams = new URLSearchParams({
       page: page.toString(),
@@ -205,17 +258,7 @@ export async function getAppointmentsService(
     }
 
     const data = await response.json()
-
-    if (data && typeof data === 'object') {
-      if (data.items && Array.isArray(data.items)) {
-        return data.items as AppointmentResponse[]
-      } else if (Array.isArray(data)) {
-        return data as AppointmentResponse[]
-      }
-    }
-
-    console.warn('Formato inesperado de respuesta:', data)
-    return []
+    return processAppointmentsResponse(data)
   } catch (error) {
     console.error('Error en getAppointmentsService:', error)
 
@@ -238,11 +281,7 @@ export async function getAppointmentByIdService(
   appointmentId: number
 ): Promise<AppointmentResponse> {
   try {
-    const authToken = localStorage.getItem('authToken')
-
-    if (!authToken) {
-      throw new Error('No se encontró el token de autenticación')
-    }
+    const authToken = validateAuthToken()
 
     const response = await fetch(`${API_BASE_URL}/appointment/${appointmentId}`, {
       method: 'GET',
@@ -291,11 +330,7 @@ export async function deactivateAppointmentService(
   deactivateData: DeactivateAppointmentData
 ): Promise<{ message: string }> {
   try {
-    const authToken = localStorage.getItem('authToken')
-
-    if (!authToken) {
-      throw new Error('No se encontró el token de autenticación')
-    }
+    const authToken = validateAuthToken()
 
     const validTypes = ['FINISHED', 'CANCELLED', 'RESCHEDULED']
     if (!validTypes.includes(deactivateData.type)) {
@@ -404,4 +439,5 @@ export async function finishAppointmentService(
     type: 'FINISHED'
   })
 }
+
 export type { AppointmentData, AppointmentResponse }
