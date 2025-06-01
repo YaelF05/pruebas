@@ -1,0 +1,256 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--background-light);
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background-color: var(--background-light);
+}
+
+.profileSection {
+  display: flex;
+  gap: 40px;
+  padding: 20px;
+  align-items: flex-start;
+  margin: 0 auto;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.profileImage {
+  flex-shrink: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: var(--secondary-normal);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profileInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.name {
+  font-size: var(--font-size-h1);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 0 0 10px 0;
+  font-family: var(--Quicksand);
+}
+
+.age {
+  font-size: var(--font-size-h3);
+  color: var(--neutral-normal);
+  margin: 0;
+  font-family: var(--Quicksand);
+  font-weight: 600;
+}
+
+.birthDate {
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  margin: 5px 0;
+  font-family: var(--Quicksand);
+}
+
+.gender {
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  margin: 5px 0;
+  font-family: var(--Quicksand);
+}
+
+.dentistName {
+  font-size: var(--font-size-title1);
+  font-weight: 600;
+  color: var(--primary-normal);
+  margin: 10px 0 0 0;
+  font-family: var(--Quicksand);
+}
+
+.actionSection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 120px;
+}
+
+.editButton {
+  width: 100%;
+  height: 46px;
+  background-color: var(--primary-normal);
+  border: none;
+  font-size: var(--font-size-title1);
+  font-weight: 700;
+  color: var(--background-light);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: var(--Quicksand);
+}
+
+.editButton:hover {
+  background-color: var(--primary-normal-hover);
+}
+
+.deleteButton {
+  width: 100%;
+  height: 46px;
+  background-color: var(--background-light);
+  border: 1px solid var(--error-primary);
+  font-size: var(--font-size-title1);
+  font-weight: 700;
+  color: var(--error-primary);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-family: var(--Quicksand);
+}
+
+.deleteButton:hover {
+  background-color: var(--neutral-light);
+}
+
+.brushingScheduleSection {
+  padding: 0 20px 30px;
+  margin: 0 auto;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-h2);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 0 0 20px 0;
+  font-family: var(--Quicksand);
+}
+
+.scheduleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 15px;
+  background-color: var(--secondary-normal);
+  border-radius: 15px;
+  padding: 25px;
+}
+
+.scheduleItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--secondary-normal-hover);
+}
+
+.scheduleItem:last-child {
+  border-bottom: none;
+}
+
+.scheduleLabel {
+  font-size: var(--font-size-title1);
+  color: var(--neutral-darker);
+  font-weight: 600;
+  font-family: var(--Quicksand);
+}
+
+.scheduleTime {
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  font-weight: 400;
+  font-family: var(--Quicksand);
+}
+
+.clinicalHistorySection {
+  padding: 0 20px 30px;
+  margin: 0 auto;
+  max-width: 1400px;
+  width: 100%;
+}
+
+.historyPlaceholder {
+  background-color: var(--background-normal);
+  border-radius: 15px;
+  padding: 40px;
+  text-align: center;
+  border: 2px dashed var(--neutral-light);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.placeholderText {
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+  font-weight: 400;
+  margin: 0;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.error p {
+  font-size: var(--font-size-title1);
+  color: var(--error-primary);
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--Quicksand);
+}
+
+.error button {
+  padding: 12px 24px;
+  background-color: var(--primary-normal);
+  color: var(--background-light);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--Quicksand);
+  font-weight: 600;
+  font-size: var(--font-size-body);
+  transition: background-color 0.2s;
+}
+
+.error button:hover {
+  background-color: var(--primary-normal-hover);
+}
+

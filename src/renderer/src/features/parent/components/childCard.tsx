@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ChildResponse } from '../types/childTypes'
 import styles from '../styles/childCard.module.css'
 
@@ -7,9 +8,18 @@ interface ChildCardProps {
   isSelected: boolean
   onClick: () => void
   formatAge: (birthDate: string) => string
+  enableNavigation?: boolean
 }
 
-const ChildCard: React.FC<ChildCardProps> = ({ child, isSelected, onClick, formatAge }) => {
+const ChildCard: React.FC<ChildCardProps> = ({
+  child,
+  isSelected,
+  onClick,
+  formatAge,
+  enableNavigation = false
+}) => {
+  const navigate = useNavigate()
+
   const formatNextAppointment = (dateStr: string | null | undefined): string => {
     if (!dateStr) return 'Sin cita programada'
 
@@ -27,8 +37,19 @@ const ChildCard: React.FC<ChildCardProps> = ({ child, isSelected, onClick, forma
     }).format(date)
   }
 
+  const handleCardClick = (): void => {
+    if (enableNavigation) {
+      navigate(`/child/${child.childId}/profile`)
+    } else {
+      onClick()
+    }
+  }
+
   return (
-    <div className={`${styles.card} ${isSelected ? styles.selected : ''}`} onClick={onClick}>
+    <div
+      className={`${styles.card} ${isSelected ? styles.selected : ''}`}
+      onClick={handleCardClick}
+    >
       <h3 className={styles.name}>
         {child.name} {child.lastName && child.lastName}
       </h3>

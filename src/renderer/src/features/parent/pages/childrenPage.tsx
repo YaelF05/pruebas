@@ -66,8 +66,8 @@ const ChildrenPage: FC = () => {
   }
 
   const handleChildClick = (child: ChildResponse): void => {
-    console.log('Hijo seleccionado:', child)
-    // navigate(`/child/${child.childId}`)
+    console.log('Navegando al detalle del hijo:', child)
+    navigate(`/child/${child.childId}`)
   }
 
   if (isLoading) {
