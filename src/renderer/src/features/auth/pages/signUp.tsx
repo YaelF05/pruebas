@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { signupService } from '../services/signupService'
 import { loginService, saveAuth } from '../services/loginService'
 import { SignupCredentials, LoginCredentials } from '../types/authTypes'
@@ -209,6 +209,12 @@ const Signup = (): React.JSX.Element => {
             type={'submit'}
             disabled={isLoading}
           />
+          <p className={styles.registerPrompt}>
+            ¿Ya tienes una cuenta?{' '}
+            <Link to="/" className={styles.loginLink}>
+              <u>Inicia sesión</u>
+            </Link>
+          </p>
         </form>
       </div>
     </div>

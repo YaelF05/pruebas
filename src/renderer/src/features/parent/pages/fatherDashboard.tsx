@@ -13,7 +13,7 @@ import {
   deleteBrushRecordService,
   BrushRecord
 } from '../services/brushService'
-import styles from '../styles/fatherHome.module.css'
+import styles from '../styles/fatherDashboard.module.css'
 import Clock from '@renderer/assets/icons/clock.svg'
 import ClockActive from '@renderer/assets/icons/clock_active.svg'
 import Children from '@renderer/assets/icons/children.svg'
@@ -281,7 +281,7 @@ const HomePage: FC = () => {
     } else if (tab === 'hijos') {
       navigate('/children')
     } else if (tab === 'inicio') {
-      navigate('/homeFather')
+      navigate('/fatherDashboard')
     }
     setActiveTab(tab)
   }

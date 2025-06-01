@@ -1,6 +1,6 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { loginService, saveAuth } from '../services/loginService'
+import { useAuth } from '../hooks/useAuth'
 import { LoginCredentials } from '../types/authTypes'
 import { validateEmail, validatePassword } from '@renderer/utils/validators'
 import heroImage from '@renderer/assets/images/dentalDesign.png'
@@ -13,39 +13,44 @@ const Login = (): React.JSX.Element => {
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [loginError, setLoginError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const { login, isLoading, userType } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setErrors({})
     setLoginError(null)
-    setIsLoading(true)
 
     const emailError = validateEmail(email)
     const passwordError = validatePassword(password)
 
     if (emailError || passwordError) {
       setErrors({ email: emailError || undefined, password: passwordError || undefined })
-      setIsLoading(false)
       return
     }
 
     const credentials: LoginCredentials = { email, password }
 
     try {
-      const result = await loginService(credentials)
-      saveAuth(result.token, result.userType)
-      if (result.userType === 'DENTIST') {
+      await login(credentials)
+
+      if (userType === 'DENTIST') {
         navigate('/dentistDashboard')
-      } else if (result.userType === 'FATHER') {
+      } else if (userType === 'FATHER') {
         navigate('/profile-selection')
       }
-    } catch (error) {
-      console.error('Error al iniciar sesión:', error)
-      setLoginError('Correo o contraseña incorrectos')
-    } finally {
-      setIsLoading(false)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+
+      if (errorMessage.includes('Authentication failed: 401')) {
+        setLoginError('Correo o contraseña incorrectos')
+      } else if (errorMessage.includes('Authentication failed: 403')) {
+        setLoginError('Acceso denegado')
+      } else if (errorMessage.includes('Authentication failed: 500')) {
+        setLoginError('Error del servidor. Intenta más tarde')
+      } else {
+        setLoginError('Error de conexión. Verifica tu internet')
+      }
     }
   }
 

@@ -58,7 +58,7 @@ const ChildrenPage: FC = () => {
 
   const handleNavClick = (tab: string): void => {
     if (tab === 'inicio') {
-      navigate('/homeFather')
+      navigate('/fatherDashboard')
     } else if (tab === 'citas') {
       navigate('/appointmentFather')
     }
@@ -104,7 +104,10 @@ const ChildrenPage: FC = () => {
         {children.length === 0 ? (
           <div className={styles.noChildrenMessage}>
             <p>Aún no tienes hijos registrados</p>
-            <button className={styles.addFirstChildButton} onClick={() => navigate('/homeFather')}>
+            <button
+              className={styles.addFirstChildButton}
+              onClick={() => navigate('/fatherDashboard')}
+            >
               Agregar primer hijo
             </button>
           </div>

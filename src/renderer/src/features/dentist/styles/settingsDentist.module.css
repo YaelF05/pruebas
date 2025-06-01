@@ -44,19 +44,43 @@
   display: flex;
   justify-content: space-between;
   margin: 20px 0;
+  padding: 5px;
   font-size: var(--font-size-title1);
   color: var(--neutral-darker);
+}
+
+.changeEmail:hover {
+  cursor: pointer;
+  background-color: var(--background-normal-hover);
+  border-radius: 0.5rem;
 }
 
 .changePassword {
   display: flex;
   justify-content: space-between;
+  padding: 5px;
   font-size: var(--font-size-title1);
   color: var(--neutral-darker);
+}
+
+.changePassword:hover {
+  cursor: pointer;
+  background-color: var(--background-normal-hover);
+  border-radius: 0.5rem;
 }
 
 .buttons {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.buttonDelete {
+  width: 100%;
+  height: 30px;
+  border: 2px solid var(--error-primary);
+  color: var(--error-primary);
+  font-size: 19px;
+  font-weight: 700;
+  border-radius: 10px;
 }

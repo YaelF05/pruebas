@@ -13,3 +13,8 @@ export interface CreateDentistCredentials {
 export interface CreateDentistResponse {
   message: string
 }
+export interface RescheduleAppointmentData {
+  appointmentId: number
+  reason: string
+  rescheduledDate: string
+}

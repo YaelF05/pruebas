@@ -32,7 +32,9 @@ const Patients: React.FC = () => {
           </div>
           <div className={styles.buttons}>
             <Button name={'Cerrar sesión'} type={'button'} onClick={handleLogout} />
-            <Button name={'Eliminar cuenta'} type={'button'} onClick={handleDeleteAccount} />
+            <button type="button" onClick={handleDeleteAccount} className={styles.buttonDelete}>
+              Eliminar cuenta
+            </button>
           </div>
         </div>
         <NavBar />

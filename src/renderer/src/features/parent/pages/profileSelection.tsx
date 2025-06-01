@@ -122,7 +122,7 @@ const ProfileSelection: FC = () => {
         })
       )
 
-      navigate('/homeFather')
+      navigate('/fatherDashboard')
     } else {
       localStorage.setItem(
         'selectedProfile',

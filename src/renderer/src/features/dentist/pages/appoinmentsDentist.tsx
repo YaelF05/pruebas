@@ -3,6 +3,7 @@ import styles from '../styles/appointmentsDentist.module.css'
 import NavBar from '../components/navBar'
 import Calendar from '@renderer/components/calendar'
 import AppointmentCard from '@renderer/components/appointmentCard'
+import RescheduleAppointment from '../components/rescheduleAppointment'
 
 interface AppointmentData {
   appointmentId: number
@@ -100,6 +101,8 @@ const mockAppointments: AppointmentData[] = [
 const AppointmentDentist: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [allAppointments, setAllAppointments] = useState<AppointmentData[]>(mockAppointments)
+  const [rescheduleModalOpen, setRescheduleModalOpen] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentData | null>(null)
 
   // Función para filtrar las citas por fecha
   const getAppointmentsForDate = (date: Date): AppointmentData[] => {
@@ -124,33 +127,46 @@ const AppointmentDentist: React.FC = () => {
     }).format(date)
   }
 
-  // Función para reagendar cita en proceso
+  // Función para manejar reagendar cita
   const handleReschedule = (appointmentId: string): void => {
-    const appointment = allAppointments.find((a) => a.appointmentId.toString() === appointmentId)
+    const appointment = allAppointments.find(
+      (app) => app.appointmentId.toString() === appointmentId
+    )
 
     if (appointment) {
-      const newDateTime = prompt('Ingrese nueva fecha y hora (YYYY-MM-DD HH:mm)')
-      const reason = prompt('Motivo del reagendamiento')
-
-      if (newDateTime && reason) {
-        const updatedAppointments = allAppointments.map((app) => {
-          if (app.appointmentId.toString() === appointmentId) {
-            return {
-              ...app,
-              appointmentDatetime: new Date(newDateTime).toISOString()
-            }
-          }
-          return app
-        })
-        setAllAppointments(updatedAppointments)
-
-        // Simulación de éxito
-        alert('Cita reagendada con éxito')
-      }
+      setSelectedAppointment(appointment)
+      setRescheduleModalOpen(true)
     }
   }
 
-  // Función para cancelar cita en proceso
+  // Función para cerrar el modal
+  const handleCloseModal = (): void => {
+    setRescheduleModalOpen(false)
+    setSelectedAppointment(null)
+  }
+
+  // Función para confirmar reagendar
+  const handleConfirmReschedule = (
+    appointmentId: number,
+    newDateTime: string,
+    newReason: string
+  ): void => {
+    const updatedAppointments = allAppointments.map((appointment) => {
+      if (appointment.appointmentId === appointmentId) {
+        return {
+          ...appointment,
+          appointmentDatetime: newDateTime,
+          reason: newReason
+        }
+      }
+      return appointment
+    })
+
+    setAllAppointments(updatedAppointments)
+    alert('Cita reagendada con éxito')
+  }
+
+  // Función para cancelar cita
   const handleCancel = (appointmentId: string): void => {
     const reason = prompt('Motivo de la cancelación')
 
@@ -159,7 +175,6 @@ const AppointmentDentist: React.FC = () => {
         (app) => app.appointmentId.toString() !== appointmentId
       )
       setAllAppointments(updatedAppointments)
-
       alert('Cita cancelada con éxito')
     }
   }
@@ -215,6 +230,17 @@ const AppointmentDentist: React.FC = () => {
         </div>
         <NavBar />
       </div>
+
+      {selectedAppointment && (
+        <RescheduleAppointment
+          isOpen={rescheduleModalOpen}
+          onClose={handleCloseModal}
+          appointmentId={selectedAppointment.appointmentId}
+          reason={selectedAppointment.reason}
+          rescheduleDateTime={selectedAppointment.appointmentDatetime}
+          onSubmit={handleConfirmReschedule}
+        />
+      )}
     </div>
   )
 }

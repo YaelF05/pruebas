@@ -22,3 +22,11 @@ export interface SignupCredentials {
 export interface SignupResult {
   message: string
 }
+
+export interface AuthState {
+  isAuthenticated: boolean
+  token: string | null
+  expiration: number | null
+  userType: string | null
+  isLoading: boolean
+}

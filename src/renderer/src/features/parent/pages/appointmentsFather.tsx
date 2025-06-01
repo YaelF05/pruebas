@@ -162,7 +162,7 @@ const AppointmentsPage: FC = () => {
 
   const handleNavClick = (tab: string): void => {
     if (tab === 'inicio') {
-      navigate('/homeFather')
+      navigate('/fatherDashboard')
     } else if (tab === 'hijos') {
       navigate('/children')
     }
