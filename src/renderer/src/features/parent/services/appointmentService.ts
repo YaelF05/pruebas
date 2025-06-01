@@ -7,7 +7,6 @@ import {
 
 const API_BASE_URL = 'https://smiltheet-api.rafabeltrans17.workers.dev/api'
 
-// ===== CORE VALIDATOR =====
 class AppointmentValidator {
   validateAppointmentData(data: AppointmentData): void {
     this.validateIds(data.dentistId, data.childId)
@@ -40,12 +39,12 @@ class AppointmentValidator {
     if (isNaN(date.getTime())) {
       throw new Error('Formato de fecha inválido')
     }
-    
-    const minTime = new Date(Date.now() + 30 * 60000) // 30 minutes from now
+
+    const minTime = new Date(Date.now() + 30 * 60000)
     if (date <= minTime) {
       throw new Error('La cita debe ser al menos 30 minutos en el futuro')
     }
-    
+
     const hour = date.getHours()
     if (hour < 7 || hour >= 19) {
       throw new Error('Las citas solo se pueden agendar entre 7:00 AM y 7:00 PM')
@@ -53,7 +52,6 @@ class AppointmentValidator {
   }
 }
 
-// ===== ERROR HANDLER =====
 class ApiErrorHandler {
   handle(response: Response, message: string): Error {
     const errorMap: Record<number, (msg: string) => Error> = {
@@ -72,7 +70,9 @@ class ApiErrorHandler {
       return new Error('Ya existe una cita en ese horario. Por favor, selecciona otro horario.')
     }
     if (message.includes('24 hours')) {
-      return new Error('Solo se pueden cancelar o reagendar citas con al menos 24 horas de anticipación')
+      return new Error(
+        'Solo se pueden cancelar o reagendar citas con al menos 24 horas de anticipación'
+      )
     }
     if (message.includes('already deactivated')) {
       return new Error('La cita ya ha sido cancelada o modificada anteriormente')
@@ -81,25 +81,29 @@ class ApiErrorHandler {
   }
 }
 
-// ===== HTTP CLIENT =====
 class HttpClient {
   private errorHandler = new ApiErrorHandler()
 
   async request<T>(
-    endpoint: string, 
-    method: 'GET' | 'PUT' | 'DELETE' = 'GET', 
-    body?: any
+    endpoint: string,
+    method: 'GET' | 'PUT' | 'DELETE' = 'GET',
+    body?: unknown
   ): Promise<T> {
     const token = this.getAuthToken()
-    
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+
+    const config: RequestInit = {
       method,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`
-      },
-      ...(body && { body: JSON.stringify(body) })
-    })
+      }
+    }
+
+    if (body) {
+      config.body = JSON.stringify(body)
+    }
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, config)
 
     if (!response.ok) {
       const errorMessage = await this.extractErrorMessage(response)
@@ -112,7 +116,9 @@ class HttpClient {
   private getAuthToken(): string {
     const token = localStorage.getItem('authToken')
     if (!token) {
-      throw new Error('No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.')
+      throw new Error(
+        'No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.'
+      )
     }
     return token
   }
@@ -132,12 +138,13 @@ class HttpClient {
   }
 }
 
-// ===== UTILITIES =====
 class DateTimeFormatter {
   format(dateTime: string): string {
     let formatted = dateTime.includes('T') ? dateTime.replace('T', ' ') : dateTime
     if (!/\d{2}:\d{2}:\d{2}$/.test(formatted)) {
-      formatted = formatted.match(/\d{2}:\d{2}$/) ? formatted + ':00' : this.formatFromDate(dateTime)
+      formatted = formatted.match(/\d{2}:\d{2}$/)
+        ? formatted + ':00'
+        : this.formatFromDate(dateTime)
     }
     return formatted
   }
@@ -148,16 +155,35 @@ class DateTimeFormatter {
   }
 }
 
+interface PaginatedResponse {
+  items: AppointmentResponse[]
+  page?: number
+  limit?: number
+  totalPages?: number
+}
+
+type AppointmentApiResponse = AppointmentResponse[] | PaginatedResponse
+
 class ResponseProcessor {
-  processAppointments(data: any): AppointmentResponse[] {
+  processAppointments(data: unknown): AppointmentResponse[] {
     if (!data || typeof data !== 'object') return []
-    if (data.items && Array.isArray(data.items)) return data.items
-    if (Array.isArray(data)) return data
+
+    const response = data as AppointmentApiResponse
+
+    // Check if it's a paginated response
+    if ('items' in response && Array.isArray(response.items)) {
+      return response.items
+    }
+
+    // Check if it's a direct array
+    if (Array.isArray(response)) {
+      return response
+    }
+
     return []
   }
 }
 
-// ===== MAIN SERVICE CLASS =====
 class AppointmentService {
   private httpClient = new HttpClient()
   private validator = new AppointmentValidator()
@@ -166,7 +192,7 @@ class AppointmentService {
 
   async create(appointmentData: AppointmentData): Promise<CreateAppointmentResult> {
     this.validator.validateAppointmentData(appointmentData)
-    
+
     const requestBody = {
       dentistId: appointmentData.dentistId,
       childId: appointmentData.childId,
@@ -180,7 +206,7 @@ class AppointmentService {
   async getAppointments(page: number = 1, limit: number = 50): Promise<AppointmentResponse[]> {
     try {
       const queryParams = new URLSearchParams({ page: page.toString(), limit: limit.toString() })
-      const data = await this.httpClient.request<any>(`/appointment?${queryParams}`)
+      const data = await this.httpClient.request<unknown>(`/appointment?${queryParams}`)
       return this.processor.processAppointments(data)
     } catch (error) {
       if (error instanceof Error && error.message.includes('404')) {
@@ -196,21 +222,26 @@ class AppointmentService {
 
   async deactivate(deactivateData: DeactivateAppointmentData): Promise<{ message: string }> {
     this.validator.validateDeactivationData(deactivateData)
-    
+
     const requestBody = {
       deactiveAppointmentId: deactivateData.deactiveAppointmentId,
       reason: deactivateData.reason.trim(),
       type: deactivateData.type
     }
 
-    return this.httpClient.request<{ message: string }>('/appointment/deactivate', 'PUT', requestBody)
+    return this.httpClient.request<{ message: string }>(
+      '/appointment/deactivate',
+      'PUT',
+      requestBody
+    )
   }
 }
 
-// ===== EXPORTED FUNCTIONS =====
 const appointmentService = new AppointmentService()
 
-export async function createAppointmentService(appointmentData: AppointmentData): Promise<CreateAppointmentResult> {
+export async function createAppointmentService(
+  appointmentData: AppointmentData
+): Promise<CreateAppointmentResult> {
   try {
     return await appointmentService.create(appointmentData)
   } catch (error) {
@@ -220,7 +251,10 @@ export async function createAppointmentService(appointmentData: AppointmentData)
   }
 }
 
-export async function getAppointmentsService(page: number = 1, limit: number = 50): Promise<AppointmentResponse[]> {
+export async function getAppointmentsService(
+  page: number = 1,
+  limit: number = 50
+): Promise<AppointmentResponse[]> {
   try {
     return await appointmentService.getAppointments(page, limit)
   } catch (error) {
@@ -231,7 +265,9 @@ export async function getAppointmentsService(page: number = 1, limit: number = 5
   }
 }
 
-export async function getAppointmentByIdService(appointmentId: number): Promise<AppointmentResponse> {
+export async function getAppointmentByIdService(
+  appointmentId: number
+): Promise<AppointmentResponse> {
   try {
     return await appointmentService.getById(appointmentId)
   } catch (error) {
@@ -240,7 +276,9 @@ export async function getAppointmentByIdService(appointmentId: number): Promise<
   }
 }
 
-export async function deactivateAppointmentService(deactivateData: DeactivateAppointmentData): Promise<{ message: string }> {
+export async function deactivateAppointmentService(
+  deactivateData: DeactivateAppointmentData
+): Promise<{ message: string }> {
   try {
     return await appointmentService.deactivate(deactivateData)
   } catch (error) {
@@ -249,9 +287,9 @@ export async function deactivateAppointmentService(deactivateData: DeactivateApp
   }
 }
 
-// ===== CONVENIENCE FUNCTIONS =====
-const createDeactivationService = (type: 'CANCELLED' | 'RESCHEDULED' | 'FINISHED') => 
-  async (appointmentId: number, reason: string): Promise<{ message: string }> => 
+const createDeactivationService =
+  (type: 'CANCELLED' | 'RESCHEDULED' | 'FINISHED') =>
+  async (appointmentId: number, reason: string): Promise<{ message: string }> =>
     deactivateAppointmentService({ deactiveAppointmentId: appointmentId, reason, type })
 
 export const cancelAppointmentService = createDeactivationService('CANCELLED')
