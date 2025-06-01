@@ -132,13 +132,11 @@ export async function deleteBrushRecordService(brushId: number): Promise<{ messa
       const data = await response.json()
       return data
     } else {
-      // Si la API no existe, simular respuesta exitosa
-      console.warn('API de delete brush no implementada, simulando respuesta')
+      console.warn('API de delete brush no implementada')
       return { message: 'Brush record deleted (simulated)' }
     }
   } catch (error) {
     console.warn('Error de conexión en deleteBrushRecord, simulando respuesta:', error)
-    // Si es error de red, simular respuesta exitosa
     return { message: 'Brush record deleted (offline)' }
   }
 }
@@ -155,7 +153,7 @@ export async function getTodayBrushRecordsService(childId: number): Promise<Brus
     return await getBrushRecordsService(childId, today, today)
   } catch (error) {
     console.warn('Get today brush records service error, retornando array vacío:', error)
-    return [] // Retornar array vacío si hay error
+    return []
   }
 }
 
