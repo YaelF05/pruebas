@@ -5,7 +5,7 @@ import Singup from '@renderer/features/auth/pages/signUp'
 import FormDentis from '@renderer/features/dentist/pages/formDentis'
 import DentistDashboard from '@renderer/features/dentist/pages/dentistDashboard'
 import ProfileSelection from '@renderer/features/parent/pages/profileSelection'
-import HomePageFather from '@renderer/features/parent/pages/fatherHome'
+import FatherDashboard from '@renderer/features/parent/pages/fatherDashboard'
 import AppointmentsFather from '@renderer/features/parent/pages/appointmentsFather'
 import DentisDirectory from '@renderer/features/parent/pages/dentistsDirectory'
 import DentistDetail from '@renderer/features/parent/pages/dentistDetail'
@@ -35,7 +35,7 @@ function AuthRoutes(): React.JSX.Element {
 
       {/* Routes for Father */}
       <Route path="/profile-selection" element={<ProfileSelection />} />
-      <Route path="/homeFather" element={<HomePageFather />} />
+      <Route path="/fatherDashboard" element={<FatherDashboard />} />
       <Route path="/appointmentFather" element={<AppointmentsFather />} />
       <Route path="/dentistDirectory" element={<DentisDirectory />} />
       <Route path="/dentist/:dentistId" element={<DentistDetail />} />
