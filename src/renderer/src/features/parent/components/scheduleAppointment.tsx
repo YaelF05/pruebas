@@ -126,6 +126,7 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return timeString
     }
   }
+
   const isDateTimeFuture = (date: string, time: string): boolean => {
     if (!date || !time) return false
 
@@ -142,6 +143,25 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     const selectedDate = new Date(date)
     const dayOfWeek = selectedDate.getDay()
     return dayOfWeek >= 0 && dayOfWeek <= 4
+  }
+
+  // Extracted common validation logic
+  const validateDateTime = (date: string, time: string): string | null => {
+    if (!isWorkingDay(date)) {
+      return 'Las citas solo se pueden agendar de lunes a viernes'
+    }
+
+    if (!isDateTimeFuture(date, time)) {
+      return 'La fecha y hora seleccionadas deben ser futuras'
+    }
+
+    if (!isTimeWithinServiceHours(time)) {
+      return dentist
+        ? `La hora debe estar dentro del horario de servicio: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
+        : 'Horario fuera del servicio del dentista'
+    }
+
+    return null
   }
 
   const validateForm = (): string | null => {
@@ -173,26 +193,16 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return 'La fecha y hora seleccionadas no son válidas'
     }
 
-    if (!isWorkingDay(appointmentDate)) {
-      return 'Las citas solo se pueden agendar de lunes a viernes'
-    }
-
-    if (!isDateTimeFuture(appointmentDate, appointmentTime)) {
-      return 'La cita debe ser agendada con al menos 30 minutos de anticipación'
+    // Use extracted validation function
+    const validationError = validateDateTime(appointmentDate, appointmentTime)
+    if (validationError) {
+      return validationError
     }
 
     const now = new Date()
     const maxTime = new Date(now.getTime() + 6 * 30 * 24 * 60 * 60 * 1000)
     if (appointmentDateTime > maxTime) {
       return 'No se pueden agendar citas con más de 6 meses de anticipación'
-    }
-
-    if (!isTimeWithinServiceHours(appointmentTime)) {
-      if (dentist) {
-        return `La hora debe estar dentro del horario de servicio del dentista: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
-      } else {
-        return 'No se pudo validar el horario de servicio del dentista'
-      }
     }
 
     if (!reason.trim()) {
@@ -210,43 +220,25 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     return null
   }
 
+  // Simplified handleDateChange using extracted validation
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newDate = e.target.value
     setAppointmentDate(newDate)
 
     if (appointmentTime && newDate) {
-      if (!isDateTimeFuture(newDate, appointmentTime)) {
-        setError('La fecha y hora seleccionadas deben ser futuras')
-      } else if (!isWorkingDay(newDate)) {
-        setError('Las citas solo se pueden agendar de lunes a viernes')
-      } else if (!isTimeWithinServiceHours(appointmentTime)) {
-        setError(
-          dentist
-            ? `La hora debe estar dentro del horario de servicio: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
-            : 'Horario fuera del servicio del dentista'
-        )
-      } else {
-        setError(null)
-      }
+      const validationError = validateDateTime(newDate, appointmentTime)
+      setError(validationError)
     }
   }
 
+  // Simplified handleTimeChange using extracted validation
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newTime = e.target.value
     setAppointmentTime(newTime)
 
     if (appointmentDate && newTime) {
-      if (!isDateTimeFuture(appointmentDate, newTime)) {
-        setError('La fecha y hora seleccionadas deben ser futuras')
-      } else if (!isTimeWithinServiceHours(newTime)) {
-        setError(
-          dentist
-            ? `La hora debe estar dentro del horario de servicio: ${formatTimeForDisplay(dentist.serviceStartTime)} a ${formatTimeForDisplay(dentist.serviceEndTime)}`
-            : 'Horario fuera del servicio del dentista'
-        )
-      } else {
-        setError(null)
-      }
+      const validationError = validateDateTime(appointmentDate, newTime)
+      setError(validationError)
     }
   }
 
