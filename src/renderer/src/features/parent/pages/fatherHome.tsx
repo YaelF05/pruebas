@@ -14,12 +14,12 @@ import {
   BrushRecord
 } from '../services/brushService'
 import styles from '../styles/fatherHome.module.css'
-import Clock from '@renderer/assets/icons/clock.png'
-import ClockActive from '@renderer/assets/icons/clock-active.png'
-import Children from '@renderer/assets/icons/children.png'
-import ChildrenActive from '@renderer/assets/icons/children-active.png'
-import Home from '@renderer/assets/icons/home.png'
-import HomeActive from '@renderer/assets/icons/home-active.png'
+import Clock from '@renderer/assets/icons/clock.svg'
+import ClockActive from '@renderer/assets/icons/clock_active.svg'
+import Children from '@renderer/assets/icons/children.svg'
+import ChildrenActive from '@renderer/assets/icons/children_active.svg'
+import Home from '@renderer/assets/icons/home.svg'
+import HomeActive from '@renderer/assets/icons/home_active.svg'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 interface BrushingStatus {

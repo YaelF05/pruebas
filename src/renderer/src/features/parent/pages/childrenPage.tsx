@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { getChildrenService, ChildResponse } from '../services/childService'
 import styles from '../styles/childrenPage.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
-import Clock from '@renderer/assets/icons/clock.png'
-import ClockActive from '@renderer/assets/icons/clock-active.png'
-import Children from '@renderer/assets/icons/children.png'
-import ChildrenActive from '@renderer/assets/icons/children-active.png'
-import Home from '@renderer/assets/icons/home.png'
-import HomeActive from '@renderer/assets/icons/home-active.png'
+import Clock from '@renderer/assets/icons/clock.svg'
+import ClockActive from '@renderer/assets/icons/clock_active.svg'
+import Children from '@renderer/assets/icons/children.svg'
+import ChildrenActive from '@renderer/assets/icons/children_active.svg'
+import Home from '@renderer/assets/icons/home.svg'
+import HomeActive from '@renderer/assets/icons/home_active.svg'
 
 const ChildrenPage: FC = () => {
   const navigate = useNavigate()
@@ -66,7 +66,6 @@ const ChildrenPage: FC = () => {
   }
 
   const handleChildClick = (child: ChildResponse): void => {
-    console.log('Navegando al detalle del hijo:', child)
     navigate(`/child/${child.childId}`)
   }
 

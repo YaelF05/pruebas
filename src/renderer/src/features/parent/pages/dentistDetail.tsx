@@ -5,8 +5,8 @@ import { AppointmentData } from '../services/appointmentService'
 import { getDentistByIdService, DentistResponse } from '../services/dentistService'
 import ScheduleAppointmentModal from '../components/scheduleAppointment'
 import styles from '../styles/dentistDetail.module.css'
-import Phone from '@renderer/assets/icons/phone.png'
-import Mail from '@renderer/assets/icons/mail.png'
+import Phone from '@renderer/assets/icons/phone.svg'
+import Mail from '@renderer/assets/icons/mail.svg'
 
 const DentistDetail: React.FC = () => {
   const { dentistId } = useParams<{ dentistId: string }>()

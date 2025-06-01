@@ -131,7 +131,7 @@ export async function getChildrenService(): Promise<ChildResponse[]> {
     if (response.ok) {
       const data = await response.json()
 
-      let childrenArray: any[] = []
+      let childrenArray: ChildResponse[] = []
 
       if (data.items && Array.isArray(data.items)) {
         childrenArray = data.items

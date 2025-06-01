@@ -71,7 +71,7 @@
   width: 180px;
   height: 180px;
   border-radius: 50%;
-  background-color: var(--secondary-normal);
+  background-color: var(--primary-light-active);
   overflow: hidden;
   display: flex;
   align-items: center;
