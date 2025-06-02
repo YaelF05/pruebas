@@ -1,48 +1,43 @@
-import { useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import { useAuth } from './useAuth'
+import { useLocation, useNavigate } from 'react-router-dom'
 
-interface UseAuthGuardOptions {
-  redirectTo?: string
-  publicRoutes?: string[]
-}
+const publicRoutes = ['/', '/signup', '/recover-password']
 
-export const useAuthGuard = (
-  options: UseAuthGuardOptions = {}
-): { isAuthenticated: boolean; isLoading: boolean; isAllowed: boolean } => {
-  const { redirectTo = '/', publicRoutes = ['/', '/signup', '/recover-password'] } = options
-
+/**
+ * Custom hook to guard routes based on authentication status.
+ * It checks if the user is authenticated and allows access to public routes.
+ * If the user is not authenticated and tries to access a protected route,
+ * it redirects them to the home page.
+ * @returns {Object} - An object containing `isAllowed` and `isLoading`.
+ */
+export const useAuthGuard = (): { isAllowed: boolean; isLoading: boolean } => {
   const { isAuthenticated, isLoading } = useAuth()
-  const navigate = useNavigate()
   const location = useLocation()
+  const navigate = useNavigate()
+  const [isAllowed, setIsAllowed] = useState(false)
 
   useEffect(() => {
-    // No hacer nada si aún está cargando
-    if (isLoading) return
-
-    const currentPath = location.pathname
-    const isPublicRoute = publicRoutes.some((route) => currentPath.startsWith(route))
-
-    // Si no está autenticado y no es una ruta pública, redirigir
-    if (!isAuthenticated && !isPublicRoute) {
-      // Guardar la ruta actual para redirigir después del login
-      sessionStorage.setItem('redirectAfterLogin', currentPath)
-      navigate(redirectTo)
+    if (isLoading) {
+      setIsAllowed(false)
+      return
     }
 
-    // Si está autenticado y está en login, redirigir al dashboard
-    if (isAuthenticated && currentPath === '/login') {
-      const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/dashboard'
-      sessionStorage.removeItem('redirectAfterLogin')
-      navigate(redirectPath)
-    }
-  }, [isAuthenticated, isLoading, location.pathname, navigate, redirectTo, publicRoutes])
+    const path = location.pathname
+    const isPublic = publicRoutes.includes(path)
 
-  return {
-    isAuthenticated,
-    isLoading,
-    isAllowed: isLoading
-      ? false
-      : isAuthenticated || publicRoutes.some((route) => location.pathname.startsWith(route))
-  }
+    if (isPublic) {
+      setIsAllowed(true)
+      return
+    }
+
+    if (isAuthenticated) {
+      setIsAllowed(true)
+    } else {
+      setIsAllowed(false)
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, isLoading, location.pathname, navigate])
+
+  return { isAllowed, isLoading }
 }

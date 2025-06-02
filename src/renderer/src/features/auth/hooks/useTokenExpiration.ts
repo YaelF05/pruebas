@@ -1,6 +1,13 @@
 import { useEffect, useCallback } from 'react'
 import { useAuth } from './useAuth'
 
+/**
+ * Custom hook to manage token expiration and logout.
+ * It checks the token expiration time and performs actions based on it.
+ * If the token is about to expire (less than 5 minutes left), it shows a warning.
+ * If the token has expired, it logs out the user.
+ * @returns {Object} - An object containing methods to get time left and check expiration.
+ */
 export const useTokenExpiration = (): {
   getTimeLeft: () => number
   checkExpiration: () => void
@@ -13,13 +20,10 @@ export const useTokenExpiration = (): {
     const currentTime = Math.floor(Date.now() / 1000)
     const timeLeft = expiration - currentTime
 
-    // Si queda menos de 5 minutos, mostrar advertencia
-    if (timeLeft > 0 && timeLeft < 300) {
+    if (timeLeft > 0 && timeLeft < 1800) {
       console.warn(`El token expirará en ${Math.floor(timeLeft / 60)} minutos`)
-      // Aquí podrías mostrar una notificación al usuario
     }
 
-    // Si ya expiró, hacer logout
     if (timeLeft <= 0) {
       logout()
     }
@@ -28,10 +32,8 @@ export const useTokenExpiration = (): {
   useEffect(() => {
     if (!isAuthenticated) return
 
-    // Verificar inmediatamente
     checkExpiration()
 
-    // Verificar cada minuto
     const interval = setInterval(checkExpiration, 60000)
 
     return () => clearInterval(interval)

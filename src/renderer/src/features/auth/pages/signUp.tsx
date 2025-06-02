@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { signupService } from '../services/signupService'
-import { loginService, saveAuth } from '../services/loginService'
+import { loginService } from '../services/loginService'
 import { SignupCredentials, LoginCredentials } from '../types/authTypes'
 import {
   validateType,
@@ -99,7 +99,6 @@ const Signup = (): React.JSX.Element => {
       await signupService(credentials)
 
       const result = await loginService(credentialsLogin)
-      saveAuth(result.token, result.userType)
       if (result.userType === 'DENTIST') {
         navigate('/formDentist')
       } else if (result.userType === 'FATHER') {

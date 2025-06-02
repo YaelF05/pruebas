@@ -1,7 +1,7 @@
 import React from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Login from '@renderer/features/auth/pages/login'
-import Singup from '@renderer/features/auth/pages/signUp'
+import Signup from '@renderer/features/auth/pages/signUp'
 import FormDentis from '@renderer/features/dentist/pages/formDentis'
 import DentistDashboard from '@renderer/features/dentist/pages/dentistDashboard'
 import ProfileSelection from '@renderer/features/parent/pages/profileSelection'
@@ -15,32 +15,121 @@ import SettingsDentist from '@renderer/features/dentist/pages/settingsDentist'
 import ProfileDentist from '@renderer/features/dentist/pages/profile'
 import ChildrenPage from '../features/parent/pages/childrenPage'
 import ChildDetail from '@renderer/features/parent/pages/childDetail'
+import { ProtectedRoute } from '@renderer/features/auth/components/protectedRoute'
 
 function AuthRoutes(): React.JSX.Element {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/signup" element={<Singup />} />
+      <Route path="/signup" element={<Signup />} />
 
       {/* Routes for Dentist */}
-      <Route path="/formDentist" element={<FormDentis />} />
-      <Route path="/dentistDashboard" element={<DentistDashboard />} />
-      <Route path="/citasDentist" element={<AppointmentDentist />} />
-      <Route path="/pacientes" element={<Patients />} />
-      <Route path="/configuracion" element={<SettingsDentist />} />
-      <Route path="/perfil" element={<ProfileDentist />} />
-
-      {/* Routes for Child */}
-      {/* <Route path="/childDashboard" element={<ChildDashboard />} /> */}
+      <Route
+        path="/formDentist"
+        element={
+          <ProtectedRoute>
+            <FormDentis />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dentistDashboard"
+        element={
+          <ProtectedRoute>
+            <DentistDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/citasDentist"
+        element={
+          <ProtectedRoute>
+            <AppointmentDentist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/pacientes"
+        element={
+          <ProtectedRoute>
+            <Patients />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/configuracion"
+        element={
+          <ProtectedRoute>
+            <SettingsDentist />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/perfil"
+        element={
+          <ProtectedRoute>
+            <ProfileDentist />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Routes for Father */}
-      <Route path="/profile-selection" element={<ProfileSelection />} />
-      <Route path="/fatherDashboard" element={<FatherDashboard />} />
-      <Route path="/appointmentFather" element={<AppointmentsFather />} />
-      <Route path="/dentistDirectory" element={<DentisDirectory />} />
-      <Route path="/dentist/:dentistId" element={<DentistDetail />} />
-      <Route path="/children" element={<ChildrenPage />} />
-      <Route path="/child/:childId" element={<ChildDetail />} />
+      <Route
+        path="/profile-selection"
+        element={
+          <ProtectedRoute>
+            <ProfileSelection />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/fatherDashboard"
+        element={
+          <ProtectedRoute>
+            <FatherDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/appointmentFather"
+        element={
+          <ProtectedRoute>
+            <AppointmentsFather />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dentistDirectory"
+        element={
+          <ProtectedRoute>
+            <DentisDirectory />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dentist/:dentistId"
+        element={
+          <ProtectedRoute>
+            <DentistDetail />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/children"
+        element={
+          <ProtectedRoute>
+            <ChildrenPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/child/:childId"
+        element={
+          <ProtectedRoute>
+            <ChildDetail />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   )
 }

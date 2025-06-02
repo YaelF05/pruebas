@@ -1,61 +1,56 @@
-import type { LoginResult, AuthState } from '../types/authTypes'
+export interface AuthState {
+  token: string | null
+  expiration: number | null
+  userType: string | null
+  isAuthenticated: boolean
+}
 
-export class AuthManager {
-  private static readonly TOKEN_KEY = 'authToken'
-  private static readonly EXPIRATION_KEY = 'authExpiration'
-  private static readonly USER_TYPE_KEY = 'userType'
+/**
+ * Utility to manage authentication state in localStorage.
+ * Provides methods to save, clear, and retrieve authentication data.
+ * Includes methods to check if the user is authenticated and to get the remaining time of the token.
+ * @returns {AuthState} The current authentication state.
+ * @returns {string | null} The authentication token if available.
+ * @returns {boolean} Whether the user is authenticated.
+ */
+export const AuthManager = {
+  saveAuthData(data: { token: string; expiration: number; userType: string }) {
+    localStorage.setItem('authToken', data.token)
+    localStorage.setItem('authExpiration', data.expiration.toString())
+    localStorage.setItem('userType', data.userType)
+  },
 
-  static saveAuthData(loginResult: LoginResult): void {
-    localStorage.setItem(this.TOKEN_KEY, loginResult.token)
-    localStorage.setItem(this.EXPIRATION_KEY, loginResult.expiration.toString())
-    localStorage.setItem(this.USER_TYPE_KEY, loginResult.userType)
-  }
+  clearAuthData() {
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('authExpiration')
+    localStorage.removeItem('userType')
+  },
 
-  static getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY)
-  }
+  getAuthState(): AuthState {
+    const token = localStorage.getItem('authToken')
+    const expirationStr = localStorage.getItem('authExpiration')
+    const userType = localStorage.getItem('userType')
 
-  static getExpiration(): number | null {
-    const expiration = localStorage.getItem(this.EXPIRATION_KEY)
-    return expiration ? parseInt(expiration, 10) : null
-  }
+    const nowInSeconds = Math.floor(Date.now() / 1000)
+    const expiration = expirationStr ? Number(expirationStr) : 0
 
-  static getUserType(): string | null {
-    return localStorage.getItem(this.USER_TYPE_KEY)
-  }
+    const diffSeconds = expiration - nowInSeconds
+    const isAuthenticated = !!token && diffSeconds > 0
 
-  static isTokenExpired(): boolean {
-    const expiration = this.getExpiration()
-    if (!expiration) return true
-
-    const currentTime = Math.floor(Date.now() / 1000)
-    return currentTime >= expiration
-  }
-
-  static isAuthenticated(): boolean {
-    const token = this.getToken()
-
-    if (!token) return false
-    if (this.isTokenExpired()) {
-      this.clearAuthData()
-      return false
-    }
-
-    return true
-  }
-
-  static clearAuthData(): void {
-    localStorage.removeItem(this.TOKEN_KEY)
-    localStorage.removeItem(this.EXPIRATION_KEY)
-    localStorage.removeItem(this.USER_TYPE_KEY)
-  }
-
-  static getAuthState(): Omit<AuthState, 'isLoading'> {
     return {
-      isAuthenticated: this.isAuthenticated(),
-      token: this.getToken(),
-      expiration: this.getExpiration(),
-      userType: this.getUserType()
+      token,
+      expiration,
+      userType,
+      isAuthenticated
     }
+  },
+
+  getToken(): string | null {
+    const auth = this.getAuthState()
+    return auth.isAuthenticated ? auth.token : null
+  },
+
+  isAuthenticated(): boolean {
+    return this.getAuthState().isAuthenticated
   }
 }
