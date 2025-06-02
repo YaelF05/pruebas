@@ -26,7 +26,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
 
   const handleConfirm = (): void => {
     const trimmedReason = reason.trim()
-    
+
     if (!trimmedReason) {
       setError('Debe ingresar el motivo de la cancelación')
       return
@@ -68,18 +68,10 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
         </div>
 
         <div className={styles.buttonGroup}>
-          <button
-            type="button"
-            className={styles.cancelButton}
-            onClick={handleClose}
-          >
+          <button type="button" className={styles.cancelButton} onClick={handleClose}>
             Regresar
           </button>
-          <button
-            type="button"
-            className={styles.confirmButton}
-            onClick={handleConfirm}
-          >
+          <button type="button" className={styles.confirmButton} onClick={handleConfirm}>
             Cancelar cita
           </button>
         </div>
