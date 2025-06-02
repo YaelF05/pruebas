@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
+import CancelAppointmentModal from '../components/cancelAppointment'
 import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
 import { getChildrenService } from '../services/childService'
 import { getDentistsForSelectService } from '../services/dentistService'
@@ -26,6 +27,10 @@ interface ChildData {
   lastName: string
 }
 
+interface CancelModalData {
+  appointmentId: string
+}
+
 const AppointmentsPage: FC = () => {
   const navigate = useNavigate()
 
@@ -36,6 +41,10 @@ const AppointmentsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<string>('citas')
   const [isLoading, setLoading] = useState(true)
   const [, setError] = useState<string | null>(null)
+  
+  // Estados para el modal de cancelación
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
+  const [cancelModalData, setCancelModalData] = useState<CancelModalData | null>(null)
 
   useEffect(() => {
     fetchAllData()
@@ -139,21 +148,57 @@ const AppointmentsPage: FC = () => {
     }
   }
 
-  const handleCancel = async (): Promise<void> => {
-    try {
-      const reason = prompt('Motivo de la cancelación')
-      if (!reason) return
+  const handleCancelClick = (appointmentId: string): void => {
+    const appointment = allAppointments.find((a) => a.appointmentId.toString() === appointmentId)
 
-      if (!confirm('¿Está seguro de cancelar esta cita?')) return
-      await fetchAllData()
-
-      alert('Cita cancelada exitosamente')
-    } catch (error) {
-      console.error('Error al cancelar la cita:', error)
-      alert(
-        `Error al cancelar la cita: ${error instanceof Error ? error.message : 'Error desconocido'}`
-      )
+    if (!appointment) {
+      alert('Cita no encontrada')
+      return
     }
+
+    // Verificar si la cita ya pasó
+    const appointmentDateTime = new Date(appointment.appointmentDatetime)
+    const now = new Date()
+
+    if (appointmentDateTime <= now) {
+      alert('No se pueden cancelar citas que ya han pasado')
+      return
+    }
+
+    // Preparar datos para el modal
+    const modalData: CancelModalData = {
+      appointmentId
+    }
+
+    setCancelModalData(modalData)
+    setIsCancelModalOpen(true)
+  }
+
+  const handleCancelConfirm = (reason: string): void => {
+    if (!cancelModalData) return
+
+    // Por ahora solo mostrar un mensaje
+    console.log('Cancelando cita:', {
+      appointmentId: cancelModalData.appointmentId,
+      reason: reason
+    })
+
+    alert('Cita cancelada exitosamente')
+    
+    // Aquí se implementaría el servicio de cancelación cuando esté listo
+    // await cancelAppointmentService(parseInt(cancelModalData.appointmentId), reason)
+    
+    // Recargar datos
+    fetchAllData()
+    
+    // Cerrar modal
+    setIsCancelModalOpen(false)
+    setCancelModalData(null)
+  }
+
+  const handleCancelModalClose = (): void => {
+    setIsCancelModalOpen(false)
+    setCancelModalData(null)
   }
 
   const navigateToDentists = (): void => {
@@ -243,7 +288,7 @@ const AppointmentsPage: FC = () => {
                     description={appointment.reason}
                     doctorName={getDentistName(appointment.dentistId)}
                     onReschedule={handleReschedule}
-                    onCancel={handleCancel}
+                    onCancel={handleCancelClick}
                   />
                 ))
               ) : (
@@ -299,6 +344,13 @@ const AppointmentsPage: FC = () => {
           </div>
         </nav>
       </div>
+
+      {/* Modal de cancelación de cita */}
+      <CancelAppointmentModal
+        isOpen={isCancelModalOpen}
+        onClose={handleCancelModalClose}
+        onConfirm={handleCancelConfirm}
+      />
     </div>
   )
 }
