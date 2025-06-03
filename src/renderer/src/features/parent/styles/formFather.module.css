@@ -1,0 +1,77 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  max-width: 1280px;
+  padding: 20px;
+  position: relative;
+}
+
+.title {
+  font-size: var(--font-size-h1);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 10px 0px 10px 0px;
+}
+
+.childrenSection {
+  margin-bottom: 30px;
+}
+
+.childrenCards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 10px 0;
+}
+
+.addChildButton {
+  min-width: 200px;
+  height: 100px;
+  border: 2px solid var(--secondary-darker);
+  border-radius: 10px;
+  background: var(--background-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  gap: 10px;
+  transition: background-color 0.2s;
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-title1);
+  font-weight: 600;
+  color: var(--secondary-darker);
+}
+
+.addChildButton:hover {
+  background-color: var(--secondary-light);
+}
+
+.plusIcon {
+  font-size: 32px;
+  color: var(--secondary-darker);
+}
+
+.button {
+  margin-top: auto;
+  width: 100%;
+  height: 30px;
+  background-color: var(--primary-normal);
+  border: none;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--primary-light);
+  border-radius: 10px;
+  cursor: pointer;
+}

@@ -5,7 +5,7 @@ import WeeklyBrushingList from '../components/weeklyBrushingList'
 import ChildCard from '../components/childCard'
 import Modal from '../components/modal'
 import AddChildForm from '../components/addChildForm'
-import { getChildrenService, ChildResponse, ChildData } from '../services/childService'
+import { getChildrenService, ChildResponse } from '../services/childService'
 import {
   getTodayBrushRecordsService,
   getWeeklyBrushRecordsService,
@@ -107,21 +107,24 @@ const HomePage: FC = () => {
     fetchInitialData()
   }, [])
 
-  const handleAddChild = async (data: ChildData): Promise<void> => {
+  // Función para manejar el éxito en la creación del hijo
+  const handleChildCreated = async (): Promise<void> => {
     try {
       setIsCreatingChild(true)
       setAddChildError(null)
 
+      // Recargar la lista de hijos
       const updatedChildren = await getChildrenService()
       setChildren(updatedChildren)
 
-      const newChild = updatedChildren.find(
-        (child) => child.name === data.name && child.lastName === data.lastName
-      )
+      // Si hay hijos y no hay uno seleccionado, seleccionar el último agregado
+      if (updatedChildren.length > 0) {
+        const lastChild = updatedChildren[updatedChildren.length - 1]
+        setSelectedChild(lastChild)
 
-      if (newChild) {
-        const todayRecords = await getTodayBrushRecordsService(newChild.childId)
-        const weeklyRecords = await getWeeklyBrushRecordsService(newChild.childId)
+        // Cargar datos de cepillado para el nuevo hijo
+        const todayRecords = await getTodayBrushRecordsService(lastChild.childId)
+        const weeklyRecords = await getWeeklyBrushRecordsService(lastChild.childId)
 
         const newBrushingData: ChildBrushingData = {
           todayBrushing: getBrushingStatusFromRecords(todayRecords),
@@ -129,25 +132,17 @@ const HomePage: FC = () => {
           todayRecords: todayRecords
         }
 
-        setChildrenBrushingData({
-          ...childrenBrushingData,
-          [newChild.childId]: newBrushingData
-        })
-
-        setSelectedChild(newChild)
-      } else {
-        console.warn('No se encontró el nuevo hijo en la lista actualizada')
-        if (updatedChildren.length > 0) {
-          setSelectedChild(updatedChildren[0])
-        }
+        setChildrenBrushingData((prev) => ({
+          ...prev,
+          [lastChild.childId]: newBrushingData
+        }))
       }
+
+      // Cerrar el modal
       setIsModalOpen(false)
     } catch (error) {
-      console.error('Error al agregar hijo:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-      setAddChildError(`Error al agregar el hijo: ${errorMessage}`)
-
-      throw error
+      console.error('Error al actualizar datos después de crear hijo:', error)
+      setAddChildError('Error al actualizar los datos. Por favor, recarga la página.')
     } finally {
       setIsCreatingChild(false)
     }
@@ -265,10 +260,10 @@ const HomePage: FC = () => {
         todayRecords: todayRecords
       }
 
-      setChildrenBrushingData({
-        ...childrenBrushingData,
+      setChildrenBrushingData((prev) => ({
+        ...prev,
         [selectedChild.childId]: updatedChildData
-      })
+      }))
     } catch (error) {
       console.error('Error al actualizar estado de cepillado:', error)
       alert('Error al actualizar el estado de cepillado')
@@ -478,7 +473,7 @@ const HomePage: FC = () => {
         onClose={handleCloseModal}
         title="Danos a conocer un poco más sobre tu hijo"
       >
-        <AddChildForm onSubmit={handleAddChild} onCancel={handleCloseModal} />
+        <AddChildForm onCancel={handleCloseModal} onSuccess={handleChildCreated} />
       </Modal>
     </div>
   )

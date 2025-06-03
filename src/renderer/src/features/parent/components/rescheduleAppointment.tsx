@@ -30,9 +30,8 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
 
   useEffect(() => {
     if (isOpen && appointment) {
-      // Cargar información del dentista
       loadDentistInfo()
-      // Limpiar formulario
+
       setNewDate('')
       setNewTime('')
       setReason('')
@@ -95,7 +94,6 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     const selectedDateTime = new Date(`${date}T${time}:00`)
     const now = new Date()
 
-    // Agregar 30 minutos de margen mínimo
     const minAllowedTime = new Date(now.getTime() + 30 * 60000)
 
     return selectedDateTime > minAllowedTime
@@ -106,7 +104,6 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
 
     const selectedDateTime = new Date(`${date}T${time}:00`)
 
-    // Filtrar citas del mismo dentista en la misma fecha (excluyendo la cita actual)
     const conflictingAppointments = existingAppointments.filter(
       (apt) =>
         apt.dentistId === appointment.dentistId &&

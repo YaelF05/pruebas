@@ -46,12 +46,10 @@ const AppointmentsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<string>('citas')
   const [isLoading, setLoading] = useState(true)
   const [, setError] = useState<string | null>(null)
-  
-  // Estados para el modal de cancelación
+
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [cancelModalData, setCancelModalData] = useState<CancelModalData | null>(null)
 
-  // Estados para el modal de reagendamiento
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
   const [rescheduleModalData, setRescheduleModalData] = useState<RescheduleModalData | null>(null)
 
@@ -180,14 +178,11 @@ const AppointmentsPage: FC = () => {
     })
 
     alert(`Cita reagendada exitosamente para el ${formattedDate} a las ${formattedTime}`)
-    
-    // Aquí se implementaría el servicio de reagendamiento cuando esté listo
+    // Servicio para reagendar
     // await rescheduleAppointmentService(rescheduleModalData.appointment.appointmentId, newDateTime, reason)
-    
-    // Recargar datos
+
     fetchAllData()
-    
-    // Cerrar modal
+
     setIsRescheduleModalOpen(false)
     setRescheduleModalData(null)
   }
@@ -205,13 +200,11 @@ const AppointmentsPage: FC = () => {
       return
     }
 
-    // Verificar si la cita ya pasó
     if (isAppointmentInPast(appointment.appointmentDatetime)) {
       alert('No se pueden cancelar citas que ya han pasado')
       return
     }
 
-    // Preparar datos para el modal
     const modalData: CancelModalData = {
       appointmentId
     }
@@ -223,21 +216,18 @@ const AppointmentsPage: FC = () => {
   const handleCancelConfirm = (reason: string): void => {
     if (!cancelModalData) return
 
-    // Por ahora solo mostrar un mensaje
     console.log('Cancelando cita:', {
       appointmentId: cancelModalData.appointmentId,
       reason: reason
     })
 
     alert('Cita cancelada exitosamente')
-    
-    // Aquí se implementaría el servicio de cancelación cuando esté listo
+
+    // Servicio de cancelar
     // await cancelAppointmentService(parseInt(cancelModalData.appointmentId), reason)
-    
-    // Recargar datos
+
     fetchAllData()
-    
-    // Cerrar modal
+
     setIsCancelModalOpen(false)
     setCancelModalData(null)
   }

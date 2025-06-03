@@ -272,3 +272,118 @@ export function validatePhoneNumber(phoneNumber: string): string | null {
   }
   return null
 }
+
+/**
+ * Validate gender.
+ *
+ * @param gender gender to validate.
+ * @returns An error message
+ **/
+export function validateGender(gender: string): string | null {
+  if (!gender.trim()) {
+    return 'El campo de género no puede estar vacío'
+  }
+  if (gender != 'M' && gender != 'F') {
+    return 'El genero solo puede ser Masculino o Femenino'
+  }
+  return null
+}
+
+/**
+ * validate childBirthDate.
+ *
+ * @param childBirthDate Child birth date to validate.
+ * @returns An error message if the child birth date is not valid, or 'null' if it is valid.
+ */
+export function validateChildBirthDate(birthDate: string): string | null {
+  const baseValidation = validateBirthDate(birthDate)
+  if (baseValidation) {
+    return baseValidation
+  }
+  const birth = new Date(birthDate)
+  const today = new Date()
+
+  if (birth > today) {
+    return 'La fecha de nacimiento no puede ser futura'
+  }
+
+  const maxAllowedDate = new Date(today.getFullYear() - 4, today.getMonth(), today.getDate())
+  const minAllowedDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate())
+
+  if (birth > maxAllowedDate) {
+    return 'El niño debe tener al menos 4 años'
+  }
+
+  if (birth < minAllowedDate) {
+    return 'El niño no puede tener más de 13 años'
+  }
+
+  return null
+}
+
+/**
+ * Validate brushing time.
+ *
+ * @param morningBrushingTime Brushing time to validate.
+ * @returns An error message if the brushing time is not valid, or 'null' if it is valid.
+ * */
+export function validateMorningBrushingTime(morningBrushingTime: string): string | null {
+  if (!morningBrushingTime.trim()) {
+    return 'El campo de hora de cepillado no puede estar vacío'
+  }
+  const morningBrushingTimeRegex = /^\d{2}:\d{2}$/
+  if (!morningBrushingTimeRegex.test(morningBrushingTime)) {
+    return 'La hora de cepillado no tiene un formato válido (HH:MM)'
+  }
+  return null
+}
+
+/**
+ * Validate brushing time.
+ *
+ * @param afternoonBrushingTime Brushing time to validate.
+ * @returns An error message if the brushing time is not valid, or 'null' if it is valid.
+ * */
+export function validateAfternoonBrushingTime(afternoonBrushingTime: string): string | null {
+  if (!afternoonBrushingTime.trim()) {
+    return 'El campo de hora de cepillado no puede estar vacío'
+  }
+  const nightBrushingTimeRegex = /^\d{2}:\d{2}$/
+  if (!nightBrushingTimeRegex.test(afternoonBrushingTime)) {
+    return 'La hora de cepillado no tiene un formato válido (HH:MM)'
+  }
+  return null
+}
+
+/**
+ * Validate brushing time.
+ *
+ * @param nightBrushingTime Brushing time to validate.
+ * @returns An error message if the brushing time is not valid, or 'null' if it is valid.
+ * */
+export function validateNightBrushingTime(nightBrushingTime: string): string | null {
+  if (!nightBrushingTime.trim()) {
+    return 'El campo de hora de cepillado no puede estar vacío'
+  }
+  const nightBrushingTimeRegex = /^\d{2}:\d{2}$/
+  if (!nightBrushingTimeRegex.test(nightBrushingTime)) {
+    return 'La hora de cepillado no tiene un formato válido (HH:MM)'
+  }
+  return null
+}
+
+/**
+ * Validate dentist ID.
+ *
+ * @param dentistId Dentist ID to validate.
+ * @returns An error message if the dentist ID is not valid, or 'null' if it is valid.
+ **/
+export function validateDentistId(dentistId: number | null): string | null {
+  if (dentistId === null) {
+    return 'Por favor selecciona un odontólogo.'
+  }
+  if (typeof dentistId !== 'number' || dentistId <= 0) {
+    return 'No se ha seleccionado un odontólogo válido.'
+  }
+  return null
+}
