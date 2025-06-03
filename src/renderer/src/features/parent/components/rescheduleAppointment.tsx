@@ -9,10 +9,9 @@ import styles from '../styles/rescheduleAppointment.module.css'
 interface RescheduleAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (newDateTime: string, reason: string) => Promise<void>
+  onConfirm: (newDateTime: string, reason: string) => void
   appointment: AppointmentResponse | null
   existingAppointments: AppointmentResponse[]
-  isLoading?: boolean
 }
 
 const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
@@ -20,8 +19,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   onClose,
   onConfirm,
   appointment,
-  existingAppointments,
-  isLoading = false
+  existingAppointments
 }) => {
   const [newDate, setNewDate] = useState<string>('')
   const [newTime, setNewTime] = useState<string>('')
@@ -33,16 +31,13 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   useEffect(() => {
     if (isOpen && appointment) {
       loadDentistInfo()
-      resetForm()
+
+      setNewDate('')
+      setNewTime('')
+      setReason('')
+      setError(null)
     }
   }, [isOpen, appointment])
-
-  const resetForm = (): void => {
-    setNewDate('')
-    setNewTime('')
-    setReason('')
-    setError(null)
-  }
 
   const loadDentistInfo = async (): Promise<void> => {
     if (!appointment?.dentistId) return
@@ -137,7 +132,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     }
 
     if (!isDateTimeFuture(date, time)) {
-      return 'La fecha y hora seleccionadas deben ser futuras (al menos 30 minutos)'
+      return 'La fecha y hora seleccionadas deben ser futuras'
     }
 
     if (!isTimeWithinServiceHours(time)) {
@@ -193,7 +188,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     return validateDateTime(newDate, newTime)
   }
 
-  const handleConfirm = async (): Promise<void> => {
+  const handleConfirm = (): void => {
     const validationError = validateForm()
     if (validationError) {
       setError(validationError)
@@ -201,20 +196,15 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     }
 
     const newDateTime = `${newDate}T${newTime}:00`
-
-    try {
-      setError(null)
-      await onConfirm(newDateTime, reason.trim())
-      handleClose()
-    } catch (error) {
-      console.error('Error al reagendar cita:', error)
-      setError(error instanceof Error ? error.message : 'Error al reagendar la cita')
-    }
+    onConfirm(newDateTime, reason.trim())
+    handleClose()
   }
 
   const handleClose = (): void => {
-    if (isLoading) return // Prevenir cierre durante operación
-    resetForm()
+    setNewDate('')
+    setNewTime('')
+    setReason('')
+    setError(null)
     onClose()
   }
 
@@ -263,7 +253,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
                 label="Motivo por el que se reagenda"
                 name="reason"
                 value={reason}
-                placeholder="Describe el motivo por el cual reagendas la cita..."
+                placeholder="Motivo por el que se reagenda"
                 onChange={(e) => setReason(e.target.value)}
                 required
               />
@@ -271,29 +261,18 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
 
             {/* Botones de acción */}
             <div className={styles.buttonGroup}>
-              <button 
-                type="button" 
-                className={styles.cancelButton} 
-                onClick={handleClose}
-                disabled={isLoading}
-              >
+              <button type="button" className={styles.cancelButton} onClick={handleClose}>
                 Regresar
               </button>
               <button
                 type="button"
                 className={styles.confirmButton}
                 onClick={handleConfirm}
-                disabled={isLoading || isLoadingDentist || !newDate || !newTime || !reason.trim()}
+                disabled={isLoadingDentist}
               >
-                {isLoading ? 'Reagendando...' : 'Reagendar cita'}
+                Reagendar cita
               </button>
             </div>
-
-            {isLoading && (
-              <div className={styles.loadingIndicator}>
-                <p>Procesando reagendamiento...</p>
-              </div>
-            )}
           </>
         )}
       </div>

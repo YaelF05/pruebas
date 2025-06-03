@@ -6,15 +6,13 @@ import styles from '../styles/cancelAppointment.module.css'
 interface CancelAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (reason: string) => Promise<void>
-  isLoading?: boolean
+  onConfirm: (reason: string) => void
 }
 
 const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
   isOpen,
   onClose,
-  onConfirm,
-  isLoading = false
+  onConfirm
 }) => {
   const [reason, setReason] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +24,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
     }
   }
 
-  const handleConfirm = async (): Promise<void> => {
+  const handleConfirm = (): void => {
     const trimmedReason = reason.trim()
 
     if (!trimmedReason) {
@@ -44,18 +42,11 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
       return
     }
 
-    try {
-      setError(null)
-      await onConfirm(trimmedReason)
-      handleClose()
-    } catch (error) {
-      console.error('Error al cancelar cita:', error)
-      setError(error instanceof Error ? error.message : 'Error al cancelar la cita')
-    }
+    onConfirm(trimmedReason)
+    handleClose()
   }
 
   const handleClose = (): void => {
-    if (isLoading) return // Prevenir cierre durante operación
     setReason('')
     setError(null)
     onClose()
@@ -77,29 +68,13 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
         </div>
 
         <div className={styles.buttonGroup}>
-          <button 
-            type="button" 
-            className={styles.cancelButton} 
-            onClick={handleClose}
-            disabled={isLoading}
-          >
+          <button type="button" className={styles.cancelButton} onClick={handleClose}>
             Regresar
           </button>
-          <button 
-            type="button" 
-            className={styles.confirmButton} 
-            onClick={handleConfirm}
-            disabled={isLoading || !reason.trim()}
-          >
-            {isLoading ? 'Cancelando...' : 'Cancelar cita'}
+          <button type="button" className={styles.confirmButton} onClick={handleConfirm}>
+            Cancelar cita
           </button>
         </div>
-
-        {isLoading && (
-          <div className={styles.loadingIndicator}>
-            <p>Procesando cancelación...</p>
-          </div>
-        )}
       </div>
     </Modal>
   )

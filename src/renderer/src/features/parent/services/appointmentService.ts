@@ -287,59 +287,13 @@ export async function deactivateAppointmentService(
   }
 }
 
-// Servicios específicos para cada tipo de desactivación
-export async function cancelAppointmentService(
-  appointmentId: number, 
-  reason: string
-): Promise<{ message: string }> {
-  return deactivateAppointmentService({ 
-    deactiveAppointmentId: appointmentId, 
-    reason, 
-    type: 'CANCELLED' 
-  })
-}
+const createDeactivationService =
+  (type: 'CANCELLED' | 'RESCHEDULED' | 'FINISHED') =>
+  async (appointmentId: number, reason: string): Promise<{ message: string }> =>
+    deactivateAppointmentService({ deactiveAppointmentId: appointmentId, reason, type })
 
-export async function finishAppointmentService(
-  appointmentId: number, 
-  reason: string
-): Promise<{ message: string }> {
-  return deactivateAppointmentService({ 
-    deactiveAppointmentId: appointmentId, 
-    reason, 
-    type: 'FINISHED' 
-  })
-}
-
-// Servicio completo de reagendamiento que maneja ambos pasos
-export async function rescheduleAppointmentService(
-  appointmentId: number,
-  newDateTime: string, 
-  reason: string
-): Promise<{ message: string }> {
-  try {
-    // Paso 1: Obtener datos de la cita original
-    const originalAppointment = await getAppointmentByIdService(appointmentId)
-    
-    // Paso 2: Marcar la cita original como reagendada
-    await deactivateAppointmentService({
-      deactiveAppointmentId: appointmentId,
-      reason,
-      type: 'RESCHEDULED'
-    })
-    
-    // Paso 3: Crear nueva cita con datos heredados + nueva fecha/hora
-    await createAppointmentService({
-      dentistId: originalAppointment.dentistId!,
-      childId: originalAppointment.childId!,
-      reason: originalAppointment.reason, // Se mantiene el motivo original
-      appointmentDatetime: newDateTime
-    })
-    
-    return { message: 'Cita reagendada exitosamente' }
-  } catch (error) {
-    console.error('Error en rescheduleAppointmentService:', error)
-    throw error
-  }
-}
+export const cancelAppointmentService = createDeactivationService('CANCELLED')
+export const rescheduleAppointmentService = createDeactivationService('RESCHEDULED')
+export const finishAppointmentService = createDeactivationService('FINISHED')
 
 export type { AppointmentData, AppointmentResponse }
