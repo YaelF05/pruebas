@@ -140,6 +140,101 @@
   word-wrap: break-word;
   max-width: 90%;
 } 
+
+.errorBanner {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--error-primary);
+  color: var(--background-light);
+  padding: 12px 20px;
+  border-radius: 8px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  max-width: 90vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: var(--Quicksand);
+  font-weight: 600;
+}
+
+.errorBanner p {
+  margin: 0;
+  font-size: var(--font-size-body);
+}
+
+.errorBanner button {
+  background: none;
+  border: none;
+  color: var(--background-light);
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.errorBanner button:hover {
+  opacity: 0.8;
+}
+
+/* Estilos para cancelAppointment.module.css - Agregar estos estilos */
+
+.loadingIndicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: var(--background-light);
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.loadingIndicator p {
+  margin: 0;
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+}
+
+/* Estilos para rescheduleAppointment.module.css - Agregar estos estilos */
+
+.loadingIndicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: var(--background-light);
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.loadingIndicator p {
+  margin: 0;
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-body);
+  font-weight: 500;
+}
+
+.serviceHours {
+  font-size: var(--font-size-caption);
+  color: var(--neutral-normal);
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-family: var(--Quicksand);
+  font-style: italic;
+  text-align: center;
+}
   
   /* barra nav */
   .bottomNav {
