@@ -4,6 +4,8 @@ import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
 import CancelAppointmentModal from '../components/cancelAppointment'
 import RescheduleAppointmentModal from '../components/rescheduleAppointment'
+import RescheduleSuccess from '../components/rescheduleSuccess'
+import CancelSuccess from '../components/cancelSuccess'
 import {
   getAppointmentsService,
   AppointmentResponse,
@@ -52,13 +54,20 @@ const AppointmentsPage: FC = () => {
   const [isLoading, setLoading] = useState(true)
   const [, setError] = useState<string | null>(null)
 
+  // Estados para modal de cancelación
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [cancelModalData, setCancelModalData] = useState<CancelModalData | null>(null)
   const [isCancelling, setIsCancelling] = useState(false)
 
+  // Estados para modal de reagendamiento
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
   const [rescheduleModalData, setRescheduleModalData] = useState<RescheduleModalData | null>(null)
   const [isRescheduling, setIsRescheduling] = useState(false)
+
+  // Estados para modales de éxito
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false)
+  const [showRescheduleSuccess, setShowRescheduleSuccess] = useState(false)
+  const [rescheduleNewDateTime, setRescheduleNewDateTime] = useState<string>('')
 
   useEffect(() => {
     fetchAllData()
@@ -148,13 +157,11 @@ const AppointmentsPage: FC = () => {
       return
     }
 
-    // Verificar si la cita ya pasó
     if (isAppointmentInPast(appointment.appointmentDatetime)) {
       alert('No se pueden reagendar citas que ya han pasado')
       return
     }
 
-    // Preparar datos para el modal
     const modalData: RescheduleModalData = {
       appointment
     }
@@ -171,26 +178,16 @@ const AppointmentsPage: FC = () => {
 
       await rescheduleAppointmentService(rescheduleModalData.appointment.appointmentId, reason)
 
-      // Formatear la nueva fecha y hora para mostrar
-      const newDate = new Date(newDateTime)
-      const formattedDate = newDate.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      })
-      const formattedTime = newDate.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      })
-
-      alert(`Cita reagendada exitosamente para el ${formattedDate} a las ${formattedTime}`)
+      // Guardar la nueva fecha/hora para mostrar en el modal de éxito
+      setRescheduleNewDateTime(newDateTime)
 
       // Recargar datos
       await fetchAllData()
 
+      // Cerrar modal de reagendamiento y mostrar modal de éxito
       setIsRescheduleModalOpen(false)
       setRescheduleModalData(null)
+      setShowRescheduleSuccess(true)
     } catch (error) {
       console.error('Error al reagendar cita:', error)
       alert(error instanceof Error ? error.message : 'Error al reagendar la cita')
@@ -203,6 +200,11 @@ const AppointmentsPage: FC = () => {
     if (isRescheduling) return
     setIsRescheduleModalOpen(false)
     setRescheduleModalData(null)
+  }
+
+  const handleRescheduleSuccessContinue = (): void => {
+    setShowRescheduleSuccess(false)
+    setRescheduleNewDateTime('')
   }
 
   const handleCancelClick = (appointmentId: string): void => {
@@ -234,13 +236,13 @@ const AppointmentsPage: FC = () => {
 
       await cancelAppointmentService(parseInt(cancelModalData.appointmentId), reason)
 
-      alert('Cita cancelada exitosamente')
-
       // Recargar datos para actualizar la lista
       await fetchAllData()
 
+      // Cerrar modal de cancelación y mostrar modal de éxito
       setIsCancelModalOpen(false)
       setCancelModalData(null)
+      setShowCancelSuccess(true)
     } catch (error) {
       console.error('Error al cancelar cita:', error)
       alert(error instanceof Error ? error.message : 'Error al cancelar la cita')
@@ -253,6 +255,10 @@ const AppointmentsPage: FC = () => {
     if (isCancelling) return
     setIsCancelModalOpen(false)
     setCancelModalData(null)
+  }
+
+  const handleCancelSuccessContinue = (): void => {
+    setShowCancelSuccess(false)
   }
 
   const navigateToDentists = (): void => {
@@ -415,6 +421,16 @@ const AppointmentsPage: FC = () => {
         appointment={rescheduleModalData?.appointment || null}
         existingAppointments={allAppointments}
         isLoading={isRescheduling}
+      />
+
+      {/* Modal de éxito para cancelación */}
+      <CancelSuccess isOpen={showCancelSuccess} onContinue={handleCancelSuccessContinue} />
+
+      {/* Modal de éxito para reagendamiento */}
+      <RescheduleSuccess
+        isOpen={showRescheduleSuccess}
+        onContinue={handleRescheduleSuccessContinue}
+        newDateTime={rescheduleNewDateTime}
       />
     </div>
   )

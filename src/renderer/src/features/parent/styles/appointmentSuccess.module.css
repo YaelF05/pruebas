@@ -16,6 +16,15 @@
   margin: 0;
 }
 
+.successSubtitle {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-title1);
+  font-weight: 500;
+  color: var(--neutral-normal);
+  margin: 0;
+  text-align: center;
+}
+
 .continueButton {
   padding: 15px 40px;
   border-radius: 10px;
