@@ -115,9 +115,8 @@
 }
 
 .dentistName {
-  font-size: var(--font-size-title1);
-  font-weight: 600;
-  color: var(--primary-normal);
+  font-size: var(--font-size-h3);
+  color: var(--neutral-normal);
   margin: 5px 0 0 0;
   font-family: var(--Quicksand);
 }
