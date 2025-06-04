@@ -53,7 +53,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
   }
 
   const handleClose = (): void => {
-    if (isLoading) return // Prevenir cerrar mientras está cargando
+    if (isLoading) return
     setReason('')
     setError(null)
     onClose()
@@ -81,17 +81,17 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
         </div>
 
         <div className={styles.buttonGroup}>
-          <button 
-            type="button" 
-            className={styles.cancelButton} 
+          <button
+            type="button"
+            className={styles.cancelButton}
             onClick={handleClose}
             disabled={isLoading}
           >
             Regresar
           </button>
-          <button 
-            type="button" 
-            className={styles.confirmButton} 
+          <button
+            type="button"
+            className={styles.confirmButton}
             onClick={handleConfirm}
             disabled={isLoading || !reason.trim()}
           >

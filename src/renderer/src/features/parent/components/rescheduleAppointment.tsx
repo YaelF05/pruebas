@@ -4,6 +4,7 @@ import InputForm from '@renderer/components/inputForm'
 import TextareaInput from '@renderer/components/textareaInput'
 import { AppointmentResponse } from '../services/appointmentService'
 import { getDentistByIdService, DentistResponse } from '../services/dentistService'
+import { createAppointmentService } from '../services/appointmentService'
 import styles from '../styles/rescheduleAppointment.module.css'
 
 interface RescheduleAppointmentModalProps {
@@ -28,6 +29,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   const [reason, setReason] = useState<string>('')
   const [dentist, setDentist] = useState<DentistResponse | null>(null)
   const [isLoadingDentist, setIsLoadingDentist] = useState<boolean>(false)
+  const [isRescheduling, setIsRescheduling] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -87,7 +89,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   const isWorkingDay = (date: string): boolean => {
     const selectedDate = new Date(date)
     const dayOfWeek = selectedDate.getDay()
-    return dayOfWeek >= 1 && dayOfWeek <= 5 // Lunes a Viernes
+    return dayOfWeek >= 0 && dayOfWeek <= 4
   }
 
   const isDateTimeFuture = (date: string, time: string): boolean => {
@@ -114,7 +116,6 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
         new Date(apt.appointmentDatetime).toDateString() === selectedDateTime.toDateString()
     )
 
-    // Verificar si hay conflictos con el período de 30 minutos
     for (const apt of conflictingAppointments) {
       const aptDateTime = new Date(apt.appointmentDatetime)
       const timeDiff = Math.abs(selectedDateTime.getTime() - aptDateTime.getTime())
@@ -191,6 +192,8 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   }
 
   const handleConfirm = async (): Promise<void> => {
+    if (!appointment) return
+
     const validationError = validateForm()
     if (validationError) {
       setError(validationError)
@@ -198,17 +201,33 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     }
 
     const newDateTime = `${newDate}T${newTime}:00`
-    
+
     try {
+      setIsRescheduling(true)
+      setError(null)
+
       await onConfirm(newDateTime, reason.trim())
+
+      const newAppointmentData = {
+        dentistId: appointment.dentistId!,
+        childId: appointment.childId!,
+        reason: appointment.reason,
+        appointmentDatetime: newDateTime
+      }
+
+      await createAppointmentService(newAppointmentData)
+
       handleClose()
     } catch (error) {
+      console.error('Error al reagendar la cita:', error)
       setError(error instanceof Error ? error.message : 'Error al reagendar la cita')
+    } finally {
+      setIsRescheduling(false)
     }
   }
 
   const handleClose = (): void => {
-    if (isLoading) return // Prevenir cerrar mientras está cargando
+    if (isLoading || isRescheduling) return
     setNewDate('')
     setNewTime('')
     setReason('')
@@ -223,9 +242,9 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
       <div className={styles.modalContent}>
         {error && <div className={styles.errorMessage}>{error}</div>}
 
-        {isLoading && (
+        {(isLoading || isRescheduling) && (
           <div className={styles.loadingIndicator}>
-            <p>Reagendando cita...</p>
+            <p>{isRescheduling ? 'Reagendando cita...' : 'Cargando...'}</p>
           </div>
         )}
 
@@ -275,11 +294,11 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
 
             {/* Botones de acción */}
             <div className={styles.buttonGroup}>
-              <button 
-                type="button" 
-                className={styles.cancelButton} 
+              <button
+                type="button"
+                className={styles.cancelButton}
                 onClick={handleClose}
-                disabled={isLoading}
+                disabled={isLoading || isRescheduling}
               >
                 Regresar
               </button>
@@ -287,9 +306,16 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
                 type="button"
                 className={styles.confirmButton}
                 onClick={handleConfirm}
-                disabled={isLoadingDentist || isLoading || !newDate || !newTime || !reason.trim()}
+                disabled={
+                  isLoadingDentist ||
+                  isLoading ||
+                  isRescheduling ||
+                  !newDate ||
+                  !newTime ||
+                  !reason.trim()
+                }
               >
-                {isLoading ? 'Reagendando...' : 'Reagendar cita'}
+                {isRescheduling ? 'Reagendando...' : 'Reagendar cita'}
               </button>
             </div>
           </>

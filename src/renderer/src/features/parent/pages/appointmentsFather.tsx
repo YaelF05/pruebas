@@ -4,7 +4,12 @@ import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
 import CancelAppointmentModal from '../components/cancelAppointment'
 import RescheduleAppointmentModal from '../components/rescheduleAppointment'
-import { getAppointmentsService, AppointmentResponse, cancelAppointmentService, rescheduleAppointmentService } from '../services/appointmentService'
+import {
+  getAppointmentsService,
+  AppointmentResponse,
+  cancelAppointmentService,
+  rescheduleAppointmentService
+} from '../services/appointmentService'
 import { getChildrenService } from '../services/childService'
 import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/appointmentsFather.module.css'
@@ -109,7 +114,6 @@ const AppointmentsPage: FC = () => {
 
   const getAppointmentsForDate = (date: Date): AppointmentResponse[] => {
     return allAppointments.filter((appointment) => {
-
       if (!appointment.isActive) return false
 
       const appointmentDate = new Date(appointment.appointmentDatetime)
