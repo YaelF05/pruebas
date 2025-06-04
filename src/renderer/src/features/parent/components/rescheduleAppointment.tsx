@@ -9,9 +9,10 @@ import styles from '../styles/rescheduleAppointment.module.css'
 interface RescheduleAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (newDateTime: string, reason: string) => void
+  onConfirm: (newDateTime: string, reason: string) => Promise<void>
   appointment: AppointmentResponse | null
   existingAppointments: AppointmentResponse[]
+  isLoading?: boolean
 }
 
 const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
@@ -19,7 +20,8 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   onClose,
   onConfirm,
   appointment,
-  existingAppointments
+  existingAppointments,
+  isLoading = false
 }) => {
   const [newDate, setNewDate] = useState<string>('')
   const [newTime, setNewTime] = useState<string>('')
@@ -188,7 +190,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     return validateDateTime(newDate, newTime)
   }
 
-  const handleConfirm = (): void => {
+  const handleConfirm = async (): Promise<void> => {
     const validationError = validateForm()
     if (validationError) {
       setError(validationError)
@@ -196,11 +198,17 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     }
 
     const newDateTime = `${newDate}T${newTime}:00`
-    onConfirm(newDateTime, reason.trim())
-    handleClose()
+    
+    try {
+      await onConfirm(newDateTime, reason.trim())
+      handleClose()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error al reagendar la cita')
+    }
   }
 
   const handleClose = (): void => {
+    if (isLoading) return // Prevenir cerrar mientras está cargando
     setNewDate('')
     setNewTime('')
     setReason('')
@@ -214,6 +222,12 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
     <Modal isOpen={isOpen} onClose={handleClose} title="Reagendar cita">
       <div className={styles.modalContent}>
         {error && <div className={styles.errorMessage}>{error}</div>}
+
+        {isLoading && (
+          <div className={styles.loadingIndicator}>
+            <p>Reagendando cita...</p>
+          </div>
+        )}
 
         {isLoadingDentist ? (
           <div className={styles.loading}>Cargando información del dentista...</div>
@@ -261,16 +275,21 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
 
             {/* Botones de acción */}
             <div className={styles.buttonGroup}>
-              <button type="button" className={styles.cancelButton} onClick={handleClose}>
+              <button 
+                type="button" 
+                className={styles.cancelButton} 
+                onClick={handleClose}
+                disabled={isLoading}
+              >
                 Regresar
               </button>
               <button
                 type="button"
                 className={styles.confirmButton}
                 onClick={handleConfirm}
-                disabled={isLoadingDentist}
+                disabled={isLoadingDentist || isLoading || !newDate || !newTime || !reason.trim()}
               >
-                Reagendar cita
+                {isLoading ? 'Reagendando...' : 'Reagendar cita'}
               </button>
             </div>
           </>

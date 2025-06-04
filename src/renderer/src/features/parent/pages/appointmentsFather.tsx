@@ -4,7 +4,7 @@ import Calendar from '../../../components/calendar'
 import AppointmentCard from '../../../components/appointmentCard'
 import CancelAppointmentModal from '../components/cancelAppointment'
 import RescheduleAppointmentModal from '../components/rescheduleAppointment'
-import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
+import { getAppointmentsService, AppointmentResponse, cancelAppointmentService, rescheduleAppointmentService } from '../services/appointmentService'
 import { getChildrenService } from '../services/childService'
 import { getDentistsForSelectService } from '../services/dentistService'
 import styles from '../styles/appointmentsFather.module.css'
@@ -49,9 +49,11 @@ const AppointmentsPage: FC = () => {
 
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [cancelModalData, setCancelModalData] = useState<CancelModalData | null>(null)
+  const [isCancelling, setIsCancelling] = useState(false)
 
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
   const [rescheduleModalData, setRescheduleModalData] = useState<RescheduleModalData | null>(null)
+  const [isRescheduling, setIsRescheduling] = useState(false)
 
   useEffect(() => {
     fetchAllData()
@@ -154,40 +156,44 @@ const AppointmentsPage: FC = () => {
     setIsRescheduleModalOpen(true)
   }
 
-  const handleRescheduleConfirm = (newDateTime: string, reason: string): void => {
+  const handleRescheduleConfirm = async (newDateTime: string, reason: string): Promise<void> => {
     if (!rescheduleModalData) return
 
-    // Por ahora solo mostrar un mensaje
-    console.log('Reagendando cita:', {
-      appointmentId: rescheduleModalData.appointment.appointmentId,
-      newDateTime: newDateTime,
-      reason: reason
-    })
+    try {
+      setIsRescheduling(true)
 
-    // Formatear la nueva fecha y hora para mostrar
-    const newDate = new Date(newDateTime)
-    const formattedDate = newDate.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
-    const formattedTime = newDate.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    })
+      await rescheduleAppointmentService(rescheduleModalData.appointment.appointmentId, reason)
 
-    alert(`Cita reagendada exitosamente para el ${formattedDate} a las ${formattedTime}`)
-    // Servicio para reagendar
-    // await rescheduleAppointmentService(rescheduleModalData.appointment.appointmentId, newDateTime, reason)
+      // Formatear la nueva fecha y hora para mostrar
+      const newDate = new Date(newDateTime)
+      const formattedDate = newDate.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      })
+      const formattedTime = newDate.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      })
 
-    fetchAllData()
+      alert(`Cita reagendada exitosamente para el ${formattedDate} a las ${formattedTime}`)
 
-    setIsRescheduleModalOpen(false)
-    setRescheduleModalData(null)
+      // Recargar datos
+      await fetchAllData()
+
+      setIsRescheduleModalOpen(false)
+      setRescheduleModalData(null)
+    } catch (error) {
+      console.error('Error al reagendar cita:', error)
+      alert(error instanceof Error ? error.message : 'Error al reagendar la cita')
+    } finally {
+      setIsRescheduling(false)
+    }
   }
 
   const handleRescheduleModalClose = (): void => {
+    if (isRescheduling) return
     setIsRescheduleModalOpen(false)
     setRescheduleModalData(null)
   }
@@ -213,26 +219,31 @@ const AppointmentsPage: FC = () => {
     setIsCancelModalOpen(true)
   }
 
-  const handleCancelConfirm = (reason: string): void => {
+  const handleCancelConfirm = async (reason: string): Promise<void> => {
     if (!cancelModalData) return
 
-    console.log('Cancelando cita:', {
-      appointmentId: cancelModalData.appointmentId,
-      reason: reason
-    })
+    try {
+      setIsCancelling(true)
 
-    alert('Cita cancelada exitosamente')
+      await cancelAppointmentService(parseInt(cancelModalData.appointmentId), reason)
 
-    // Servicio de cancelar
-    // await cancelAppointmentService(parseInt(cancelModalData.appointmentId), reason)
+      alert('Cita cancelada exitosamente')
 
-    fetchAllData()
+      // Recargar datos para actualizar la lista
+      await fetchAllData()
 
-    setIsCancelModalOpen(false)
-    setCancelModalData(null)
+      setIsCancelModalOpen(false)
+      setCancelModalData(null)
+    } catch (error) {
+      console.error('Error al cancelar cita:', error)
+      alert(error instanceof Error ? error.message : 'Error al cancelar la cita')
+    } finally {
+      setIsCancelling(false)
+    }
   }
 
   const handleCancelModalClose = (): void => {
+    if (isCancelling) return
     setIsCancelModalOpen(false)
     setCancelModalData(null)
   }
@@ -386,6 +397,7 @@ const AppointmentsPage: FC = () => {
         isOpen={isCancelModalOpen}
         onClose={handleCancelModalClose}
         onConfirm={handleCancelConfirm}
+        isLoading={isCancelling}
       />
 
       {/* Modal de reagendamiento de cita */}
@@ -395,6 +407,7 @@ const AppointmentsPage: FC = () => {
         onConfirm={handleRescheduleConfirm}
         appointment={rescheduleModalData?.appointment || null}
         existingAppointments={allAppointments}
+        isLoading={isRescheduling}
       />
     </div>
   )

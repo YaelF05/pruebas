@@ -6,13 +6,15 @@ import styles from '../styles/cancelAppointment.module.css'
 interface CancelAppointmentModalProps {
   isOpen: boolean
   onClose: () => void
-  onConfirm: (reason: string) => void
+  onConfirm: (reason: string) => Promise<void>
+  isLoading?: boolean
 }
 
 const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
   isOpen,
   onClose,
-  onConfirm
+  onConfirm,
+  isLoading = false
 }) => {
   const [reason, setReason] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +26,7 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
     }
   }
 
-  const handleConfirm = (): void => {
+  const handleConfirm = async (): Promise<void> => {
     const trimmedReason = reason.trim()
 
     if (!trimmedReason) {
@@ -42,11 +44,16 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
       return
     }
 
-    onConfirm(trimmedReason)
-    handleClose()
+    try {
+      await onConfirm(trimmedReason)
+      handleClose()
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Error al cancelar la cita')
+    }
   }
 
   const handleClose = (): void => {
+    if (isLoading) return // Prevenir cerrar mientras está cargando
     setReason('')
     setError(null)
     onClose()
@@ -55,6 +62,12 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="¿Seguro que quieres cancelar la cita?">
       <div className={styles.modalContent}>
+        {isLoading && (
+          <div className={styles.loadingIndicator}>
+            <p>Cancelando cita...</p>
+          </div>
+        )}
+
         <div className={styles.formGroup}>
           <TextareaInput
             label="Ingresa el motivo de la cancelación"
@@ -68,11 +81,21 @@ const CancelAppointmentModal: React.FC<CancelAppointmentModalProps> = ({
         </div>
 
         <div className={styles.buttonGroup}>
-          <button type="button" className={styles.cancelButton} onClick={handleClose}>
+          <button 
+            type="button" 
+            className={styles.cancelButton} 
+            onClick={handleClose}
+            disabled={isLoading}
+          >
             Regresar
           </button>
-          <button type="button" className={styles.confirmButton} onClick={handleConfirm}>
-            Cancelar cita
+          <button 
+            type="button" 
+            className={styles.confirmButton} 
+            onClick={handleConfirm}
+            disabled={isLoading || !reason.trim()}
+          >
+            {isLoading ? 'Cancelando...' : 'Cancelar cita'}
           </button>
         </div>
       </div>
