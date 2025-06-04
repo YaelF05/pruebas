@@ -109,6 +109,9 @@ const AppointmentsPage: FC = () => {
 
   const getAppointmentsForDate = (date: Date): AppointmentResponse[] => {
     return allAppointments.filter((appointment) => {
+
+      if (!appointment.isActive) return false
+
       const appointmentDate = new Date(appointment.appointmentDatetime)
       return (
         appointmentDate.getDate() === date.getDate() &&
