@@ -133,7 +133,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     const selectedDateTime = new Date(`${date}T${time}:00`)
     const now = new Date()
 
-    //Agregar 30 minutos de margen mínimo
     const minAllowedTime = new Date(now.getTime() + 30 * 60000)
 
     return selectedDateTime > minAllowedTime
@@ -145,7 +144,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     return dayOfWeek >= 0 && dayOfWeek <= 4
   }
 
-  // Extracted common validation logic
   const validateDateTime = (date: string, time: string): string | null => {
     if (!isWorkingDay(date)) {
       return 'Las citas solo se pueden agendar de lunes a viernes'
@@ -193,7 +191,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
       return 'La fecha y hora seleccionadas no son válidas'
     }
 
-    // Use extracted validation function
     const validationError = validateDateTime(appointmentDate, appointmentTime)
     if (validationError) {
       return validationError
@@ -220,7 +217,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     return null
   }
 
-  // Simplified handleDateChange using extracted validation
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newDate = e.target.value
     setAppointmentDate(newDate)
@@ -231,7 +227,6 @@ const ScheduleAppointmentModal: React.FC<ScheduleAppointmentModalProps> = ({
     }
   }
 
-  // Simplified handleTimeChange using extracted validation
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newTime = e.target.value
     setAppointmentTime(newTime)

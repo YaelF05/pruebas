@@ -14,12 +14,11 @@ import {
 import InputForm from '@renderer/components/inputForm'
 import InputList from '@renderer/components/inputList'
 import DentistSelector from './dentistSelector'
-import Button from '@renderer/components/button'
 import styles from '../styles/addChildForm.module.css'
 
 interface AddChildFormProps {
   onCancel?: () => void
-  onSuccess?: () => void // Nueva prop para manejar el éxito
+  onSuccess?: () => void
 }
 
 const AddChildForm = ({ onCancel, onSuccess }: AddChildFormProps): React.JSX.Element => {
@@ -114,7 +113,6 @@ const AddChildForm = ({ onCancel, onSuccess }: AddChildFormProps): React.JSX.Ele
       console.log('Niño creado:', result)
       setIsLoading(false)
 
-      // Llamar al callback de éxito si está definido
       if (onSuccess) {
         onSuccess()
       }
@@ -232,11 +230,9 @@ const AddChildForm = ({ onCancel, onSuccess }: AddChildFormProps): React.JSX.Ele
         >
           Cancelar
         </button>
-        <Button
-          name={isLoading ? 'Creando...' : 'Continuar'}
-          type={'submit'}
-          disabled={isLoading}
-        />
+        <button type={'submit'} className={styles.continueButton} disabled={isLoading}>
+          {isLoading ? 'Creando...' : 'Continuar'}
+        </button>
       </div>
     </form>
   )

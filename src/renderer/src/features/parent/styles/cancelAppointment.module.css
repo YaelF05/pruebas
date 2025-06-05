@@ -60,13 +60,13 @@
 }
 
 .confirmButton:hover:not(:disabled) {
-  background-color: var(--primary-normal);
+  background-color: var(--primary-normal-hover);
 }
 
 .confirmButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--primary-normal-darkl);
+  background-color: var(--neutral-normal);
 }
 
 .errorMessage {
