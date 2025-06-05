@@ -107,22 +107,18 @@ const HomePage: FC = () => {
     fetchInitialData()
   }, [])
 
-  // Función para manejar el éxito en la creación del hijo
   const handleChildCreated = async (): Promise<void> => {
     try {
       setIsCreatingChild(true)
       setAddChildError(null)
 
-      // Recargar la lista de hijos
       const updatedChildren = await getChildrenService()
       setChildren(updatedChildren)
 
-      // Si hay hijos y no hay uno seleccionado, seleccionar el último agregado
       if (updatedChildren.length > 0) {
         const lastChild = updatedChildren[updatedChildren.length - 1]
         setSelectedChild(lastChild)
 
-        // Cargar datos de cepillado para el nuevo hijo
         const todayRecords = await getTodayBrushRecordsService(lastChild.childId)
         const weeklyRecords = await getWeeklyBrushRecordsService(lastChild.childId)
 
