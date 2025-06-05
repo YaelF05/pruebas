@@ -281,6 +281,10 @@ const HomePage: FC = () => {
     setActiveTab(tab)
   }
 
+  const handleProfileClick = (): void => {
+    navigate('/profile-selection')
+  }
+
   const calculateAge = (birthDateStr: string): number => {
     const birthDate = new Date(birthDateStr)
     const today = new Date()
@@ -348,7 +352,13 @@ const HomePage: FC = () => {
     <div className={styles.homePage}>
       <div className={styles.header}>
         <div className={styles.profileSection}>
-          <img src={ProfileAvatar} alt="Profile" className={styles.profileAvatar} />
+          <img
+            src={ProfileAvatar}
+            alt="Profile"
+            className={styles.profileAvatar}
+            onClick={handleProfileClick}
+            style={{ cursor: 'pointer' }}
+          />
           <h1 className={styles.title}>Seguimiento dental familiar</h1>
         </div>
       </div>

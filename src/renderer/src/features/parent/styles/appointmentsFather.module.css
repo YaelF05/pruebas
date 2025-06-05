@@ -186,8 +186,6 @@
   opacity: 0.8;
 }
 
-/* Estilos para cancelAppointment.module.css - Agregar estos estilos */
-
 .loadingIndicator {
   display: flex;
   justify-content: center;
@@ -205,8 +203,6 @@
   font-size: var(--font-size-body);
   font-weight: 500;
 }
-
-/* Estilos para rescheduleAppointment.module.css - Agregar estos estilos */
 
 .loadingIndicator {
   display: flex;
@@ -234,6 +230,16 @@
   font-family: var(--Quicksand);
   font-style: italic;
   text-align: center;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
 }
   
   /* barra nav */
@@ -292,3 +298,5 @@
     height: 35px; 
     object-fit: contain;
   }
+
+  

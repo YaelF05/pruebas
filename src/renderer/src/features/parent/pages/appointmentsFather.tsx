@@ -54,17 +54,14 @@ const AppointmentsPage: FC = () => {
   const [isLoading, setLoading] = useState(true)
   const [, setError] = useState<string | null>(null)
 
-  // Estados para modal de cancelación
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false)
   const [cancelModalData, setCancelModalData] = useState<CancelModalData | null>(null)
   const [isCancelling, setIsCancelling] = useState(false)
 
-  // Estados para modal de reagendamiento
   const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
   const [rescheduleModalData, setRescheduleModalData] = useState<RescheduleModalData | null>(null)
   const [isRescheduling, setIsRescheduling] = useState(false)
 
-  // Estados para modales de éxito
   const [showCancelSuccess, setShowCancelSuccess] = useState(false)
   const [showRescheduleSuccess, setShowRescheduleSuccess] = useState(false)
   const [rescheduleNewDateTime, setRescheduleNewDateTime] = useState<string>('')
@@ -123,7 +120,7 @@ const AppointmentsPage: FC = () => {
 
   const getAppointmentsForDate = (date: Date): AppointmentResponse[] => {
     return allAppointments.filter((appointment) => {
-      if (!appointment.isActive) return false
+
 
       const appointmentDate = new Date(appointment.appointmentDatetime)
       return (
@@ -178,13 +175,10 @@ const AppointmentsPage: FC = () => {
 
       await rescheduleAppointmentService(rescheduleModalData.appointment.appointmentId, reason)
 
-      // Guardar la nueva fecha/hora para mostrar en el modal de éxito
       setRescheduleNewDateTime(newDateTime)
 
-      // Recargar datos
       await fetchAllData()
 
-      // Cerrar modal de reagendamiento y mostrar modal de éxito
       setIsRescheduleModalOpen(false)
       setRescheduleModalData(null)
       setShowRescheduleSuccess(true)
@@ -236,10 +230,8 @@ const AppointmentsPage: FC = () => {
 
       await cancelAppointmentService(parseInt(cancelModalData.appointmentId), reason)
 
-      // Recargar datos para actualizar la lista
       await fetchAllData()
 
-      // Cerrar modal de cancelación y mostrar modal de éxito
       setIsCancelModalOpen(false)
       setCancelModalData(null)
       setShowCancelSuccess(true)
@@ -272,6 +264,10 @@ const AppointmentsPage: FC = () => {
       navigate('/children')
     }
     setActiveTab(tab)
+  }
+
+  const handleProfileClick = (): void => {
+    navigate('/profile-selection')
   }
 
   const calculateMinutesUntil = (appointmentDateTime: string): number => {
@@ -313,7 +309,13 @@ const AppointmentsPage: FC = () => {
       <div className={styles.appointmentsPage}>
         <div className={styles.profileContainer}>
           <div className={styles.profileImage}>
-            <img src={ProfileAvatar} alt="Profile" className={styles.profileAvatar} />
+            <img
+              src={ProfileAvatar}
+              alt="Profile"
+              className={styles.profileAvatar}
+              onClick={handleProfileClick}
+              style={{ cursor: 'pointer' }}
+            />
           </div>
         </div>
 

@@ -69,6 +69,10 @@ const ChildrenPage: FC = () => {
     navigate(`/child/${child.childId}`)
   }
 
+  const handleProfileClick = (): void => {
+    navigate('/profile-selection')
+  }
+
   if (isLoading) {
     return <div className={styles.loading}>Cargando...</div>
   }
@@ -92,7 +96,13 @@ const ChildrenPage: FC = () => {
       <div className={styles.header}>
         <div className={styles.profileSection}>
           <div className={styles.profileImageContainer}>
-            <img src={ProfileAvatar} alt="Profile" className={styles.profileAvatar} />
+            <img
+              src={ProfileAvatar}
+              alt="Profile"
+              className={styles.profileAvatar}
+              onClick={handleProfileClick}
+              style={{ cursor: 'pointer' }}
+            />
           </div>
         </div>
       </div>
