@@ -55,6 +55,113 @@ const HomePage: FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  // Función auxiliar para convertir tiempo a minutos
+  const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number)
+    return hours * 60 + minutes
+  }
+
+  // Función auxiliar para verificar si dos tiempos están cerca (dentro de una ventana de tolerancia)
+  const isTimeNear = (recordTime: string, scheduledTime: string, toleranceMinutes: number = 120): boolean => {
+    const recordMinutes = timeToMinutes(recordTime)
+    const scheduledMinutes = timeToMinutes(scheduledTime)
+    return Math.abs(recordMinutes - scheduledMinutes) <= toleranceMinutes
+  }
+
+  // Función mejorada que determina el tipo de cepillado basado en el horario programado del niño
+  const determineBrushType = (recordDatetime: string, child: ChildResponse): 'morning' | 'afternoon' | 'night' | null => {
+    const recordTime = new Date(recordDatetime).toTimeString().slice(0, 5) // HH:MM
+
+    // Verificar cada tipo de cepillado con una ventana de tolerancia de ±2 horas
+    if (isTimeNear(recordTime, child.morningBrushingTime, 120)) {
+      return 'morning'
+    }
+    if (isTimeNear(recordTime, child.afternoonBrushingTime, 120)) {
+      return 'afternoon'
+    }
+    if (isTimeNear(recordTime, child.nightBrushingTime, 120)) {
+      return 'night'
+    }
+
+    // Si no coincide con ningún horario programado, usar lógica de rangos generales como fallback
+    const hour = new Date(recordDatetime).getHours()
+    if (hour >= 5 && hour < 11) return 'morning'
+    if (hour >= 11 && hour < 18) return 'afternoon'
+    if (hour >= 18 || hour < 5) return 'night'
+
+    return null
+  }
+
+  // Función mejorada para obtener el estado de cepillado basado en horarios programados
+  const getBrushingStatusFromRecords = (records: BrushRecord[], child: ChildResponse): BrushingStatus => {
+    const today = new Date().toISOString().split('T')[0]
+
+    // Filtrar solo los registros de hoy
+    const todayRecords = records.filter((record) => {
+      const recordDate = new Date(record.brushDatetime).toISOString().split('T')[0]
+      return recordDate === today
+    })
+
+    // Determinar qué tipos de cepillado se han completado hoy
+    const completedTypes = new Set<string>()
+    
+    todayRecords.forEach((record) => {
+      const brushType = determineBrushType(record.brushDatetime, child)
+      if (brushType) {
+        completedTypes.add(brushType)
+      }
+    })
+
+    return {
+      morning: completedTypes.has('morning') ? 'completed' : 'pending',
+      afternoon: completedTypes.has('afternoon') ? 'completed' : 'pending',
+      night: completedTypes.has('night') ? 'completed' : 'pending'
+    }
+  }
+
+  // Función mejorada para generar datos semanales
+  const generateWeeklyBrushingFromRecords = (records: BrushRecord[], child: ChildResponse): DayBrushing[] => {
+    const days: DayBrushing[] = []
+    const today = new Date()
+
+    const firstDayOfWeek = new Date(today)
+    const dayOfWeek = today.getDay()
+    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+    firstDayOfWeek.setDate(diff)
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(firstDayOfWeek)
+      date.setDate(firstDayOfWeek.getDate() + i)
+      const dayStr = date.toISOString().substring(0, 10)
+
+      const dayRecords = records.filter((record) => {
+        const recordDate = new Date(record.brushDatetime).toISOString().substring(0, 10)
+        return recordDate === dayStr
+      })
+
+      // Determinar qué tipos de cepillado se completaron ese día
+      const completedTypes = new Set<string>()
+      
+      dayRecords.forEach((record) => {
+        const brushType = determineBrushType(record.brushDatetime, child)
+        if (brushType) {
+          completedTypes.add(brushType)
+        }
+      })
+
+      days.push({
+        date,
+        status: {
+          morning: completedTypes.has('morning') ? 'completed' : 'pending',
+          afternoon: completedTypes.has('afternoon') ? 'completed' : 'pending',
+          night: completedTypes.has('night') ? 'completed' : 'pending'
+        }
+      })
+    }
+
+    return days
+  }
+
   useEffect(() => {
     const fetchInitialData = async (): Promise<void> => {
       try {
@@ -76,8 +183,8 @@ const HomePage: FC = () => {
               return {
                 childId: child.childId,
                 data: {
-                  todayBrushing: getBrushingStatusFromRecords(todayRecords),
-                  weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+                  todayBrushing: getBrushingStatusFromRecords(todayRecords, child),
+                  weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords, child),
                   todayRecords: todayRecords
                 }
               }
@@ -122,8 +229,8 @@ const HomePage: FC = () => {
         const weeklyRecords = await getWeeklyBrushRecordsService(lastChild.childId)
 
         const newBrushingData: ChildBrushingData = {
-          todayBrushing: getBrushingStatusFromRecords(todayRecords),
-          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+          todayBrushing: getBrushingStatusFromRecords(todayRecords, lastChild),
+          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords, lastChild),
           todayRecords: todayRecords
         }
 
@@ -143,76 +250,7 @@ const HomePage: FC = () => {
     }
   }
 
-  const getBrushingStatusFromRecords = (records: BrushRecord[]): BrushingStatus => {
-    const morningCompleted = records.some((record) => {
-      const hour = new Date(record.brushDatetime).getHours()
-      return hour >= 6 && hour < 12
-    })
-
-    const afternoonCompleted = records.some((record) => {
-      const hour = new Date(record.brushDatetime).getHours()
-      return hour >= 12 && hour < 18
-    })
-
-    const nightCompleted = records.some((record) => {
-      const hour = new Date(record.brushDatetime).getHours()
-      return hour >= 18 || hour < 6
-    })
-
-    return {
-      morning: morningCompleted ? 'completed' : 'pending',
-      afternoon: afternoonCompleted ? 'completed' : 'pending',
-      night: nightCompleted ? 'completed' : 'pending'
-    }
-  }
-
-  const generateWeeklyBrushingFromRecords = (records: BrushRecord[]): DayBrushing[] => {
-    const days: DayBrushing[] = []
-    const today = new Date()
-
-    const firstDayOfWeek = new Date(today)
-    const dayOfWeek = today.getDay()
-    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
-    firstDayOfWeek.setDate(diff)
-
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(firstDayOfWeek)
-      date.setDate(firstDayOfWeek.getDate() + i)
-      const dayStr = date.toISOString().substring(0, 10)
-
-      const dayRecords = records.filter((record) => {
-        const recordDate = new Date(record.brushDatetime).toISOString().substring(0, 10)
-        return recordDate === dayStr
-      })
-
-      const morningCompleted = dayRecords.some((record) => {
-        const hour = new Date(record.brushDatetime).getHours()
-        return hour >= 6 && hour < 12
-      })
-
-      const afternoonCompleted = dayRecords.some((record) => {
-        const hour = new Date(record.brushDatetime).getHours()
-        return hour >= 12 && hour < 18
-      })
-
-      const nightCompleted = dayRecords.some((record) => {
-        const hour = new Date(record.brushDatetime).getHours()
-        return hour >= 18 || hour < 6
-      })
-
-      days.push({
-        date,
-        status: {
-          morning: morningCompleted ? 'completed' : 'pending',
-          afternoon: afternoonCompleted ? 'completed' : 'pending',
-          night: nightCompleted ? 'completed' : 'pending'
-        }
-      })
-    }
-
-    return days
-  }
-
+  // Función mejorada para actualizar el estado de cepillado
   const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night'): Promise<void> => {
     if (!selectedChild) return
 
@@ -223,7 +261,8 @@ const HomePage: FC = () => {
 
     try {
       if (currentStatus === 'pending') {
-        // Crear un nuevo registro de cepillado
+        // Crear un nuevo registro de cepillado con la hora actual
+        // El backend guardará la hora actual y nosotros la interpretaremos según los horarios del niño
         await createBrushRecordService(selectedChild.childId)
 
         // Recargar los datos de cepillado
@@ -231,8 +270,8 @@ const HomePage: FC = () => {
         const weeklyRecords = await getWeeklyBrushRecordsService(selectedChild.childId)
 
         const updatedChildData: ChildBrushingData = {
-          todayBrushing: getBrushingStatusFromRecords(todayRecords),
-          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+          todayBrushing: getBrushingStatusFromRecords(todayRecords, selectedChild),
+          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords, selectedChild),
           todayRecords: todayRecords
         }
 
