@@ -111,11 +111,13 @@ const ChildDetail: React.FC = () => {
     setUpdatedFields([])
   }
 
+  /*
   const handleDelete = (): void => {
     if (confirm('¿Estás seguro de que deseas eliminar este niño?')) {
       alert('Función de eliminar')
     }
   }
+  */
 
   if (isLoading) {
     return <div className={styles.loading}>Cargando...</div>
@@ -162,9 +164,6 @@ const ChildDetail: React.FC = () => {
       <div className={styles.header}>
         <BackButton />
         <div className={styles.actionButtons}>
-          <button className={styles.deleteButton} onClick={handleDelete}>
-            Eliminar
-          </button>
           <button className={styles.editButton} onClick={handleEdit}>
             Editar
           </button>

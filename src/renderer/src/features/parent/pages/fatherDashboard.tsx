@@ -86,11 +86,6 @@ const HomePage: FC = () => {
       return 'night'
     }
 
-    const hour = new Date(recordDatetime).getHours()
-    if (hour >= 5 && hour < 11) return 'morning'
-    if (hour >= 11 && hour < 18) return 'afternoon'
-    if (hour >= 18 || hour < 5) return 'night'
-
     return null
   }
 

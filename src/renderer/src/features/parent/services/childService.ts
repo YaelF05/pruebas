@@ -223,6 +223,7 @@ export async function updateChildService(
   childData: UpdateChildData
 ): Promise<{ message: string; updatedFields: string[] }> {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { childId: _, ...dataToSend } = childData
     const processedData = processUpdateFields(dataToSend)
 
