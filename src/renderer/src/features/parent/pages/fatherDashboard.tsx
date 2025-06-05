@@ -55,24 +55,27 @@ const HomePage: FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  // Función auxiliar para convertir tiempo a minutos
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number)
     return hours * 60 + minutes
   }
 
-  // Función auxiliar para verificar si dos tiempos están cerca (dentro de una ventana de tolerancia)
-  const isTimeNear = (recordTime: string, scheduledTime: string, toleranceMinutes: number = 120): boolean => {
+  const isTimeNear = (
+    recordTime: string,
+    scheduledTime: string,
+    toleranceMinutes: number = 120
+  ): boolean => {
     const recordMinutes = timeToMinutes(recordTime)
     const scheduledMinutes = timeToMinutes(scheduledTime)
     return Math.abs(recordMinutes - scheduledMinutes) <= toleranceMinutes
   }
 
-  // Función mejorada que determina el tipo de cepillado basado en el horario programado del niño
-  const determineBrushType = (recordDatetime: string, child: ChildResponse): 'morning' | 'afternoon' | 'night' | null => {
-    const recordTime = new Date(recordDatetime).toTimeString().slice(0, 5) // HH:MM
+  const determineBrushType = (
+    recordDatetime: string,
+    child: ChildResponse
+  ): 'morning' | 'afternoon' | 'night' | null => {
+    const recordTime = new Date(recordDatetime).toTimeString().slice(0, 5)
 
-    // Verificar cada tipo de cepillado con una ventana de tolerancia de ±2 horas
     if (isTimeNear(recordTime, child.morningBrushingTime, 120)) {
       return 'morning'
     }
@@ -83,7 +86,6 @@ const HomePage: FC = () => {
       return 'night'
     }
 
-    // Si no coincide con ningún horario programado, usar lógica de rangos generales como fallback
     const hour = new Date(recordDatetime).getHours()
     if (hour >= 5 && hour < 11) return 'morning'
     if (hour >= 11 && hour < 18) return 'afternoon'
@@ -92,19 +94,19 @@ const HomePage: FC = () => {
     return null
   }
 
-  // Función mejorada para obtener el estado de cepillado basado en horarios programados
-  const getBrushingStatusFromRecords = (records: BrushRecord[], child: ChildResponse): BrushingStatus => {
+  const getBrushingStatusFromRecords = (
+    records: BrushRecord[],
+    child: ChildResponse
+  ): BrushingStatus => {
     const today = new Date().toISOString().split('T')[0]
 
-    // Filtrar solo los registros de hoy
     const todayRecords = records.filter((record) => {
       const recordDate = new Date(record.brushDatetime).toISOString().split('T')[0]
       return recordDate === today
     })
 
-    // Determinar qué tipos de cepillado se han completado hoy
     const completedTypes = new Set<string>()
-    
+
     todayRecords.forEach((record) => {
       const brushType = determineBrushType(record.brushDatetime, child)
       if (brushType) {
@@ -119,8 +121,10 @@ const HomePage: FC = () => {
     }
   }
 
-  // Función mejorada para generar datos semanales
-  const generateWeeklyBrushingFromRecords = (records: BrushRecord[], child: ChildResponse): DayBrushing[] => {
+  const generateWeeklyBrushingFromRecords = (
+    records: BrushRecord[],
+    child: ChildResponse
+  ): DayBrushing[] => {
     const days: DayBrushing[] = []
     const today = new Date()
 
@@ -139,9 +143,8 @@ const HomePage: FC = () => {
         return recordDate === dayStr
       })
 
-      // Determinar qué tipos de cepillado se completaron ese día
       const completedTypes = new Set<string>()
-      
+
       dayRecords.forEach((record) => {
         const brushType = determineBrushType(record.brushDatetime, child)
         if (brushType) {
@@ -174,7 +177,6 @@ const HomePage: FC = () => {
         if (childrenData.length > 0) {
           setSelectedChild(childrenData[0])
 
-          // Cargar datos de cepillado para todos los hijos
           try {
             const brushingDataPromises = childrenData.map(async (child) => {
               const todayRecords = await getTodayBrushRecordsService(child.childId)
@@ -240,7 +242,6 @@ const HomePage: FC = () => {
         }))
       }
 
-      // Cerrar el modal
       setIsModalOpen(false)
     } catch (error) {
       console.error('Error al actualizar datos después de crear hijo:', error)
@@ -250,7 +251,6 @@ const HomePage: FC = () => {
     }
   }
 
-  // Función mejorada para actualizar el estado de cepillado
   const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night'): Promise<void> => {
     if (!selectedChild) return
 
@@ -261,11 +261,8 @@ const HomePage: FC = () => {
 
     try {
       if (currentStatus === 'pending') {
-        // Crear un nuevo registro de cepillado con la hora actual
-        // El backend guardará la hora actual y nosotros la interpretaremos según los horarios del niño
         await createBrushRecordService(selectedChild.childId)
 
-        // Recargar los datos de cepillado
         const todayRecords = await getTodayBrushRecordsService(selectedChild.childId)
         const weeklyRecords = await getWeeklyBrushRecordsService(selectedChild.childId)
 
@@ -280,7 +277,6 @@ const HomePage: FC = () => {
           [selectedChild.childId]: updatedChildData
         }))
       }
-      // Si ya está completado, no se puede desmarcar (no hay endpoint para eliminar)
     } catch (error) {
       console.error('Error al actualizar estado de cepillado:', error)
       alert(
