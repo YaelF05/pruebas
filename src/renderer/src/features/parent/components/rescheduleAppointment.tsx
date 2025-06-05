@@ -89,7 +89,7 @@ const RescheduleAppointmentModal: React.FC<RescheduleAppointmentModalProps> = ({
   const isWorkingDay = (date: string): boolean => {
     const selectedDate = new Date(date)
     const dayOfWeek = selectedDate.getDay()
-    return dayOfWeek >= 0 && dayOfWeek <= 4
+    return dayOfWeek >= 0 && dayOfWeek <= 6
   }
 
   const isDateTimeFuture = (date: string, time: string): boolean => {
