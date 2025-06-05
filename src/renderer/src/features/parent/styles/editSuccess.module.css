@@ -1,0 +1,77 @@
+.successContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  gap: 25px;
+}
+
+.successTitle {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-h2);
+  font-weight: 700;
+  color: var(--neutral-darker);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.updatedFieldsContainer {
+  background-color: var(--secondary-light);
+  padding: 20px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.updatedFieldsTitle {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-title1);
+  font-weight: 600;
+  color: var(--neutral-darker);
+  margin: 0 0 10px 0;
+}
+
+.updatedFieldsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.updatedField {
+  font-family: var(--Quicksand);
+  font-size: var(--font-size-body);
+  color: var(--neutral-dark);
+  padding: 5px 0;
+  border-bottom: 1px solid var(--secondary-normal);
+}
+
+.updatedField:last-child {
+  border-bottom: none;
+}
+
+.continueButton {
+  padding: 15px 40px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: var(--font-size-title1);
+  font-family: var(--Quicksand);
+  background-color: var(--primary-normal);
+  border: none;
+  color: var(--primary-light);
+  transition: background-color 0.2s;
+  min-width: 200px;
+}
+
+.continueButton:hover {
+  background-color: var(--primary-normal-hover);
+}
+
+.continueButton:active {
+  background-color: var(--primary-normal-active);
+}

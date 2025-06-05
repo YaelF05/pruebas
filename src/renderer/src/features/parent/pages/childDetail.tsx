@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
-//agregar useNavigate
 import { useParams } from 'react-router-dom'
 import BackButton from '@renderer/components/backButton'
+import Modal from '../components/modal'
+import EditChildForm from '../components/editChildForm'
+import EditSuccess from '../components/editSucces'
 import { getChildByIdService, ChildResponse } from '../services/childService'
 import { getDentistByIdService, DentistResponse } from '../services/dentistService'
 import styles from '../styles/childDetail.module.css'
@@ -9,12 +11,15 @@ import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
 const ChildDetail: React.FC = () => {
   const { childId } = useParams<{ childId: string }>()
-  //const navigate = useNavigate()
 
   const [child, setChild] = useState<ChildResponse | null>(null)
   const [dentist, setDentist] = useState<DentistResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+  const [updatedFields, setUpdatedFields] = useState<string[]>([])
 
   useEffect(() => {
     if (childId) {
@@ -84,7 +89,26 @@ const ChildDetail: React.FC = () => {
   }
 
   const handleEdit = (): void => {
-    alert('Función de editar')
+    setIsEditModalOpen(true)
+  }
+
+  const handleEditCancel = (): void => {
+    setIsEditModalOpen(false)
+  }
+
+  const handleEditSuccess = async (updatedFieldNames: string[]): Promise<void> => {
+    setUpdatedFields(updatedFieldNames)
+    setIsEditModalOpen(false)
+    setIsSuccessModalOpen(true)
+
+    if (childId) {
+      await loadChildData(parseInt(childId))
+    }
+  }
+
+  const handleSuccessContinue = (): void => {
+    setIsSuccessModalOpen(false)
+    setUpdatedFields([])
   }
 
   const handleDelete = (): void => {
@@ -181,6 +205,23 @@ const ChildDetail: React.FC = () => {
           {/* Espacio para las citas - se llenará dinámicamente */}
         </div>
       </div>
+
+      {/* Modal de edición */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={handleEditCancel}
+        title={`Editar datos de ${child.name}`}
+      >
+        <EditChildForm child={child} onCancel={handleEditCancel} onSuccess={handleEditSuccess} />
+      </Modal>
+
+      {/* Modal de éxito */}
+      <EditSuccess
+        isOpen={isSuccessModalOpen}
+        onContinue={handleSuccessContinue}
+        updatedFields={updatedFields}
+        childName={child.name}
+      />
     </div>
   )
 }

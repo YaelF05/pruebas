@@ -54,11 +54,11 @@ export interface ChildFormErrors {
 }
 
 export interface UpdateChildData {
+  childId: number
   name?: string
   lastName?: string
   gender?: 'M' | 'F'
   birthDate?: string
-  dentistId?: number
   morningBrushingTime?: string
   afternoonBrushingTime?: string
   nightBrushingTime?: string
