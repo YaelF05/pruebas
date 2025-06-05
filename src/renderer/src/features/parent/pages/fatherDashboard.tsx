@@ -10,7 +10,6 @@ import {
   getTodayBrushRecordsService,
   getWeeklyBrushRecordsService,
   createBrushRecordService,
-  deleteBrushRecordService,
   BrushRecord
 } from '../services/brushService'
 import styles from '../styles/fatherDashboard.module.css'
@@ -181,7 +180,10 @@ const HomePage: FC = () => {
       date.setDate(firstDayOfWeek.getDate() + i)
       const dayStr = date.toISOString().substring(0, 10)
 
-      const dayRecords = records.filter((record) => record.brushDatetime.startsWith(dayStr))
+      const dayRecords = records.filter((record) => {
+        const recordDate = new Date(record.brushDatetime).toISOString().substring(0, 10)
+        return recordDate === dayStr
+      })
 
       const morningCompleted = dayRecords.some((record) => {
         const hour = new Date(record.brushDatetime).getHours()
@@ -218,51 +220,34 @@ const HomePage: FC = () => {
     if (!currentData) return
 
     const currentStatus = currentData.todayBrushing[time]
-    const newStatus = currentStatus === 'pending' ? 'completed' : 'pending'
 
     try {
-      if (newStatus === 'completed') {
-        const brushDatetime = new Date()
-        if (time === 'morning') {
-          brushDatetime.setHours(8, 0, 0)
-        } else if (time === 'afternoon') {
-          brushDatetime.setHours(14, 0, 0)
-        } else {
-          brushDatetime.setHours(20, 0, 0)
+      if (currentStatus === 'pending') {
+        // Crear un nuevo registro de cepillado
+        await createBrushRecordService(selectedChild.childId)
+
+        // Recargar los datos de cepillado
+        const todayRecords = await getTodayBrushRecordsService(selectedChild.childId)
+        const weeklyRecords = await getWeeklyBrushRecordsService(selectedChild.childId)
+
+        const updatedChildData: ChildBrushingData = {
+          todayBrushing: getBrushingStatusFromRecords(todayRecords),
+          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
+          todayRecords: todayRecords
         }
 
-        await createBrushRecordService(selectedChild.childId, brushDatetime.toISOString())
-      } else {
-        const recordToDelete = currentData.todayRecords.find((record) => {
-          const hour = new Date(record.brushDatetime).getHours()
-          if (time === 'morning') return hour >= 6 && hour < 12
-          if (time === 'afternoon') return hour >= 12 && hour < 18
-          if (time === 'night') return hour >= 18 || hour < 6
-          return false
-        })
-
-        if (recordToDelete) {
-          await deleteBrushRecordService(recordToDelete.brushId)
-        }
+        setChildrenBrushingData((prev) => ({
+          ...prev,
+          [selectedChild.childId]: updatedChildData
+        }))
       }
-
-      // Recargar los datos de cepillado
-      const todayRecords = await getTodayBrushRecordsService(selectedChild.childId)
-      const weeklyRecords = await getWeeklyBrushRecordsService(selectedChild.childId)
-
-      const updatedChildData: ChildBrushingData = {
-        todayBrushing: getBrushingStatusFromRecords(todayRecords),
-        weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords),
-        todayRecords: todayRecords
-      }
-
-      setChildrenBrushingData((prev) => ({
-        ...prev,
-        [selectedChild.childId]: updatedChildData
-      }))
+      // Si ya está completado, no se puede desmarcar (no hay endpoint para eliminar)
     } catch (error) {
       console.error('Error al actualizar estado de cepillado:', error)
-      alert('Error al actualizar el estado de cepillado')
+      alert(
+        'Error al actualizar el estado de cepillado: ' +
+          (error instanceof Error ? error.message : 'Error desconocido')
+      )
     }
   }
 

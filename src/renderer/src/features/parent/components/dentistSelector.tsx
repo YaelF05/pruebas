@@ -83,7 +83,7 @@ const DentistSelector: React.FC<DentistSelectorProps> = ({
     }
 
     fetchDentists()
-  }, [useGeolocation, maxDistance])
+  }, [useGeolocation, maxDistance, onError])
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
     const value = Number(e.target.value)
