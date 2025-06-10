@@ -4,8 +4,10 @@ import BackButton from '@renderer/components/backButton'
 import Modal from '../components/modal'
 import EditChildForm from '../components/editChildForm'
 import EditSuccess from '../components/editSuccess'
+import AppointmentHistory from '../components/appointmentHistoryCard'
 import { getChildByIdService, ChildResponse } from '../services/childService'
 import { getDentistByIdService, DentistResponse } from '../services/dentistService'
+import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
 import styles from '../styles/childDetail.module.css'
 import ProfileAvatar from '@renderer/assets/images/profile-icon-9.png'
 
@@ -14,7 +16,9 @@ const ChildDetail: React.FC = () => {
 
   const [child, setChild] = useState<ChildResponse | null>(null)
   const [dentist, setDentist] = useState<DentistResponse | null>(null)
+  const [appointments, setAppointments] = useState<AppointmentResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingAppointments, setIsLoadingAppointments] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -46,6 +50,22 @@ const ChildDetail: React.FC = () => {
           console.warn('No se pudo cargar información del dentista:', dentistError)
           setDentist(null)
         }
+      }
+
+      setIsLoadingAppointments(true)
+      try {
+        const allAppointments = await getAppointmentsService(1, 100)
+
+        const childAppointments = allAppointments.filter(
+          (appointment) => appointment.childId === id && appointment.isActive === true
+        )
+
+        setAppointments(childAppointments)
+      } catch (appointmentsError) {
+        console.warn('No se pudieron cargar las citas del niño:', appointmentsError)
+        setAppointments([])
+      } finally {
+        setIsLoadingAppointments(false)
       }
     } catch (error) {
       console.error('Error al cargar datos del niño:', error)
@@ -110,14 +130,6 @@ const ChildDetail: React.FC = () => {
     setIsSuccessModalOpen(false)
     setUpdatedFields([])
   }
-
-  /*
-  const handleDelete = (): void => {
-    if (confirm('¿Estás seguro de que deseas eliminar este niño?')) {
-      alert('Función de eliminar')
-    }
-  }
-  */
 
   if (isLoading) {
     return <div className={styles.loading}>Cargando...</div>
@@ -196,13 +208,8 @@ const ChildDetail: React.FC = () => {
 
       {/* Sección de historias clínicas */}
       <div className={styles.clinicalHistorySection}>
-        <h2 className={styles.sectionTitle}>Historias clínicas del hijo</h2>
-        <div className={styles.searchBar}>
-          <input type="text" placeholder="Buscar fecha" className={styles.searchInput} />
-        </div>
-        <div className={styles.appointmentCards}>
-          {/* Espacio para las citas - se llenará dinámicamente */}
-        </div>
+        <h2 className={styles.sectionTitle}>Historial de citas</h2>
+        <AppointmentHistory appointments={appointments} isLoading={isLoadingAppointments} />
       </div>
 
       {/* Modal de edición */}

@@ -263,6 +263,48 @@ export async function getAppointmentsService(
   }
 }
 
+export async function getChildAppointmentsService(childId: number): Promise<AppointmentResponse[]> {
+  try {
+    const authToken = localStorage.getItem('authToken')
+
+    if (!authToken) {
+      throw new Error(
+        'No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.'
+      )
+    }
+
+    const response = await fetch(`${API_BASE_URL}/appointment?childId=${childId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${authToken}`
+      }
+    })
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return []
+      }
+      throw new Error(`Error al obtener las citas: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (Array.isArray(data)) {
+      return data as AppointmentResponse[]
+    } else if (data.items && Array.isArray(data.items)) {
+      return data.items as AppointmentResponse[]
+    } else {
+      return []
+    }
+  } catch (error) {
+    console.error('Error en getChildAppointmentsService:', error)
+    if (error instanceof Error && error.message.includes('token')) throw error
+    console.warn('Error de red al obtener citas del hijo, retornando array vacío')
+    return []
+  }
+}
+
 export async function getAppointmentByIdService(
   appointmentId: number
 ): Promise<AppointmentResponse> {

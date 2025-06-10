@@ -1,0 +1,35 @@
+.appointmentCard {
+  background-color: #e8f5e8;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.appointmentCard:hover {
+  background-color: #d4edda;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.appointmentContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.appointmentTitle {
+  font-weight: 600;
+  font-size: 16px;
+  color: #2d3436;
+  line-height: 1.4;
+}
+
+.appointmentReason {
+  font-size: 14px;
+  color: #636e72;
+  line-height: 1.4;
+  margin-top: 4px;
+}
