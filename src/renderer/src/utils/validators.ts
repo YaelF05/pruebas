@@ -223,7 +223,8 @@ export function validateServiceEndTime(serviceEndTime: string): string | null {
 }
 
 /**
- * Validate a address.
+ * Validate an address based on OpenStreetMap main tags structure.
+ * Expected format: "house_number, street, city, postcode, country"
  *
  * @param address Address to validate.
  * @returns An error message if the address is not valid, or 'null' if it is valid.
@@ -239,21 +240,128 @@ export function validateAddress(address: string): string | null {
     return 'La dirección debe tener menos de 255 caracteres'
   }
 
-  // Verifica que haya al menos 2 comas para suponer que hay calle, ciudad y país
+  // Split by commas and clean parts
   const parts = trimmed
     .split(',')
     .map((p) => p.trim())
     .filter((p) => p)
-  if (parts.length < 3) {
-    return 'La dirección debe incluir al menos calle, ciudad y país (separados por comas)'
+
+  // Debe tener al menos 4 partes: número, calle, ciudad, país (código postal opcional)
+  if (parts.length < 4) {
+    return 'La dirección debe incluir al menos: número, calle, ciudad y país (separados por comas)'
   }
 
-  // Validación opcional: al menos una palabra por segmento
-  if (parts.some((p) => p.length < 2)) {
-    return 'Cada parte de la dirección debe contener al menos 2 caracteres'
+  if (parts.length > 5) {
+    return 'La dirección tiene demasiados elementos. Formato esperado: número, calle, ciudad, [código postal], país'
+  }
+
+  const [houseNumber, street, city, ...remaining] = parts
+  let postcode: string | undefined
+  let country: string
+
+  // Determinar si hay código postal
+  if (remaining.length === 2) {
+    ;[postcode, country] = remaining
+  } else if (remaining.length === 1) {
+    country = remaining[0]
+  } else {
+    return 'Formato de dirección inválido'
+  }
+
+  // Validar número de casa (addr:housenumber)
+  if (!houseNumber || houseNumber.length < 1) {
+    return 'El número de casa es requerido'
+  }
+
+  // Validar que el número contenga al menos un dígito
+  if (!/\d/.test(houseNumber)) {
+    return 'El número de casa debe contener al menos un dígito'
+  }
+
+  // Validar calle (addr:street)
+  if (!street || street.length < 2) {
+    return 'El nombre de la calle debe tener al menos 2 caracteres'
+  }
+
+  // Validar ciudad (addr:city)
+  if (!city || city.length < 2) {
+    return 'El nombre de la ciudad debe tener al menos 2 caracteres'
+  }
+
+  // Validar código postal (addr:postcode) si está presente
+  if (postcode) {
+    if (postcode.length < 3 || postcode.length > 10) {
+      return 'El código postal debe tener entre 3 y 10 caracteres'
+    }
+    // Validar que contenga al menos un dígito
+    if (!/\d/.test(postcode)) {
+      return 'El código postal debe contener al menos un dígito'
+    }
+  }
+
+  // Validar país (addr:country)
+  if (!country || country.length < 2) {
+    return 'El país debe tener al menos 2 caracteres'
+  }
+
+  // Validar que el país sea un código de 2 letras (ISO) o nombre completo
+  if (country.length === 2) {
+    if (!/^[A-Z]{2}$/i.test(country)) {
+      return 'El código de país debe ser de 2 letras (ej: MX, US, ES)'
+    }
+  } else if (country.length > 50) {
+    return 'El nombre del país es demasiado largo'
+  }
+
+  // Validar caracteres especiales problemáticos
+  const invalidChars = /[<>{}[\]\\|`~]/
+  if (parts.some((part) => invalidChars.test(part))) {
+    return 'La dirección contiene caracteres no válidos'
   }
 
   return null
+}
+
+/**
+ * Parse an address string into OpenStreetMap components.
+ *
+ * @param address Valid address string
+ * @returns Object with OSM address components or null if invalid
+ */
+export function parseAddressToOSM(address: string): {
+  housenumber: string
+  street: string
+  city: string
+  postcode?: string
+  country: string
+} | null {
+  const validationError = validateAddress(address)
+  if (validationError) {
+    return null
+  }
+
+  const parts = address
+    .split(',')
+    .map((p) => p.trim())
+    .filter((p) => p)
+
+  const [houseNumber, street, city, ...remaining] = parts
+  let postcode: string | undefined
+  let country: string
+
+  if (remaining.length === 2) {
+    ;[postcode, country] = remaining
+  } else {
+    country = remaining[0]
+  }
+
+  return {
+    housenumber: houseNumber,
+    street: street,
+    city: city,
+    ...(postcode && { postcode }),
+    country: country
+  }
 }
 
 /**

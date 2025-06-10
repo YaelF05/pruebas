@@ -1,3 +1,13 @@
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: var(--font-size-title1);
+  color: var(--neutral-normal);
+  font-family: var(--Quicksand);
+}
+
 .pageWrapper {
   display: flex;
   justify-content: center;

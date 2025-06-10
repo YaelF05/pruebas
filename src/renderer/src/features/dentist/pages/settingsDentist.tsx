@@ -6,12 +6,11 @@ import Button from '@renderer/components/button'
 
 const Patients: React.FC = () => {
   const handleLogout = (): void => {
-    // Aquí puedes implementar la lógica para cerrar sesión
-    console.log('Cerrar sesión')
+    localStorage.clear()
+    window.location.href = '/'
   }
 
   const handleDeleteAccount = (): void => {
-    // Aquí puedes implementar la lógica para eliminar la cuenta
     console.log('Eliminar cuenta')
   }
 
@@ -23,11 +22,11 @@ const Patients: React.FC = () => {
             <h1>Configuraciones</h1>
             <div className={styles.changeEmail}>
               <p>Cambiar correo electronico</p>
-              <img src={ArrowBack} alt="flecha" />
+              <img src={ArrowBack} alt="Boton regresar" />
             </div>
             <div className={styles.changePassword}>
               <p>Cambiar contraseña</p>
-              <img src={ArrowBack} alt="flecha" />
+              <img src={ArrowBack} alt="Boton regresar" />
             </div>
           </div>
           <div className={styles.buttons}>

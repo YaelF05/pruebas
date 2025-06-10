@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { signupService } from '../services/signupService'
-import { loginService } from '../services/loginService'
+import { useAuth } from '../hooks/useAuth'
 import { SignupCredentials, LoginCredentials } from '../types/authTypes'
 import {
   validateType,
@@ -26,6 +26,7 @@ const Signup = (): React.JSX.Element => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const { login } = useAuth()
   const [errors, setErrors] = useState<{
     type?: string
     name?: string
@@ -90,18 +91,20 @@ const Signup = (): React.JSX.Element => {
       confirmPassword
     }
 
-    const credentialsLogin: LoginCredentials = {
-      email,
-      password
-    }
+    const credentialsLogin: LoginCredentials = { email, password }
 
     try {
       await signupService(credentials)
 
-      const result = await loginService(credentialsLogin)
-      if (result.userType === 'DENTIST') {
+      const loginResult = await login(credentialsLogin)
+
+      console.log('localStorage authToken:', localStorage.getItem('authToken'))
+      console.log('localStorage authExpiration:', localStorage.getItem('authExpiration'))
+      console.log('localStorage userType:', localStorage.getItem('userType'))
+
+      if (loginResult.userType === 'DENTIST') {
         navigate('/formDentist')
-      } else if (result.userType === 'FATHER') {
+      } else if (loginResult.userType === 'FATHER') {
         navigate('/formFather')
       }
     } catch (error) {

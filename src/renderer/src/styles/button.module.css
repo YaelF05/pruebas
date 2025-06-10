@@ -8,3 +8,7 @@
   color: var(--primary-light);
   border-radius: 10px;
 }
+
+.button:hover {
+  background-color: var(--primary-dark);
+}

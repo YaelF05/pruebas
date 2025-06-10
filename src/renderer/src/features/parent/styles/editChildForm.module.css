@@ -89,7 +89,6 @@
   font-size: var(--font-size-title1);
 }
 
-/* Estilo para campos con error */
 .formField input:invalid,
 .formField select:invalid {
   border-color: var(--error-primary);
