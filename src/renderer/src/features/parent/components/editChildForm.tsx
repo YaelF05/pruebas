@@ -49,7 +49,7 @@ const EditChildForm = ({ child, onCancel, onSuccess }: EditChildFormProps): Reac
     { label: 'Masculino', value: 'M' }
   ]
 
-  const handleInputChange = (field: keyof typeof formData, value: string) => {
+  const handleInputChange = (field: keyof typeof formData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setSubmitError(null)
 

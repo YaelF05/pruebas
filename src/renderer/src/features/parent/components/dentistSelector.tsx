@@ -96,7 +96,6 @@ const DentistSelector: React.FC<DentistSelectorProps> = ({
   const retryFetch = (): void => {
     setError(null)
     setLoading(true)
-    // Re-trigger useEffect
     window.location.reload()
   }
 

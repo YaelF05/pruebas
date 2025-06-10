@@ -103,7 +103,6 @@ const ProfileSelection: FC = () => {
 
   const handleProfileSelect = (profile: Profile): void => {
     if (profile.type === 'FATHER') {
-      // Guardar perfil seleccionado en localStorage
       localStorage.setItem(
         'selectedProfile',
         JSON.stringify({
@@ -116,7 +115,6 @@ const ProfileSelection: FC = () => {
 
       navigate('/fatherDashboard')
     } else {
-      // Guardar perfil del hijo seleccionado
       localStorage.setItem(
         'selectedProfile',
         JSON.stringify({

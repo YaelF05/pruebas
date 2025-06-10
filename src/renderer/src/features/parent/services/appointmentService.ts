@@ -170,12 +170,10 @@ class ResponseProcessor {
 
     const response = data as AppointmentApiResponse
 
-    // Check if it's a paginated response
     if ('items' in response && Array.isArray(response.items)) {
       return response.items
     }
 
-    // Check if it's a direct array
     if (Array.isArray(response)) {
       return response
     }

@@ -36,6 +36,21 @@ interface ChildBrushingData {
   todayBrushing: BrushingStatus
   weeklyBrushing: DayBrushing[]
   todayRecords: BrushRecord[]
+  brushTypeMap: {
+    morning: string[]
+    afternoon: string[]
+    night: string[]
+  }
+}
+
+interface ChildBrushingState {
+  [childId: number]: {
+    [date: string]: {
+      morning: boolean
+      afternoon: boolean
+      night: boolean
+    }
+  }
 }
 
 const HomePage: FC = () => {
@@ -53,73 +68,50 @@ const HomePage: FC = () => {
     [key: number]: ChildBrushingData
   }>({})
 
+  const [manualBrushingState, setManualBrushingState] = useState<ChildBrushingState>({})
+
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number)
-    return hours * 60 + minutes
+  const getDateString = (date: Date = new Date()): string => {
+    return date.toISOString().split('T')[0]
   }
 
-  const isTimeNear = (
-    recordTime: string,
-    scheduledTime: string,
-    toleranceMinutes: number = 120
-  ): boolean => {
-    const recordMinutes = timeToMinutes(recordTime)
-    const scheduledMinutes = timeToMinutes(scheduledTime)
-    return Math.abs(recordMinutes - scheduledMinutes) <= toleranceMinutes
-  }
-
-  const determineBrushType = (
-    recordDatetime: string,
-    child: ChildResponse
-  ): 'morning' | 'afternoon' | 'night' | null => {
-    const recordTime = new Date(recordDatetime).toTimeString().slice(0, 5)
-
-    if (isTimeNear(recordTime, child.morningBrushingTime, 120)) {
-      return 'morning'
-    }
-    if (isTimeNear(recordTime, child.afternoonBrushingTime, 120)) {
-      return 'afternoon'
-    }
-    if (isTimeNear(recordTime, child.nightBrushingTime, 120)) {
-      return 'night'
-    }
-
-    return null
-  }
-
-  const getBrushingStatusFromRecords = (
-    records: BrushRecord[],
-    child: ChildResponse
-  ): BrushingStatus => {
-    const today = new Date().toISOString().split('T')[0]
-
-    const todayRecords = records.filter((record) => {
-      const recordDate = new Date(record.brushDatetime).toISOString().split('T')[0]
-      return recordDate === today
-    })
-
-    const completedTypes = new Set<string>()
-
-    todayRecords.forEach((record) => {
-      const brushType = determineBrushType(record.brushDatetime, child)
-      if (brushType) {
-        completedTypes.add(brushType)
+  const initializeChildBrushingState = (childId: number, date: string = getDateString()): void => {
+    setManualBrushingState((prev) => ({
+      ...prev,
+      [childId]: {
+        ...prev[childId],
+        [date]: prev[childId]?.[date] || {
+          morning: false,
+          afternoon: false,
+          night: false
+        }
       }
-    })
+    }))
+  }
+
+  const getBrushingStatusFromState = (
+    childId: number,
+    date: string = getDateString()
+  ): BrushingStatus => {
+    const state = manualBrushingState[childId]?.[date]
+
+    if (!state) {
+      return {
+        morning: 'pending',
+        afternoon: 'pending',
+        night: 'pending'
+      }
+    }
 
     return {
-      morning: completedTypes.has('morning') ? 'completed' : 'pending',
-      afternoon: completedTypes.has('afternoon') ? 'completed' : 'pending',
-      night: completedTypes.has('night') ? 'completed' : 'pending'
+      morning: state.morning ? 'completed' : 'pending',
+      afternoon: state.afternoon ? 'completed' : 'pending',
+      night: state.night ? 'completed' : 'pending'
     }
   }
 
-  const generateWeeklyBrushingFromRecords = (
-    records: BrushRecord[],
-    child: ChildResponse
-  ): DayBrushing[] => {
+  const generateWeeklyBrushingFromState = (childId: number): DayBrushing[] => {
     const days: DayBrushing[] = []
     const today = new Date()
 
@@ -131,33 +123,65 @@ const HomePage: FC = () => {
     for (let i = 0; i < 7; i++) {
       const date = new Date(firstDayOfWeek)
       date.setDate(firstDayOfWeek.getDate() + i)
-      const dayStr = date.toISOString().substring(0, 10)
+      const dayStr = getDateString(date)
 
-      const dayRecords = records.filter((record) => {
-        const recordDate = new Date(record.brushDatetime).toISOString().substring(0, 10)
-        return recordDate === dayStr
-      })
-
-      const completedTypes = new Set<string>()
-
-      dayRecords.forEach((record) => {
-        const brushType = determineBrushType(record.brushDatetime, child)
-        if (brushType) {
-          completedTypes.add(brushType)
-        }
-      })
+      const status = getBrushingStatusFromState(childId, dayStr)
 
       days.push({
         date,
-        status: {
-          morning: completedTypes.has('morning') ? 'completed' : 'pending',
-          afternoon: completedTypes.has('afternoon') ? 'completed' : 'pending',
-          night: completedTypes.has('night') ? 'completed' : 'pending'
-        }
+        status
       })
     }
 
     return days
+  }
+
+  const loadBrushingStateFromRecords = async (childId: number): Promise<void> => {
+    try {
+      const weeklyRecords = await getWeeklyBrushRecordsService(childId)
+
+      const recordsByDate: { [date: string]: BrushRecord[] } = {}
+      weeklyRecords.forEach((record) => {
+        const recordDate = getDateString(new Date(record.brushDatetime))
+        if (!recordsByDate[recordDate]) {
+          recordsByDate[recordDate] = []
+        }
+        recordsByDate[recordDate].push(record)
+      })
+
+      const today = new Date()
+      const firstDayOfWeek = new Date(today)
+      const dayOfWeek = today.getDay()
+      const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1)
+      firstDayOfWeek.setDate(diff)
+
+      const newState: { [date: string]: { morning: boolean; afternoon: boolean; night: boolean } } =
+        {}
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(firstDayOfWeek)
+        date.setDate(firstDayOfWeek.getDate() + i)
+        const dayStr = getDateString(date)
+
+        const dayRecords = recordsByDate[dayStr] || []
+
+        newState[dayStr] = {
+          morning: dayRecords.length >= 1,
+          afternoon: dayRecords.length >= 2,
+          night: dayRecords.length >= 3
+        }
+      }
+
+      setManualBrushingState((prev) => ({
+        ...prev,
+        [childId]: {
+          ...prev[childId],
+          ...newState
+        }
+      }))
+    } catch (error) {
+      console.error('Error al cargar estado de cepillado:', error)
+    }
   }
 
   useEffect(() => {
@@ -172,31 +196,9 @@ const HomePage: FC = () => {
         if (childrenData.length > 0) {
           setSelectedChild(childrenData[0])
 
-          try {
-            const brushingDataPromises = childrenData.map(async (child) => {
-              const todayRecords = await getTodayBrushRecordsService(child.childId)
-              const weeklyRecords = await getWeeklyBrushRecordsService(child.childId)
-
-              return {
-                childId: child.childId,
-                data: {
-                  todayBrushing: getBrushingStatusFromRecords(todayRecords, child),
-                  weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords, child),
-                  todayRecords: todayRecords
-                }
-              }
-            })
-
-            const brushingResults = await Promise.all(brushingDataPromises)
-            const brushingData: { [key: number]: ChildBrushingData } = {}
-
-            brushingResults.forEach((result) => {
-              brushingData[result.childId] = result.data
-            })
-
-            setChildrenBrushingData(brushingData)
-          } catch (error) {
-            console.error('Error al cargar datos de cepillado:', error)
+          for (const child of childrenData) {
+            initializeChildBrushingState(child.childId)
+            await loadBrushingStateFromRecords(child.childId)
           }
         }
       } catch (error) {
@@ -210,6 +212,32 @@ const HomePage: FC = () => {
     fetchInitialData()
   }, [])
 
+  useEffect(() => {
+    if (!selectedChild) return
+
+    const updateChildBrushingData = (): void => {
+      const todayStr = getDateString()
+      const todayBrushing = getBrushingStatusFromState(selectedChild.childId, todayStr)
+      const weeklyBrushing = generateWeeklyBrushingFromState(selectedChild.childId)
+
+      setChildrenBrushingData((prev) => ({
+        ...prev,
+        [selectedChild.childId]: {
+          todayBrushing,
+          weeklyBrushing,
+          todayRecords: prev[selectedChild.childId]?.todayRecords || [],
+          brushTypeMap: prev[selectedChild.childId]?.brushTypeMap || {
+            morning: [],
+            afternoon: [],
+            night: []
+          }
+        }
+      }))
+    }
+
+    updateChildBrushingData()
+  }, [manualBrushingState, selectedChild])
+
   const handleChildCreated = async (): Promise<void> => {
     try {
       setIsCreatingChild(true)
@@ -222,19 +250,8 @@ const HomePage: FC = () => {
         const lastChild = updatedChildren[updatedChildren.length - 1]
         setSelectedChild(lastChild)
 
-        const todayRecords = await getTodayBrushRecordsService(lastChild.childId)
-        const weeklyRecords = await getWeeklyBrushRecordsService(lastChild.childId)
-
-        const newBrushingData: ChildBrushingData = {
-          todayBrushing: getBrushingStatusFromRecords(todayRecords, lastChild),
-          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords, lastChild),
-          todayRecords: todayRecords
-        }
-
-        setChildrenBrushingData((prev) => ({
-          ...prev,
-          [lastChild.childId]: newBrushingData
-        }))
+        initializeChildBrushingState(lastChild.childId)
+        await loadBrushingStateFromRecords(lastChild.childId)
       }
 
       setIsModalOpen(false)
@@ -249,31 +266,53 @@ const HomePage: FC = () => {
   const updateTodayBrushing = async (time: 'morning' | 'afternoon' | 'night'): Promise<void> => {
     if (!selectedChild) return
 
-    const currentData = childrenBrushingData[selectedChild.childId]
-    if (!currentData) return
-
-    const currentStatus = currentData.todayBrushing[time]
+    const todayStr = getDateString()
+    const currentState = manualBrushingState[selectedChild.childId]?.[todayStr]?.[time]
 
     try {
-      if (currentStatus === 'pending') {
+      if (!currentState) {
+        setManualBrushingState((prev) => ({
+          ...prev,
+          [selectedChild.childId]: {
+            ...prev[selectedChild.childId],
+            [todayStr]: {
+              ...prev[selectedChild.childId]?.[todayStr],
+              [time]: true
+            }
+          }
+        }))
+
         await createBrushRecordService(selectedChild.childId)
 
-        const todayRecords = await getTodayBrushRecordsService(selectedChild.childId)
-        const weeklyRecords = await getWeeklyBrushRecordsService(selectedChild.childId)
-
-        const updatedChildData: ChildBrushingData = {
-          todayBrushing: getBrushingStatusFromRecords(todayRecords, selectedChild),
-          weeklyBrushing: generateWeeklyBrushingFromRecords(weeklyRecords, selectedChild),
-          todayRecords: todayRecords
+        try {
+          const todayRecords = await getTodayBrushRecordsService(selectedChild.childId)
+          setChildrenBrushingData((prev) => ({
+            ...prev,
+            [selectedChild.childId]: {
+              ...prev[selectedChild.childId],
+              todayRecords
+            }
+          }))
+        } catch (recordError) {
+          console.warn('Error al actualizar registros del día:', recordError)
         }
-
-        setChildrenBrushingData((prev) => ({
-          ...prev,
-          [selectedChild.childId]: updatedChildData
-        }))
+      } else {
+        console.log(`El cepillado de ${time} ya está completado`)
       }
     } catch (error) {
       console.error('Error al actualizar estado de cepillado:', error)
+
+      setManualBrushingState((prev) => ({
+        ...prev,
+        [selectedChild.childId]: {
+          ...prev[selectedChild.childId],
+          [todayStr]: {
+            ...prev[selectedChild.childId]?.[todayStr],
+            [time]: false
+          }
+        }
+      }))
+
       alert(
         'Error al actualizar el estado de cepillado: ' +
           (error instanceof Error ? error.message : 'Error desconocido')
@@ -326,7 +365,12 @@ const HomePage: FC = () => {
           night: 'pending'
         },
         weeklyBrushing: [],
-        todayRecords: []
+        todayRecords: [],
+        brushTypeMap: {
+          morning: [],
+          afternoon: [],
+          night: []
+        }
       }
     }
     return childrenBrushingData[selectedChild.childId]
@@ -340,6 +384,15 @@ const HomePage: FC = () => {
   const handleCloseModal = (): void => {
     setAddChildError(null)
     setIsModalOpen(false)
+  }
+
+  const handleChildSelection = async (child: ChildResponse): Promise<void> => {
+    setSelectedChild(child)
+
+    if (!manualBrushingState[child.childId]) {
+      initializeChildBrushingState(child.childId)
+      await loadBrushingStateFromRecords(child.childId)
+    }
   }
 
   const currentBrushingData = getCurrentChildBrushingData()
@@ -383,7 +436,7 @@ const HomePage: FC = () => {
                 key={child.childId}
                 child={child}
                 isSelected={selectedChild?.childId === child.childId}
-                onClick={() => setSelectedChild(child)}
+                onClick={() => handleChildSelection(child)}
                 formatAge={formatAge}
               />
             ))}
