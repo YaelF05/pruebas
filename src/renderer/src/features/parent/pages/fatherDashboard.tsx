@@ -73,7 +73,10 @@ const HomePage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const getDateString = (date: Date = new Date()): string => {
-    return date.toISOString().split('T')[0]
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
   const initializeChildBrushingState = (childId: number, date: string = getDateString()): void => {
@@ -172,13 +175,30 @@ const HomePage: FC = () => {
         }
       }
 
-      setManualBrushingState((prev) => ({
-        ...prev,
-        [childId]: {
-          ...prev[childId],
-          ...newState
+      setManualBrushingState((prev) => {
+        const currentState = { ...prev }
+
+        if (!currentState[childId]) {
+          currentState[childId] = {}
         }
-      }))
+
+        const todayStr = getDateString()
+
+        Object.keys(newState).forEach((dateStr) => {
+          if (dateStr === todayStr && currentState[childId][dateStr]) {
+            const localState = currentState[childId][dateStr]
+            const hasLocalChanges = localState.morning || localState.afternoon || localState.night
+
+            if (!hasLocalChanges) {
+              currentState[childId][dateStr] = newState[dateStr]
+            }
+          } else {
+            currentState[childId][dateStr] = newState[dateStr]
+          }
+        })
+
+        return currentState
+      })
     } catch (error) {
       console.error('Error al cargar estado de cepillado:', error)
     }
@@ -271,6 +291,7 @@ const HomePage: FC = () => {
 
     try {
       if (!currentState) {
+        // Actualizar el estado local primero
         setManualBrushingState((prev) => ({
           ...prev,
           [selectedChild.childId]: {
@@ -282,8 +303,10 @@ const HomePage: FC = () => {
           }
         }))
 
+        // Crear el registro en el backend
         await createBrushRecordService(selectedChild.childId)
 
+        // Actualizar los registros del día
         try {
           const todayRecords = await getTodayBrushRecordsService(selectedChild.childId)
           setChildrenBrushingData((prev) => ({
@@ -302,6 +325,7 @@ const HomePage: FC = () => {
     } catch (error) {
       console.error('Error al actualizar estado de cepillado:', error)
 
+      // Revertir el estado local en caso de error
       setManualBrushingState((prev) => ({
         ...prev,
         [selectedChild.childId]: {
@@ -389,6 +413,7 @@ const HomePage: FC = () => {
   const handleChildSelection = async (child: ChildResponse): Promise<void> => {
     setSelectedChild(child)
 
+    // Solo cargar datos del backend si no existen en el estado local
     if (!manualBrushingState[child.childId]) {
       initializeChildBrushingState(child.childId)
       await loadBrushingStateFromRecords(child.childId)
