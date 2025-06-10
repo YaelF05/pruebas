@@ -26,17 +26,6 @@ const AppointmentHistory: React.FC<AppointmentHistoryProps> = ({ appointments, i
     })
   }
 
-  const getStatusBadge = (appointmentDateTime: string): { text: string; className: string } => {
-    const appointmentDate = new Date(appointmentDateTime)
-    const now = new Date()
-
-    if (appointmentDate > now) {
-      return { text: 'Próxima', className: styles.statusUpcoming }
-    } else {
-      return { text: 'Pasada', className: styles.statusPast }
-    }
-  }
-
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -58,16 +47,17 @@ const AppointmentHistory: React.FC<AppointmentHistoryProps> = ({ appointments, i
   return (
     <div className={styles.container}>
       {appointments.map((appointment) => {
-        const status = getStatusBadge(appointment.appointmentDatetime)
-
         return (
           <div key={appointment.appointmentId} className={styles.appointmentCard}>
             <div className={styles.appointmentHeader}>
               <div className={styles.dateTime}>
-                <span className={styles.date}>{formatDate(appointment.appointmentDatetime)}</span>
-                <span className={styles.time}>{formatTime(appointment.appointmentDatetime)}</span>
+                <span className={styles.date}>
+                  Cita con fecha del {formatDate(appointment.appointmentDatetime)}
+                </span>
+                <span className={styles.time}>
+                  Hora de la cita {formatTime(appointment.appointmentDatetime)}
+                </span>
               </div>
-              <span className={`${styles.status} ${status.className}`}>{status.text}</span>
             </div>
 
             <div className={styles.appointmentBody}>
