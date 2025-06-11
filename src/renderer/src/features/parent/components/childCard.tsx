@@ -1,4 +1,3 @@
-// src/renderer/src/features/parent/components/childCard.tsx
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChildResponse } from '../types/childTypes'
@@ -26,7 +25,6 @@ const ChildCard: React.FC<ChildCardProps> = ({
 
     const date = new Date(dateStr)
 
-    // Verificar si la fecha es válida
     if (isNaN(date.getTime())) {
       return 'Sin cita programada'
     }
