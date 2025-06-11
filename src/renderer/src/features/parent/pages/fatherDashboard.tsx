@@ -6,6 +6,7 @@ import ChildCard from '../components/childCard'
 import Modal from '../components/modal'
 import AddChildForm from '../components/addChildForm'
 import { getChildrenService, ChildResponse } from '../services/childService'
+import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
 import {
   getTodayBrushRecordsService,
   getWeeklyBrushRecordsService,
@@ -53,11 +54,15 @@ interface ChildBrushingState {
   }
 }
 
+interface ChildWithNextAppointment extends ChildResponse {
+  nextAppointment?: string | null
+}
+
 const HomePage: FC = () => {
   const navigate = useNavigate()
 
-  const [children, setChildren] = useState<ChildResponse[]>([])
-  const [selectedChild, setSelectedChild] = useState<ChildResponse | null>(null)
+  const [children, setChildren] = useState<ChildWithNextAppointment[]>([])
+  const [selectedChild, setSelectedChild] = useState<ChildWithNextAppointment | null>(null)
   const [activeTab, setActiveTab] = useState<string>('inicio')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -184,19 +189,66 @@ const HomePage: FC = () => {
     }
   }
 
+  const getNextAppointmentForChild = (
+    childId: number,
+    appointments: AppointmentResponse[]
+  ): string | null => {
+    const now = new Date()
+
+    const futureAppointments = appointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.appointmentDatetime)
+      return appointment.childId === childId && appointment.isActive && appointmentDate > now
+    })
+
+    if (futureAppointments.length === 0) {
+      return null
+    }
+
+    const sortedAppointments = futureAppointments.sort((a, b) => {
+      const dateA = new Date(a.appointmentDatetime)
+      const dateB = new Date(b.appointmentDatetime)
+      return dateA.getTime() - dateB.getTime()
+    })
+
+    return sortedAppointments[0].appointmentDatetime
+  }
+
+  const loadChildrenWithAppointments = async (): Promise<ChildWithNextAppointment[]> => {
+    try {
+      const [childrenData, appointmentsData] = await Promise.all([
+        getChildrenService(),
+        getAppointmentsService(1, 100).catch(() => [])
+      ])
+
+      const childrenWithAppointments: ChildWithNextAppointment[] = childrenData.map((child) => ({
+        ...child,
+        nextAppointment: getNextAppointmentForChild(child.childId, appointmentsData)
+      }))
+
+      return childrenWithAppointments
+    } catch (error) {
+      console.error('Error al cargar niños con citas:', error)
+      const childrenData = await getChildrenService()
+      return childrenData.map((child) => ({
+        ...child,
+        nextAppointment: null
+      }))
+    }
+  }
+
   useEffect(() => {
     const fetchInitialData = async (): Promise<void> => {
       try {
         setIsLoading(true)
         setError(null)
 
-        const childrenData = await getChildrenService()
-        setChildren(childrenData)
+        const childrenWithAppointments = await loadChildrenWithAppointments()
+        setChildren(childrenWithAppointments)
 
-        if (childrenData.length > 0) {
-          setSelectedChild(childrenData[0])
+        if (childrenWithAppointments.length > 0) {
+          setSelectedChild(childrenWithAppointments[0])
 
-          for (const child of childrenData) {
+          for (const child of childrenWithAppointments) {
             initializeChildBrushingState(child.childId)
             await loadBrushingStateFromRecords(child.childId)
           }
@@ -243,11 +295,12 @@ const HomePage: FC = () => {
       setIsCreatingChild(true)
       setAddChildError(null)
 
-      const updatedChildren = await getChildrenService()
-      setChildren(updatedChildren)
+      const updatedChildrenWithAppointments = await loadChildrenWithAppointments()
+      setChildren(updatedChildrenWithAppointments)
 
-      if (updatedChildren.length > 0) {
-        const lastChild = updatedChildren[updatedChildren.length - 1]
+      if (updatedChildrenWithAppointments.length > 0) {
+        const lastChild =
+          updatedChildrenWithAppointments[updatedChildrenWithAppointments.length - 1]
         setSelectedChild(lastChild)
 
         initializeChildBrushingState(lastChild.childId)
@@ -296,8 +349,6 @@ const HomePage: FC = () => {
         } catch (recordError) {
           console.warn('Error al actualizar registros del día:', recordError)
         }
-      } else {
-        console.log(`El cepillado de ${time} ya está completado`)
       }
     } catch (error) {
       console.error('Error al actualizar estado de cepillado:', error)
@@ -386,7 +437,7 @@ const HomePage: FC = () => {
     setIsModalOpen(false)
   }
 
-  const handleChildSelection = async (child: ChildResponse): Promise<void> => {
+  const handleChildSelection = async (child: ChildWithNextAppointment): Promise<void> => {
     setSelectedChild(child)
 
     if (!manualBrushingState[child.childId]) {
