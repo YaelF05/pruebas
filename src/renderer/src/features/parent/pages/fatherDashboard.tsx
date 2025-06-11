@@ -6,6 +6,7 @@ import ChildCard from '../components/childCard'
 import Modal from '../components/modal'
 import AddChildForm from '../components/addChildForm'
 import { getChildrenService, ChildResponse } from '../services/childService'
+import { getAppointmentsService, AppointmentResponse } from '../services/appointmentService'
 import {
   getTodayBrushRecordsService,
   getWeeklyBrushRecordsService,
@@ -53,11 +54,16 @@ interface ChildBrushingState {
   }
 }
 
+// Extendemos ChildResponse para incluir la próxima cita
+interface ChildWithNextAppointment extends ChildResponse {
+  nextAppointment: string | null
+}
+
 const HomePage: FC = () => {
   const navigate = useNavigate()
 
-  const [children, setChildren] = useState<ChildResponse[]>([])
-  const [selectedChild, setSelectedChild] = useState<ChildResponse | null>(null)
+  const [children, setChildren] = useState<ChildWithNextAppointment[]>([])
+  const [selectedChild, setSelectedChild] = useState<ChildWithNextAppointment | null>(null)
   const [activeTab, setActiveTab] = useState<string>('inicio')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -204,19 +210,49 @@ const HomePage: FC = () => {
     }
   }
 
+  const getNextAppointmentForChild = (
+    childId: number,
+    appointments: AppointmentResponse[]
+  ): string | null => {
+    const now = new Date()
+
+    const futureAppointments = appointments
+      .filter(
+        (appointment) =>
+          appointment.childId === childId &&
+          appointment.isActive &&
+          new Date(appointment.appointmentDatetime) > now
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.appointmentDatetime).getTime() - new Date(b.appointmentDatetime).getTime()
+      )
+
+    return futureAppointments.length > 0 ? futureAppointments[0].appointmentDatetime : null
+  }
+
   useEffect(() => {
     const fetchInitialData = async (): Promise<void> => {
       try {
         setIsLoading(true)
         setError(null)
 
-        const childrenData = await getChildrenService()
-        setChildren(childrenData)
+        const [childrenData, appointmentsData] = await Promise.all([
+          getChildrenService(),
+          getAppointmentsService(1, 100)
+        ])
 
-        if (childrenData.length > 0) {
-          setSelectedChild(childrenData[0])
+        const childrenWithAppointments: ChildWithNextAppointment[] = childrenData.map((child) => ({
+          ...child,
+          nextAppointment: getNextAppointmentForChild(child.childId, appointmentsData)
+        }))
 
-          for (const child of childrenData) {
+        setChildren(childrenWithAppointments)
+
+        if (childrenWithAppointments.length > 0) {
+          setSelectedChild(childrenWithAppointments[0])
+
+          for (const child of childrenWithAppointments) {
             initializeChildBrushingState(child.childId)
             await loadBrushingStateFromRecords(child.childId)
           }
@@ -263,11 +299,20 @@ const HomePage: FC = () => {
       setIsCreatingChild(true)
       setAddChildError(null)
 
-      const updatedChildren = await getChildrenService()
-      setChildren(updatedChildren)
+      const [updatedChildren, appointmentsData] = await Promise.all([
+        getChildrenService(),
+        getAppointmentsService(1, 100)
+      ])
 
-      if (updatedChildren.length > 0) {
-        const lastChild = updatedChildren[updatedChildren.length - 1]
+      const childrenWithAppointments: ChildWithNextAppointment[] = updatedChildren.map((child) => ({
+        ...child,
+        nextAppointment: getNextAppointmentForChild(child.childId, appointmentsData)
+      }))
+
+      setChildren(childrenWithAppointments)
+
+      if (childrenWithAppointments.length > 0) {
+        const lastChild = childrenWithAppointments[childrenWithAppointments.length - 1]
         setSelectedChild(lastChild)
 
         initializeChildBrushingState(lastChild.childId)
@@ -410,7 +455,7 @@ const HomePage: FC = () => {
     setIsModalOpen(false)
   }
 
-  const handleChildSelection = async (child: ChildResponse): Promise<void> => {
+  const handleChildSelection = async (child: ChildWithNextAppointment): Promise<void> => {
     setSelectedChild(child)
 
     // Solo cargar datos del backend si no existen en el estado local

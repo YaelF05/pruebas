@@ -1,10 +1,11 @@
+// src/renderer/src/features/parent/components/childCard.tsx
 import * as React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChildResponse } from '../types/childTypes'
 import styles from '../styles/childCard.module.css'
 
 interface ChildCardProps {
-  child: ChildResponse
+  child: ChildResponse & { nextAppointment?: string | null }
   isSelected: boolean
   onClick: () => void
   formatAge: (birthDate: string) => string
